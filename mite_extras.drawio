@@ -1,0 +1,99 @@
+<mxfile host="app.diagrams.net" modified="2024-05-23T17:58:40.670Z" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0" etag="ElQgH3bAHkydRhT3DU5W" version="24.4.6" type="device">
+  <diagram name="Page-1" id="HxHoh4WMnnDUh0jbaZsU">
+    <mxGraphModel dx="947" dy="507" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="wpEkIMy5H3dN2Coin1XA-2" target="wpEkIMy5H3dN2Coin1XA-44">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-2" value="main.py" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="355" y="280" width="140" height="180" as="geometry">
+            <mxRectangle x="340" y="300" width="80" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-3" value="ArgparseManager" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-2">
+          <mxGeometry y="30" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-7" value="InputManager" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-2">
+          <mxGeometry y="60" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-4" value="ValidationManager" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-2">
+          <mxGeometry y="90" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-5" value="ConversionManager" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-2">
+          <mxGeometry y="120" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-6" value="ExportManager" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-2">
+          <mxGeometry y="150" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-11" value="MITE/MIBiG JSON" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="110" y="250" width="140" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-12" value="1-n reactions" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-11">
+          <mxGeometry y="30" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-13" value="1-n reaction SMARTS" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-11">
+          <mxGeometry y="60" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-14" value="1-n SMILES pairs" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-11">
+          <mxGeometry y="90" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-15" value="CSV" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="390" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-16" value="ID_1..n,reactionSMARTS,SMILES_in,SMILES_out " style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-15">
+          <mxGeometry y="30" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=-0.01;entryY=0.7;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="wpEkIMy5H3dN2Coin1XA-15" target="wpEkIMy5H3dN2Coin1XA-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=-0.01;entryY=0.085;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="wpEkIMy5H3dN2Coin1XA-11" target="wpEkIMy5H3dN2Coin1XA-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-24" value="ArgparseManager" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="570" y="110" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-26" value="Parses the arguments" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-24">
+          <mxGeometry y="20" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-27" value="InputManager" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="570" y="190" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-28" value="&lt;div&gt;Parses the input files and builds&lt;/div&gt;&lt;div&gt;the internal data structure&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-27">
+          <mxGeometry y="20" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-29" value="ValidationManager" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="570" y="290" width="200" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-30" value="&lt;div&gt;Functionality to check if provided&lt;/div&gt;&lt;div&gt;reaciton SMARTS are formatted&lt;/div&gt;&lt;div&gt;properly, can call in&lt;/div&gt;&lt;div&gt;ConversionManager.&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-29">
+          <mxGeometry y="20" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-34" value="ConversionManager" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="570" y="440" width="200" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-35" value="&lt;div&gt;Functionality to convert&lt;/div&gt;&lt;div&gt;offending CXSMARTS decoration&lt;/div&gt;&lt;div&gt;(frequency variation, link groups) into canonical SMARTS (RDKit-accepted).&lt;/div&gt;&lt;div&gt;Not exhaustive, only covers &lt;br&gt;&lt;/div&gt;&lt;div&gt;what we currently define as &lt;br&gt;&lt;/div&gt;&lt;div&gt;accepted. Raises errors if not &lt;br&gt;&lt;/div&gt;able to convert" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-34">
+          <mxGeometry y="20" width="200" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="wpEkIMy5H3dN2Coin1XA-30" target="wpEkIMy5H3dN2Coin1XA-34">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="wpEkIMy5H3dN2Coin1XA-3" target="wpEkIMy5H3dN2Coin1XA-26">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="wpEkIMy5H3dN2Coin1XA-4" target="wpEkIMy5H3dN2Coin1XA-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-42" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=-0.002;entryY=0.459;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="wpEkIMy5H3dN2Coin1XA-5" target="wpEkIMy5H3dN2Coin1XA-30">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-44" value="ExportManager" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="325" y="520" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="wpEkIMy5H3dN2Coin1XA-45" value="Exports converted JSON/CSV" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="wpEkIMy5H3dN2Coin1XA-44">
+          <mxGeometry y="20" width="200" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
