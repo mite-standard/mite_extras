@@ -1,4 +1,4 @@
-MIT License
+"""Main entry point to mite_extras.
 
 Copyright (c) 2024 to present Mitja M. Zdouc and individual contributors.
 
@@ -19,3 +19,19 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+"""
+
+import logging
+import sys
+
+logger = logging.getLogger(__name__)
+
+
+def main_cli():
+    """Main function"""
+    print("Hello, world!")
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main_cli()
