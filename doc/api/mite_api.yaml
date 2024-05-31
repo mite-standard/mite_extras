@@ -1,0 +1,22 @@
+---
+openapi: 3.1.0
+info:
+  title: MITE FastAPI
+  description: "\nMiteFast API helps you do awesome stuff. \U0001F680\n"
+  license:
+    name: Apache 2.0
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+  version: "1.0"
+servers:
+  - url: "https://todo.mite.net/v1_0"
+paths:
+  /validate:
+    $ref: "./paths/validation/post.yaml"
+components:
+  schemas:
+    Item:
+      $ref: "./schemas/item.yaml"
+    ValidationResult:
+      $ref: "./schemas/validationResult.yaml"
+    HTTPValidationError:
+      $ref: "./schemas/validationError.yaml"
