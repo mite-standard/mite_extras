@@ -2,7 +2,6 @@ import json
 
 from rdkit.Chem import CanonSmiles, MolFromSmiles, MolToSmiles
 from rdkit.Chem.rdChemReactions import ReactionFromSmarts
-from rdkit.Chem.rdinchi import MolToInchiKey
 
 # ANSI escape codes for colors
 RED = "\033[91m"
