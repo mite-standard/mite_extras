@@ -1,8 +1,0 @@
-extends:
-  - recommended
-
-apis:
-  core@v2:
-    root: ./mite_api.yaml
-    rules:
-      no-ambiguous-paths: error

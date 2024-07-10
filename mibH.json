@@ -1,0 +1,131 @@
+{
+  "accession": "MITE0000002",
+  "changelog": {
+    "releases": [
+    {
+      "version": "next",
+      "date": "2024-03-15",
+      "entries": [
+        {
+          "contributors": ["AAAAAAAAAAAAAAAAAAAAAAAA"],
+          "reviewers": ["BBBBBBBBBBBBBBBBBBBBBBBB"],
+          "date": "2024-03-15",
+          "comment": "Initial entry."
+        }
+      ]
+    }
+  ]
+  },
+  "quality": "high",
+  "status": "pending",
+  "enzyme": {
+    "name": "MibH",
+    "description": "Tryptophan-5-Halogenase acting on deschloro-microbisporicin A2",
+    "databaseIds": [
+      "uniprot:E2IHC5",
+      "genpept:ADK32563.1"
+    ],
+    "auxiliary_enzymes": [
+      {
+        "name": "MibS",
+        "description": "Flavin reductase providing FADH2 supply for chlorination",
+        "databaseIds": [
+          "uniprot:E2IHC6",
+          "genpept:ADK32564.1"
+        ]
+      }
+    ],
+    "references": [
+      "doi:10.1021/acschembio.6b01031"
+    ]
+  },
+  "compounds": [
+    {
+      "name": "microbisporicin A2",
+      "synonyms": [
+        "NAI-107 A2"
+      ],
+      "classes": [
+        "peptide"
+      ],
+      "structure": "O=C(N[C@H](C(NC(C(N[C@H](C(N[C@H](C(N[C@H]([C@H](C)SC[C@@H](C(N[C@H]([C@H](O)C)C(N[C@@H](C(N1[C@H]2[C@@H](O)CC1)=O)CSC[C@H](NC([C@H](CC(N)=O)NC([C@H](NC(CNC(CNC(CNC2=O)=O)=O)=O)CSC[C@@H](C(N/C=C\\SC3)=O)NC4=O)=O)=O)C(N[C@@H]3C(N[C@@H]4CC5=CC=CC=C5)=O)=O)=O)=O)NC6=O)C(N7[C@H](C(NC6)=O)CCC7)=O)=O)CSC8)=O)CC(C)C)=O)=C)=O)CC9=CNC%10=C9C=C(Cl)C=C%10)[C@@H]8NC(/C(NC([C@H](C(C)C)N)=O)=C/C)=O",
+      "evidence": [
+        {
+          "method": "NMR",
+          "references": ["doi:10.1021/np400702t"]
+        }
+      ]
+    }
+  ],
+  "genomic_context": {
+    "classes": [
+      "Ribosomal"
+    ],
+    "accession_genome": {
+      "accessionID": "HM536998.1"
+    },
+    "taxonomy": {
+      "name": "Microbispora corallina NRRL 30420",
+      "ncbiTaxId": 83302
+    },
+    "databaseIds": [
+      "mibig:BGC0000529"
+    ],
+    "evidence": [
+      {
+        "method": "Knock-out studies",
+        "references": [
+          "doi:10.1128/jb.181.8.2659-2662.1999"
+        ]
+      }
+    ]
+  },
+  "reactions": [
+    {
+      "tailoring": [
+        {
+          "function": "Halogenation"
+        }
+      ],
+      "description": "Halogenation reaction of deschloro-microbisporicin A2",
+      "reactionSMARTS": {
+        "reactionSMARTS": "[#6]\\[#6]=[#6](/[#7]-[#6](=O)-[#6](-[#7])-[#6](-[#6])-[#6])-[#6](=O)-[#7]-[#6]-1-[#6]-[#16]-[#6]-[#6](-[#7]-[#6](=O)-[#6](-[#6]-[#6](-[#6])-[#6])-[#7]-[#6](=O)-[#6](=[#6])-[#7]-[#6](=O)-[#6](-[#6]-c2cnc3ccccc23)-[#7]-[#6]-1=O)-[#6](=O)-[#7]-[#6]-1-[#6](-[#6])-[#16]-[#6]-[#6](-[#7]-[#6](=O)-[#6]-[#7]-[#6](=O)-[#6]-2-[#6]-[#6]-[#6]-[#7]-2-[#6]-1=O)-[#6](=O)-[#7]-[#6](-[#6](-[#6])-[#8])-[#6](=O)-[#7]-[#6]-1-[#6]-[#16]-[#6]-[#6]-2-[#7]-[#6](=O)-[#6](-[#6]-[#6](-[#7])=O)-[#7]-[#6](=O)-[#6](-[#6]-[#16]-[#6]-[#6]-3-[#7]-[#6](=O)-[#6](-[#6]-c4ccccc4)-[#7]-[#6](=O)-[#6](-[#6]-[#16]\\[#6]=[#6]/[#7]-[#6]-3=O)-[#7]-[#6]-2=O)-[#7]-[#6](=O)-[#6]-[#7]-[#6](=O)-[#6]-[#7]-[#6](=O)-[#6]-[#7]-[#6](=O)-[#6]-2-[#6](-[#8])-[#6]-[#6]-[#7]-2-[#6]-1=O>>[#6]\\[#6]=[#6](/[#7]-[#6](=O)-[#6](-[#7])-[#6](-[#6])-[#6])-[#6](=O)-[#7]-[#6]-1-[#6]-[#16]-[#6]-[#6](-[#7]-[#6](=O)-[#6](-[#6]-[#6](-[#6])-[#6])-[#7]-[#6](=O)-[#6](=[#6])-[#7]-[#6](=O)-[#6](-[#6]-c2cnc3ccc(Cl)cc23)-[#7]-[#6]-1=O)-[#6](=O)-[#7]-[#6]-1-[#6](-[#6])-[#16]-[#6]-[#6](-[#7]-[#6](=O)-[#6]-[#7]-[#6](=O)-[#6]-2-[#6]-[#6]-[#6]-[#7]-2-[#6]-1=O)-[#6](=O)-[#7]-[#6](-[#6](-[#6])-[#8])-[#6](=O)-[#7]-[#6]-1-[#6]-[#16]-[#6]-[#6]-2-[#7]-[#6](=O)-[#6](-[#6]-[#6](-[#7])=O)-[#7]-[#6](=O)-[#6](-[#6]-[#16]-[#6]-[#6]-3-[#7]-[#6](=O)-[#6](-[#6]-c4ccccc4)-[#7]-[#6](=O)-[#6](-[#6]-[#16]\\[#6]=[#6]/[#7]-[#6]-3=O)-[#7]-[#6]-2=O)-[#7]-[#6](=O)-[#6]-[#7]-[#6](=O)-[#6]-[#7]-[#6](=O)-[#6]-[#7]-[#6](=O)-[#6]-2-[#6](-[#8])-[#6]-[#6]-[#7]-2-[#6]-1=O",
+        "isIterative": false,
+        "hasFrequencyVariation": false,
+        "hasPositionVariationBond": false,
+        "evidence": [
+          {
+            "evidenceCode": [
+              "Heterologous expression"
+            ],
+            "references": [
+              "doi:10.1021/acschembio.6b01031"
+            ]
+          }
+        ]
+      },
+      "validated_reactions": [
+        {
+          "substrate_(sub)structure": "C\\C=C(/NC(=O)C(N)C(C)C)C(=O)NC1CSCC(NC(=O)C(CC(C)C)NC(=O)C(=C)NC(=O)C(Cc2c[nH]c3ccccc23)NC1=O)C(=O)NC1C(C)SCC(NC(=O)CNC(=O)C2CCCN2C1=O)C(=O)NC(C(C)O)C(=O)NC1CSCC2NC(=O)C(CC(N)=O)NC(=O)C(CSCC3NC(=O)C(Cc4ccccc4)NC(=O)C(CS\\C=C/NC3=O)NC2=O)NC(=O)CNC(=O)CNC(=O)CNC(=O)C2C(O)CCN2C1=O",
+          "product_(sub)structure": [
+            "C\\C=C(/NC(=O)C(N)C(C)C)C(=O)NC1CSCC(NC(=O)C(CC(C)C)NC(=O)C(=C)NC(=O)C(Cc2c[nH]c3ccc(Cl)cc23)NC1=O)C(=O)NC1C(C)SCC(NC(=O)CNC(=O)C2CCCN2C1=O)C(=O)NC(C(C)O)C(=O)NC1CSCC2NC(=O)C(CC(N)=O)NC(=O)C(CSCC3NC(=O)C(Cc4ccccc4)NC(=O)C(CS\\C=C/NC3=O)NC2=O)NC(=O)CNC(=O)CNC(=O)CNC(=O)C2C(O)CCN2C1=O"
+          ],
+          "isBalanced": false,
+          "isAuthentic": true,
+          "isIntermediate": false,
+          "description": "Chlorination of deschloro-microbisporicin A2, leading to mature product.",
+          "evidence": [
+            {
+              "evidenceCode": [
+                "Heterologous expression"
+              ],
+              "references": [
+                "doi:10.1021/acschembio.6b01031"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

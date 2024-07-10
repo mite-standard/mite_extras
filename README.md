@@ -6,7 +6,7 @@ Validation and conversion functionality for reaction SMARTS collected in the sco
 ## Installation
 
 ### With `hatch` from GitHub
-- Install `python 3.11.x`
+- Install `python 3.12.x`
 - Install hatch (e.g. with `pipx install hatch`)
 - Download or clone the [repository](https://github.com/mmzdouc/mite_extras)
 - Run `hatch -v env create`

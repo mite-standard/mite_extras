@@ -1,5 +1,0 @@
-title: Item
-type: object
-properties:
-  validation:
-    $ref: "./validationItem.yaml"

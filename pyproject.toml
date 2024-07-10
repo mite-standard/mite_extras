@@ -1,15 +1,17 @@
 [project]
 name = "mite_extras"
 version = "0.0.1"
-description = "alidation and conversion functionality for reaction SMARTS collected in the scope of MITE"
+description = "Validation and conversion functionality for reaction SMARTS collected in the scope of MITE"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license-files = { paths = ["LICENSE"] }
 authors = [
-    { name = "Mitja M. Zdouc", email = "zdoucmm@gmail.com" }
-]
+    { name = "Mitja M. Zdouc", email = "zdoucmm@gmail.com" },
+    { name = "Adriano Rutz", email = "adafede@gmail.com" }
+    ]
 dependencies = [
     "argparse~=1.4.0",
+    "rdkit~=2024.3.3",
 ]
 
 [project.optional-dependencies]
@@ -46,7 +48,7 @@ pythonpath = [
 
 [tool.black]
 line-length = 88
-target-version = ["py311"]
+target-version = ["py312"]
 exclude = '''
 /(
     \.git

@@ -1,4 +1,0 @@
-item:
-  $ref: "./item.yaml"
-validationItem:
-  $ref: "./validationItem.yaml"

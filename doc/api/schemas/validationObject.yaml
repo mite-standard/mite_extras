@@ -1,8 +1,0 @@
-title: ValidationObject
-type: object
-properties:
-  result:
-    description: |
-      Result of the validation
-    example: true
-    type: boolean
