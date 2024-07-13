@@ -1,5 +1,6 @@
 import pytest
-from mite import ReactionValidator
+
+from mite_extras import ReactionValidator
 
 
 def test_validator():
