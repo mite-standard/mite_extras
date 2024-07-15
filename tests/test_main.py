@@ -1,5 +1,4 @@
 import pytest
-
 from mite_extras.main import main_cli
 
 

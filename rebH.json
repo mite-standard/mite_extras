@@ -1,0 +1,125 @@
+{
+  "accession": "MITE0000003",
+  "changelog": {
+    "releases": [
+    {
+      "version": "next",
+      "date": "2024-03-15",
+      "entries": [
+        {
+          "contributors": ["AAAAAAAAAAAAAAAAAAAAAAAA"],
+          "reviewers": ["BBBBBBBBBBBBBBBBBBBBBBBB"],
+          "date": "2024-03-15",
+          "comment": "Initial entry."
+        }
+      ]
+    }
+  ]
+  },
+  "quality": "high",
+  "status": "pending",
+  "enzyme": {
+    "name": "RebH",
+    "description": "Tryptophan-7-Halogenase acting on rebeccamycin",
+    "databaseIds": [
+      "uniprot:Q8KHZ8",
+      "genpept:BAC10682.1"
+    ],
+    "auxiliary_enzymes": [
+      {
+        "name": "RebF",
+        "description": "Flavin reductase providing FADH2 supply for chlorination",
+        "databaseIds": [
+          "uniprot:Q8KI76",
+          "genpept:BAC10680.1"
+        ]
+      }
+    ],
+    "references": [
+      "doi:10.1073/pnas.0500755102"
+    ]
+  },
+  "compounds": [
+    {
+      "name": "rebeccamycin",
+      "structure": "CO[C@@H]1[C@H](O[C@H]([C@@H]([C@H]1O)O)N2C3=C(C=CC=C3Cl)C4=C5C(=C6C7=C(C(=CC=C7)Cl)NC6=C42)C(=O)NC5=O)CO",
+      "evidence": [
+        {
+          "method": "NMR",
+          "references": ["doi:10.1016/s0040-4039(00)89280-1"]
+        }
+      ]
+    }
+  ],
+  "genomic_context": {
+    "classes": [
+      "Other"
+    ],
+    "accession_genome": {
+      "accessionID": "AB090952.1"
+    },
+    "taxonomy": {
+      "name": "Lentzea aerocolonigenes ATCC 39243",
+      "ncbiTaxId": 68170
+    },
+    "databaseIds": [
+      "mibig:BGC0000821"
+    ],
+    "evidence": [
+      {
+        "method": "Heterologous expression",
+        "references": [
+          "doi:10.1016/s1074-5521(02)00126-6"
+        ]
+      }
+    ]
+  },
+  "reactions": [
+    {
+      "tailoring": [
+        {
+          "function": "Halogenation"
+        }
+      ],
+      "description": "Halogenation reaction of free tryptophan",
+      "reactionSMARTS": {
+        "reactionSMARTS": "[#7:1]-[#6@@H:2](-[#6:3]-[c:4]1[c:5][n:6][c:7]2[c:12][c:11][c:10][c:9][c:8]12)-[#6:13](-[#8:15])=[O:14]>>[#7:1]-[#6@@H:2](-[#6:3]-[c:4]1[c:5][n:6][c:7]2[c:12]([Cl:16])[c:11][c:10][c:9][c:8]12)-[#6:13](-[#8:15])=[O:14]",
+        "isIterative": false,
+        "hasFrequencyVariation": false,
+        "hasPositionVariationBond": false,
+        "evidence": [
+          {
+            "evidenceCode": [
+              "In vitro assay"
+            ],
+            "references": [
+              "doi:10.1073/pnas.0500755102"
+            ]
+          }
+        ]
+      },
+      "validated_reactions": [
+        {
+          "substrate_(sub)structure": "N[C@@H](Cc1c[nH]c2ccccc12)C(O)=O",
+          "product_(sub)structure": [
+            "N[C@@H](Cc1c[nH]c2c(Cl)cccc12)C(O)=O"
+          ],
+          "isBalanced": false,
+          "isAuthentic": true,
+          "isIntermediate": false,
+          "description": "Chlorination of free tryptophane in the scope of rebeccamycin biosynthesis.",
+          "evidence": [
+            {
+              "evidenceCode": [
+                "In vitro assay"
+              ],
+              "references": [
+                "doi:10.1073/pnas.0500755102"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
