@@ -27,7 +27,7 @@ import sys
 logger = logging.getLogger(__name__)
 
 
-def main_cli():
+def main_cli() -> None:
     """Main function"""
     print("Hello, world!")
     sys.exit(0)

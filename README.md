@@ -21,3 +21,4 @@ Validation and conversion functionality for reaction SMARTS collected in the sco
 - Install developer dependencies with `hatch -v env create dev`
 - Initialize `pre-commit` with `hatch run dev:pre-commit install`
 - Run tests with `hatch run dev:pytest`
+- Run CLI with `hatch run dev:mite_extas`

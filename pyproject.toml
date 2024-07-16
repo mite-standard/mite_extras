@@ -1,7 +1,14 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.urls]
+"Repository" = "https://github.com/mmzdouc/mite_extras"
+
 [project]
 name = "mite_extras"
 version = "0.0.1"
-description = "Validation and conversion functionality for reaction SMARTS collected in the scope of MITE"
+description = "Parsing, conversion, and validation functionality for Minimum Information about a Tailoring Enzyme (MITE) files."
 readme = "README.md"
 requires-python = ">=3.12"
 license-files = { paths = ["LICENSE"] }
@@ -11,29 +18,27 @@ authors = [
     ]
 dependencies = [
     "argparse~=1.4.0",
+    "coloredlogs~=15.0.1",
+    "jsonschema~=4.23.0",
     "rdkit~=2024.3.3",
 ]
 
+[project.scripts]
+mite_extras = "mite_extras.main:main_cli"
+
 [project.optional-dependencies]
 dev = [
-    "black~=24.4.2",
-    "isort~=5.13.2",
     "pre-commit~=3.4.0",
     "pytest~=7.4.2",
-    "ruff~=0.4.4",
+    "ruff~=0.5.0"
 ]
-
-[project.urls]
-"Repository" = "https://github.com/mmzdouc/mite_extras"
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
 
 [tool.hatch.envs.dev]
 features = [
     "dev"
 ]
+
+# Below are settings for plugin tools
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -42,32 +47,16 @@ testpaths = [
     "tests",
 ]
 pythonpath = [
-  "mite_extras"
+  "src/mite_extras"
 ]
 
-
-[tool.black]
-line-length = 88
-target-version = ["py312"]
-exclude = '''
-/(
-    \.git
-  | \.lib
-)/
-'''
-
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-line_length = 88
-include_trailing_comma = true
-reverse_relative = true
-
+[tool.mypy]
+exclude= 'tests'
+strict = true
+ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 88
-
 
 [tool.ruff.lint]
 select = [
