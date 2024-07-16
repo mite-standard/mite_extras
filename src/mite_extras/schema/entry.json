@@ -33,7 +33,7 @@
     },
     "changelog": {
       "title": "Log tracking changes in entry.",
-      "$ref": "commons/changelog.json"
+      "$ref": "https://meta.secondarymetabolites.org/schemas/common/changelog.json"
     },
     "enzyme": {
       "title": "(Meta)data about the enzyme described by entry.",

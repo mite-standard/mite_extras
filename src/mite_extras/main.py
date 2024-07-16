@@ -22,7 +22,6 @@ SOFTWARE.
 """
 
 import logging
-import sys
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,6 @@ logger = logging.getLogger(__name__)
 def main_cli() -> None:
     """Main function"""
     print("Hello, world!")
-    sys.exit(0)
 
 
 if __name__ == "__main__":

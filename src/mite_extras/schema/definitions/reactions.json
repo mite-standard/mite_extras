@@ -197,7 +197,7 @@
         "references": {
           "type": "array",
           "items": {
-            "$ref": "../commons/citation.json"
+            "$ref": "https://meta.secondarymetabolites.org/schemas/common/citation.json"
           },
           "minItems": 1,
           "uniqueItems": true
