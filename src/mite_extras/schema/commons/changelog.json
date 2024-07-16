@@ -1,0 +1,77 @@
+{
+  "$id": "https://meta.secondarymetabolites.org/schemas/common/changelog.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "releases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/release"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "required": ["releases"],
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "contributors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/submitter"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "reviewers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/submitter"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "comment": {
+          "type": "string"
+        }
+      },
+      "required": ["contributors", "reviewers", "date", "comment"]
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^(\\d+(\\.\\d+)*|next)$"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entry"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": ["version", "date", "entries"]
+    },
+    "submitter": {
+      "type": "string",
+      "minLength": 24,
+      "maxLength": 24
+    }
+  }
+}

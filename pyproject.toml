@@ -21,6 +21,7 @@ dependencies = [
     "coloredlogs~=15.0.1",
     "jsonschema~=4.23.0",
     "rdkit~=2024.3.3",
+    "referencing~=0.35.1"
 ]
 
 [project.scripts]

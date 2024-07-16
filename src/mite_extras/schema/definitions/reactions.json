@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "required": [
+    "tailoring",
+    "reactionSMARTS",
+    "reactions"
+  ],
+  "properties": {
+    "tailoring": {
+      "title": "Ontology-derived tailoring/maturation reaction term.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/tailoringFunction"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "description": {
+      "title": "Additional information about tailoring/maturation reaction.",
+      "type": "string"
+    },
+    "reactionSMARTS": {
+      "title": "A reaction SMARTS pattern describing the (sub)structure to match and the reaction to perform.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reactionSMARTS",
+        "isIterative",
+        "evidence"
+      ],
+      "properties": {
+        "reactionSMARTS": {
+          "title": "The reaction SMARTS or reaction CXSMARTS string",
+          "type": "string",
+          "pattern": "^.+>>.+$"
+        },
+        "isIterative": {
+          "title": "Flag to indicate if the reaction is applied iteratively (modifying all possible substructures).",
+          "type": "boolean"
+        },
+        "databaseIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/databaseId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "reactions": {
+      "type": "array",
+      "title": "Substrate -> product(s) resulting from application of reaction SMARTS rule.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "substrate",
+          "products",
+          "isBalanced",
+          "isAuthentic",
+          "isIntermediate",
+          "evidence"
+        ],
+        "properties": {
+          "substrate": {
+            "title": "Substrate (sub)structure as SMILES",
+            "type": "string"
+          },
+          "products": {
+            "title": "One or more product (sub)structures as SMILES",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "isBalanced": {
+            "title": "Is the validated reaction balanced (i.e. stoichiometric complete)?",
+            "type": "boolean"
+          },
+          "isAuthentic": {
+            "title": "Is this substrate-product pair authentic/experimentally verified (i.e. not substructures)",
+            "type": "boolean"
+          },
+          "isIntermediate": {
+            "title": "Is this validated reaction an intermediate step (i.e. not the final product)?",
+            "type": "boolean"
+          },
+          "description": {
+            "title": "Additional information about reaction example",
+            "type": "string"
+          },
+          "databaseIds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/databaseId"
+            },
+            "uniqueItems": true
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/evidence"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "tailoringFunction": {
+      "type": "string",
+      "enum": [
+        "Acetylation",
+        "Acylation",
+        "Amination",
+        "Biaryl bond formation",
+        "Carboxylation",
+        "Cyclization",
+        "Deamination",
+        "Decarboxylation",
+        "Dehydration",
+        "Dehydrogenation",
+        "Demethylation",
+        "Dioxygenation",
+        "Epimerization",
+        "FADH2 supply for chlorination",
+        "Glycosylation",
+        "Halogenation",
+        "Heterocyclization",
+        "Hydrolysis",
+        "Hydroxylation",
+        "Macrolactam formation",
+        "Methylation",
+        "Monooxygenation",
+        "Oxidation",
+        "Phosphorylation",
+        "Prenylation",
+        "Reduction",
+        "Sulfation",
+        "Other"
+      ]
+    },
+    "databaseId": {
+      "title": "Cross-reference to databases.",
+      "type": "string",
+      "oneOf": [
+        {
+          "pattern": "^rhea:(\\d+)$"
+        },
+        {
+          "pattern": "^MITE(\\d{7,7})$"
+        },
+        {
+          "pattern": "^EC [0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
+        }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceCode",
+        "references"
+      ],
+      "properties": {
+        "evidenceCode": {
+          "title": "Evidence for enzymatic reaction and substrate specificity",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "Heterologous expression",
+              "Inference from genomic data and chemical structure",
+              "In vitro assay",
+              "Isothermal titration calorimetry",
+              "Knock-out studies",
+              "Site-directed mutagenesis",
+              "Surface plasmon resonance"
+            ]
+          }
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "$ref": "../commons/citation.json"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}
