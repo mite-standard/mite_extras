@@ -50,6 +50,10 @@
     "comment": {
       "title": "Any additional information about this entry",
       "type": "string"
+    },
+    "attachments": {
+      "title": "Additional information as key:value pairs.",
+      "type": "object"
     }
   },
   "$defs": {

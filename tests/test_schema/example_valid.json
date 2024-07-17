@@ -22,6 +22,10 @@
     ]
   },
   "comment": "Test comment",
+  "attachments": {
+    "1": "test attachment 1",
+    "2": "test attachment 2"
+  },
   "enzyme": {
     "name": "McjB",
     "description": "Lassopeptide ATP-dependent protease (B-protein, cysteine protease-like)",
