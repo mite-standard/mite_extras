@@ -23,15 +23,39 @@ SOFTWARE.
 
 import logging
 import sys
+from importlib import metadata
+
+import coloredlogs
 
 from mite_extras import CliManager
 
-logger = logging.getLogger(__name__)
+
+def config_logger() -> logging.Logger:
+    """Set up a named logger with nice formatting
+
+    Returns:
+        A Logger object
+    """
+    logger = logging.getLogger("mite_extras")
+    logger.setLevel(logging.DEBUG)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(
+        coloredlogs.ColoredFormatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+    )
+    logger.addHandler(console_handler)
+    return logger
 
 
 def main_cli() -> None:
     """Entry point for CLI"""
+    logger = config_logger()
+    logger.debug(f"Started 'mite_extras' v{metadata.version('mite_extras')} as CLI.")
+
     args = CliManager().run(sys.argv[1:])
+
+    logger.debug("Completed 'mite_extras' as CLI.")
 
 
 if __name__ == "__main__":

@@ -24,14 +24,14 @@ SOFTWARE.
 import json
 import logging
 from pathlib import Path
-from typing import Optional, Self
+from typing import Self
 
 import jsonschema
 import requests
 from pydantic import BaseModel, model_validator
 from referencing import Registry, Resource
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("mite_extras")
 
 
 class SchemaManager(BaseModel):
@@ -73,6 +73,8 @@ class SchemaManager(BaseModel):
         Returns:
             A bool indicating the outcome of the validation
         """
+        logger.debug("SchemaManager: started validation of instance against schema.")
+
         with open(self.main) as infile:
             main = json.load(infile)
         with open(self.enzyme) as infile:
@@ -98,6 +100,9 @@ class SchemaManager(BaseModel):
 
         try:
             jsonschema.validate(instance=instance, schema=main, registry=registry)
+            logger.debug(
+                "SchemaManager: completed validation of instance against schema."
+            )
             return True
         except jsonschema.exceptions.ValidationError as e:
             logger.error(str(e))

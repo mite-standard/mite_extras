@@ -1,4 +1,4 @@
-"""Interface between json schema and calling functionality.
+"""Command line interface manager.
 
 Copyright (c) 2024 to present Mitja Maximilian Zdouc, PhD and individual contributors.
 
@@ -22,12 +22,15 @@ SOFTWARE.
 """
 
 import argparse
+import logging
 from importlib import metadata
 from typing import Self
 
 from pydantic import BaseModel
 
 from mite_extras.schema.schema_manager import SchemaManager
+
+logger = logging.getLogger("mite_extras")
 
 
 class CliManager(BaseModel):
@@ -50,7 +53,9 @@ class CliManager(BaseModel):
         Returns:
             argparse.Namespace object with command line parameters
         """
+        logger.debug("CliManager: started setting up CLI args")
         parser = self.define_cli_args()
+        logger.debug("CliManager: completed setting up CLI args")
         return parser.parse_args(args)
 
     def define_cli_args(self: Self) -> argparse.ArgumentParser:
