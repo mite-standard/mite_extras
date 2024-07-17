@@ -8,6 +8,7 @@ def test_init_valid():
     assert instance.main.exists()
     assert instance.enzyme.exists()
     assert instance.reactions.exists()
+    assert instance.version_schema is not None
 
 
 def test_example_valid():

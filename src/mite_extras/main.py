@@ -22,13 +22,16 @@ SOFTWARE.
 """
 
 import logging
+import sys
+
+from mite_extras import CliManager
 
 logger = logging.getLogger(__name__)
 
 
 def main_cli() -> None:
-    """Main function"""
-    print("Hello, world!")
+    """Entry point for CLI"""
+    args = CliManager().run(sys.argv[1:])
 
 
 if __name__ == "__main__":

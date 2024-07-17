@@ -1,6 +1,6 @@
 """Interface between json schema and calling functionality.
 
-Copyright (c) 2024 to present Mitja Maximilian Zdouc, PhD
+Copyright (c) 2024 to present Mitja Maximilian Zdouc, PhD and individual contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,11 @@ SOFTWARE.
 import json
 import logging
 from pathlib import Path
-from typing import Self
+from typing import Optional, Self
 
 import jsonschema
 import requests
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from referencing import Registry, Resource
 
 logger = logging.getLogger(__name__)
@@ -38,11 +38,12 @@ class SchemaManager(BaseModel):
     """Pydantic-based class to manage validation against json schema
 
     Attributes:
-        main: contains the base of the MITE json schema
-        enzyme: contains the enzyme (meta)data
-        reactions: contains reaction data
+        main: path to base specs of the MITE json schema
+        enzyme: path to specs of the enzyme (meta)data
+        reactions: path to specs of reaction data
         changelog_url: changelog-definitions from MIBiG commons
         citation_url: citation-definitions from MIBiG commons
+        version_schema: the version of the MITE json schema
     """
 
     main: Path = Path(Path(__file__).parent.joinpath("entry.json"))
@@ -54,6 +55,14 @@ class SchemaManager(BaseModel):
     citation_url: str = (
         "https://meta.secondarymetabolites.org/schemas/common/citation.json"
     )
+    version_schema: str | None = None
+
+    @model_validator(mode="after")
+    def validate_peaktable_format(self):
+        with open(self.main) as infile:
+            main = json.load(infile)
+        self.version_schema = main.get("$id")
+        return self
 
     def validate_against_schema(self: Self, instance: dict) -> bool:
         """Validate a dictionary against the MITE JSON schema
