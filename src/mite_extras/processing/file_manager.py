@@ -21,6 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import json
 import logging
 from pathlib import Path
 from typing import Self
@@ -60,8 +61,26 @@ class FileManager(BaseModel):
         """Read files in the indir, store to self"""
         for infile in self.indir.iterdir():
             if infile.suffix != ".json":
+                logger.warning(
+                    f"FileManager: file '{infile.name}' is not a json file - SKIP."
+                )
                 continue
             self.infiles.append(infile)
 
+    def write_to_outdir(self: Self, outfile_name: str, payload: dict) -> None:
+        """Write dict as json file to outdir
 
-# TODO(MMZ 17.07.24): Add method to export a single file to given dir
+        Args:
+            outfile_name: filename of file to be written
+            payload: the dict information to write to file
+        """
+        logger.debug(f"FileManager: started writing file '{outfile_name}.json'.")
+
+        with open(
+            file=self.outdir.joinpath(f"{outfile_name}.json"),
+            mode="w",
+            encoding="utf-8",
+        ) as outfile:
+            outfile.write(json.dumps(payload, indent=4, ensure_ascii=False))
+
+        logger.debug(f"FileManager: completed writing file '{outfile_name}.json'.")

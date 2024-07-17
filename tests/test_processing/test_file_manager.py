@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -38,3 +39,13 @@ def test_read_files_indir_invalid():
     )
     instance.read_files_indir()
     assert len(instance.infiles) == 0
+
+
+def test_write_to_outdir_valid():
+    instance = FileManager(
+        indir=Path(__file__).parent.joinpath("example_indir"),
+        outdir=Path(__file__).parent.joinpath("example_outdir"),
+    )
+    instance.write_to_outdir(outfile_name="testfile", payload={})
+    assert instance.outdir.joinpath("testfile.json").exists()
+    os.remove(path=instance.outdir.joinpath("testfile.json"))
