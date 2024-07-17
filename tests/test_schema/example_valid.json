@@ -79,6 +79,9 @@
           "isBalanced": false,
           "isIntermediate": true,
           "description": "Precursor cleavage of the McjA precursor peptide, resulting in the intermediate core peptide before macrolactam formation.",
+          "databaseIds": [
+            "MITE0000000"
+          ],
           "evidence": [
             {
               "evidenceCode": [

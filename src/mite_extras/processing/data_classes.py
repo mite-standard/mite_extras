@@ -1,0 +1,209 @@
+"""Validation and internal representation of MITE schema.
+
+Copyright (c) 2024 to present Mitja Maximilian Zdouc, PhD and individual contributors.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
+import logging
+from typing import Any, Self
+
+from pydantic import BaseModel
+
+logger = logging.getLogger("mite_extras")
+
+
+class Entry(BaseModel):
+    """Pydantic-based class to represent a MITE entry
+
+    Attributes:
+        accession: MITE accession number/identifier.
+        quality: quality of entry
+        status: status of entry
+        retirementReasons: a list of retirement reasons
+        changelog:  a list of Changelog objects
+        enzyme: an Enzyme object
+        reactions: a list of Reaction objects
+        comment: additional information
+        attachments: a dict for further information
+    """
+
+    accession: str | None = None
+    quality: str | None = None
+    status: str | None = None
+    retirementReasons: list[str] | None = None
+    changelog: list[Any] | None = None
+    enzyme: Any | None = None
+    reactions: list[Any] | None = None
+    comment: str | None = None
+    attachments: dict | None = None
+
+    def to_json(self: Self) -> dict:
+        json_dict = {}
+        for attr in [
+            "accession",
+            "quality",
+            "status",
+            "retirementReasons",
+            "comment",
+            "attachments",
+        ]:
+            if (val := getattr(self, attr)) is not None:
+                json_dict[attr] = val
+
+        if self.changelog is not None:
+            json_dict["changelog"] = {
+                "releases": [changelog.to_json() for changelog in self.changelog]
+            }
+
+        if self.enzyme is not None:
+            json_dict["enzyme"] = self.enzyme.to_json()
+
+        if self.reactions is not None:
+            json_dict["reactions"] = [reaction.to_json() for reaction in self.reactions]
+
+        return json_dict
+
+
+class Changelog(BaseModel):
+    """Pydantic-based class to represent changelog
+
+    Attributes:
+        version: the MITE version
+        date: the release date
+        entries: a list of ChangelogEntry objects
+    """
+
+    version: str = "next"
+    date: str = "0000-00-00"
+    entries: list
+
+
+class ChangelogEntry(BaseModel):
+    """Pydantic-based class to represent changelog entries
+
+    Attributes:
+        contributors: a list of contributors
+        reviewers: a list of reviewers
+        date: the date of the review
+        comment:
+    """
+
+    contributors: list
+    reviewers: list
+    date: str
+    comment: str
+
+
+class Enzyme(BaseModel):
+    """Pydantic-based class to represent enzyme information
+
+    Attributes:
+        name: the protein name
+        description: an optional description
+        databaseIds: a list of database IDs
+        auxiliaryEnzymes: a list of EnzymeAux objects
+        references: a list of references
+    """
+
+    name: str
+    description: str | None = None
+    databaseIds: list
+    auxiliaryEnzymes: list | None = None
+    references: list
+
+
+class EnzymeAux(BaseModel):
+    """Pydantic-based class to represent auxiliary enzyme information
+
+    Attributes:
+        name: name of the auxiliary enzyme
+        description: an optional description
+        databaseIds: a list of database IDs
+    """
+
+    name: str
+    description: str | None = None
+    databaseIds: list
+
+
+class Reaction(BaseModel):
+    """Pydantic-based class to represent reactions
+
+    Attributes:
+        tailoring: a list of tailoring reaction terms
+        description: an optional human-readable description
+        ReactionSmarts: a ReactionSmarts object
+        reactions: a list of reactions
+    """
+
+    tailoring: list
+    description: str | None = None
+    ReactionSmarts: Any
+    reactions: list
+
+
+class ReactionSmarts(BaseModel):
+    """Pydantic-based class to represent reactions
+
+    Attributes:
+        reactionSMARTS: a reaction SMARTS
+        isIterative: flag indicating if reaction SMARTS is applied more than once
+        databaseIds: a list of database IDs
+        evidence: list of Evidence objects
+    """
+
+    reactionSMARTS: str
+    isIterative: bool
+    databaseIds: list | None = None
+    evidence: list
+
+
+class ReactionEx(BaseModel):
+    """Pydantic-based class to represent data of experimentally verified reaction
+
+    Attributes:
+        substrate: SMILES string
+        products: list of SMILES strings (result from substrate if reactionSMARTS appl)
+        isBalanced: is reaction balanced
+        isIntermediate: is the reaction an intermediate or a stable product
+        description: an optional string
+        databaseIds: a list of database IDs
+        evidence: a list of Evidence objects
+    """
+
+    substrate: str
+    products: list
+    isBalanced: bool
+    isIntermediate: bool
+    description: str | None = None
+    databaseIds: list | None = None
+    evidence: list
+
+
+class Evidence(BaseModel):
+    """Pydantic-based class to represent evidence information
+
+    Attributes:
+        evidenceCode: a list of evidence code strings
+        references: a list of references
+    """
+
+    evidenceCode: list
+    references: list

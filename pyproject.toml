@@ -88,4 +88,6 @@ ignore = [
     "E203",
     # percent-format-invalid-format
     "E501",
+    # mixed-case-variable-in-class-scope
+    "N815"
 ]
