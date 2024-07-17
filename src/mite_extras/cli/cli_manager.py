@@ -54,8 +54,11 @@ class CliManager(BaseModel):
             argparse.Namespace object with command line parameters
         """
         logger.debug("CliManager: started setting up CLI args")
+
         parser = self.define_cli_args()
+
         logger.debug("CliManager: completed setting up CLI args")
+
         return parser.parse_args(args)
 
     def define_cli_args(self: Self) -> argparse.ArgumentParser:
@@ -84,8 +87,7 @@ class CliManager(BaseModel):
             "-o",
             "--output_dir",
             type=str,
-            default="output",
-            required=False,
+            required=True,
             help="Specifies an output directory.",
         )
 

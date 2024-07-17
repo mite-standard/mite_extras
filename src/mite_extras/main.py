@@ -27,7 +27,7 @@ from importlib import metadata
 
 import coloredlogs
 
-from mite_extras import CliManager
+from mite_extras import CliManager, FileManager
 
 
 def config_logger() -> logging.Logger:
@@ -54,6 +54,7 @@ def main_cli() -> None:
     logger.debug(f"Started 'mite_extras' v{metadata.version('mite_extras')} as CLI.")
 
     args = CliManager().run(sys.argv[1:])
+    file_manager = FileManager(indir=args.input_dir, outdir=args.output_dir)
 
     logger.debug("Completed 'mite_extras' as CLI.")
 

@@ -46,9 +46,9 @@ class SchemaManager(BaseModel):
         version_schema: the version of the MITE json schema
     """
 
-    main: Path = Path(Path(__file__).parent.joinpath("entry.json"))
-    enzyme: Path = Path(Path(__file__).parent.joinpath("definitions/enzyme.json"))
-    reactions: Path = Path(Path(__file__).parent.joinpath("definitions/reactions.json"))
+    main: Path = Path(__file__).parent.joinpath("entry.json")
+    enzyme: Path = Path(__file__).parent.joinpath("definitions/enzyme.json")
+    reactions: Path = Path(__file__).parent.joinpath("definitions/reactions.json")
     changelog_url: str = (
         "https://meta.secondarymetabolites.org/schemas/common/changelog.json"
     )
@@ -58,7 +58,7 @@ class SchemaManager(BaseModel):
     version_schema: str | None = None
 
     @model_validator(mode="after")
-    def validate_peaktable_format(self):
+    def get_schema_version(self):
         with open(self.main) as infile:
             main = json.load(infile)
         self.version_schema = main.get("$id")
