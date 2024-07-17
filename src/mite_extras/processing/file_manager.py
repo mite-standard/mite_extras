@@ -59,4 +59,9 @@ class FileManager(BaseModel):
     def read_files_indir(self: Self) -> None:
         """Read files in the indir, store to self"""
         for infile in self.indir.iterdir():
+            if infile.suffix != ".json":
+                continue
             self.infiles.append(infile)
+
+
+# TODO(MMZ 17.07.24): Add method to export a single file to given dir

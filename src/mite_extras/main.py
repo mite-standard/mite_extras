@@ -56,6 +56,10 @@ def main_cli() -> None:
     args = CliManager().run(sys.argv[1:])
     file_manager = FileManager(indir=args.input_dir, outdir=args.output_dir)
 
+    # loop over entries in file manager
+    # run each file separately through data structure and validation
+    # export each file separately and write log
+
     logger.debug("Completed 'mite_extras' as CLI.")
 
 

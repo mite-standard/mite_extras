@@ -37,4 +37,4 @@ def test_read_files_indir_invalid():
         indir=Path(__file__).parent.joinpath("example_outdir"),
     )
     instance.read_files_indir()
-    assert len(instance.infiles) == 1
+    assert len(instance.infiles) == 0
