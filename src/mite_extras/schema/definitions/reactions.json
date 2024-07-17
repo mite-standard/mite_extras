@@ -89,10 +89,6 @@
             "title": "Is the validated reaction balanced (i.e. stoichiometric complete)?",
             "type": "boolean"
           },
-          "isAuthentic": {
-            "title": "Is this substrate-product pair authentic/experimentally verified (i.e. not substructures)",
-            "type": "boolean"
-          },
           "isIntermediate": {
             "title": "Is this validated reaction an intermediate step (i.e. not the final product)?",
             "type": "boolean"
