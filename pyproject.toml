@@ -17,13 +17,13 @@ authors = [
     { name = "Adriano Rutz", email = "adafede@gmail.com" }
     ]
 dependencies = [
-    "argparse~=1.4.0",
-    "coloredlogs~=15.0.1",
-    "jsonschema~=4.23.0",
-    "pydantic~=2.8.2",
-    "rdkit~=2024.3.3",
-    "referencing~=0.35.1",
-    "requests~=2.32.3"
+    "argparse~=1.4",
+    "coloredlogs~=15.0",
+    "jsonschema~=4.23",
+    "pydantic~=2.8",
+    "rdkit~=2024.3",
+    "referencing~=0.35",
+    "requests~=2.32"
 ]
 
 [project.scripts]
@@ -31,9 +31,9 @@ mite_extras = "mite_extras.main:main_cli"
 
 [project.optional-dependencies]
 dev = [
-    "pre-commit~=3.4.0",
-    "pytest~=7.4.2",
-    "ruff~=0.5.0"
+    "pre-commit~=3.4",
+    "pytest~=7.4",
+    "ruff~=0.5"
 ]
 
 [tool.hatch.envs.dev]
