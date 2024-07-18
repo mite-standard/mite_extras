@@ -97,7 +97,7 @@ class Changelog(BaseModel):
     def to_json(self: Self) -> dict:
         return {
             "version": self.version,
-            "date": self.version,
+            "date": self.date,
             "entries": [entry.to_json() for entry in self.entries],
         }
 
@@ -201,7 +201,7 @@ class Reaction(BaseModel):
                 json_dict[attr] = val
 
         json_dict["reactionSMARTS"] = self.reactionSMARTS.to_json()
-        json_dict["reactions"] = [entry.json for entry in self.reactions]
+        json_dict["reactions"] = [entry.to_json() for entry in self.reactions]
 
         return json_dict
 
