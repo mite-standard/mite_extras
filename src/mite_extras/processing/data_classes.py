@@ -24,7 +24,9 @@ SOFTWARE.
 import logging
 from typing import Any, Self
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
+
+from mite_extras.processing.validation_manager import ValidationManager
 
 logger = logging.getLogger("mite_extras")
 
@@ -253,6 +255,14 @@ class ReactionEx(BaseModel):
     description: str | None = None
     databaseIds: list | None = None
     evidence: list
+
+    @model_validator(mode="after")
+    def validate_smiles(self):
+        self.substrate = ValidationManager().canonicalize_smiles(self.substrate)
+        self.products = [
+            ValidationManager().canonicalize_smiles(prod) for prod in self.products
+        ]
+        return self
 
     def to_json(self: Self) -> dict:
         json_dict = {}
