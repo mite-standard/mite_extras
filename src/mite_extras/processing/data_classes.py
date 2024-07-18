@@ -94,6 +94,13 @@ class Changelog(BaseModel):
     date: str = "0000-00-00"
     entries: list
 
+    def to_json(self: Self) -> dict:
+        return {
+            "version": self.version,
+            "date": self.version,
+            "entries": [entry.to_json() for entry in self.entries],
+        }
+
 
 class ChangelogEntry(BaseModel):
     """Pydantic-based class to represent changelog entries
@@ -102,13 +109,21 @@ class ChangelogEntry(BaseModel):
         contributors: a list of contributors
         reviewers: a list of reviewers
         date: the date of the review
-        comment:
+        comment: comment indicating changes
     """
 
     contributors: list
     reviewers: list
     date: str
     comment: str
+
+    def to_json(self: Self) -> dict:
+        return {
+            "contributors": self.contributors,
+            "reviewers": self.reviewers,
+            "date": self.date,
+            "comment": self.comment,
+        }
 
 
 class Enzyme(BaseModel):
@@ -128,6 +143,19 @@ class Enzyme(BaseModel):
     auxiliaryEnzymes: list | None = None
     references: list
 
+    def to_json(self: Self) -> dict:
+        json_dict = {}
+        for attr in ["name", "description", "databaseIds", "references"]:
+            if (val := getattr(self, attr)) is not None:
+                json_dict[attr] = val
+
+        if self.auxiliaryEnzymes is not None:
+            json_dict["auxiliaryEnzymes"] = [
+                entry.to_json() for entry in self.auxiliaryEnzymes
+            ]
+
+        return json_dict
+
 
 class EnzymeAux(BaseModel):
     """Pydantic-based class to represent auxiliary enzyme information
@@ -142,6 +170,13 @@ class EnzymeAux(BaseModel):
     description: str | None = None
     databaseIds: list
 
+    def to_json(self: Self) -> dict:
+        json_dict = {}
+        for attr in ["name", "description", "databaseIds"]:
+            if (val := getattr(self, attr)) is not None:
+                json_dict[attr] = val
+        return json_dict
+
 
 class Reaction(BaseModel):
     """Pydantic-based class to represent reactions
@@ -149,14 +184,26 @@ class Reaction(BaseModel):
     Attributes:
         tailoring: a list of tailoring reaction terms
         description: an optional human-readable description
-        ReactionSmarts: a ReactionSmarts object
-        reactions: a list of reactions
+        reactionSMARTS: a ReactionSmarts object
+        reactions: a list of ReactionEx objects
     """
 
     tailoring: list
     description: str | None = None
-    ReactionSmarts: Any
+    reactionSMARTS: Any
     reactions: list
+
+    def to_json(self: Self) -> dict:
+        json_dict = {}
+
+        for attr in ["tailoring", "description"]:
+            if (val := getattr(self, attr)) is not None:
+                json_dict[attr] = val
+
+        json_dict["reactionSMARTS"] = self.reactionSMARTS.to_json()
+        json_dict["reactions"] = [entry.json for entry in self.reactions]
+
+        return json_dict
 
 
 class ReactionSmarts(BaseModel):
@@ -173,6 +220,17 @@ class ReactionSmarts(BaseModel):
     isIterative: bool
     databaseIds: list | None = None
     evidence: list
+
+    def to_json(self: Self) -> dict:
+        json_dict = {}
+
+        for attr in ["reactionSMARTS", "isIterative", "databaseIds"]:
+            if (val := getattr(self, attr)) is not None:
+                json_dict[attr] = val
+
+        json_dict["evidence"] = [entry.to_json() for entry in self.evidence]
+
+        return json_dict
 
 
 class ReactionEx(BaseModel):
@@ -196,6 +254,24 @@ class ReactionEx(BaseModel):
     databaseIds: list | None = None
     evidence: list
 
+    def to_json(self: Self) -> dict:
+        json_dict = {}
+
+        for attr in [
+            "substrate",
+            "products",
+            "isBalanced",
+            "isIntermediate",
+            "description",
+            "databaseIds",
+        ]:
+            if (val := getattr(self, attr)) is not None:
+                json_dict[attr] = val
+
+        json_dict["evidence"] = [entry.to_json() for entry in self.evidence]
+
+        return json_dict
+
 
 class Evidence(BaseModel):
     """Pydantic-based class to represent evidence information
@@ -207,3 +283,6 @@ class Evidence(BaseModel):
 
     evidenceCode: list
     references: list
+
+    def to_json(self: Self) -> dict:
+        return {"evidenceCode": self.evidenceCode, "references": self.references}
