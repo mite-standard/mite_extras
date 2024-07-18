@@ -21,13 +21,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import json
 import logging
 import sys
 from importlib import metadata
 
 import coloredlogs
 
-from mite_extras import CliManager, FileManager
+from mite_extras import CliManager, FileManager, Parser, SchemaManager
 
 
 def config_logger() -> logging.Logger:
@@ -55,10 +56,30 @@ def main_cli() -> None:
 
     args = CliManager().run(sys.argv[1:])
     file_manager = FileManager(indir=args.input_dir, outdir=args.output_dir)
+    file_manager.read_files_indir()
 
-    # loop over entries in file manager
-    # run each file separately through data structure and validation
-    # export each file separately and write log
+    for entry in file_manager.infiles:
+        with open(entry) as infile:
+            input_data = json.load(infile)
+
+        output_data = {}
+
+        try:
+            match args.format:
+                case "raw":
+                    output_data = Parser().parse_raw_json(entry.name, input_data)
+                case "mite":
+                    output_data = Parser().parse_mite_json(input_data)
+                case _:
+                    raise RuntimeError(
+                        f"Input format '{args.format}' could not be parsed."
+                    )
+            SchemaManager().validate_against_schema(output_data)
+        except Exception as e:
+            logger.fatal(f"Could not process file '{entry.name}': {e!s}")
+            continue
+
+        file_manager.write_to_outdir(outfile_name=entry.name, payload=output_data)
 
     logger.debug("Completed 'mite_extras' as CLI.")
 

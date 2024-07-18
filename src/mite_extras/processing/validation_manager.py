@@ -1,6 +1,7 @@
 """Validation functionality.
 
-Copyright (c) 2024 to present Mitja Maximilian Zdouc, PhD and individual contributors.
+Copyright (c) 2024 to present Mitja Maximilian Zdouc, PhD and Adriano
+Rutz (0000-0003-0443-9902) and individual contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -96,7 +96,7 @@ class CliManager(BaseModel):
             "--format",
             type=str,
             default="raw",
-            choices=["raw"],
+            choices=["raw", "mite"],
             required=False,
             help=(
                 "Specifies the format of the input files "

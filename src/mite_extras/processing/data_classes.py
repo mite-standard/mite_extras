@@ -30,6 +30,8 @@ from mite_extras.processing.validation_manager import ValidationManager
 
 logger = logging.getLogger("mite_extras")
 
+# TODO(MMZ 18.07.24): add validation functions like for SMILES in ReactionEx class
+
 
 class Entry(BaseModel):
     """Pydantic-based class to represent a MITE entry

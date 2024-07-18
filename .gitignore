@@ -1,6 +1,8 @@
 # PROJECT CUSTOM
 .idea/
 .ruff_cache/
+input/
+output/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -64,14 +64,14 @@ class SchemaManager(BaseModel):
         self.version_schema = main.get("$id")
         return self
 
-    def validate_against_schema(self: Self, instance: dict) -> bool:
+    def validate_against_schema(self: Self, instance: dict):
         """Validate a dictionary against the MITE JSON schema
 
         Arguments:
             instance: a dictionary representing a json file
 
-        Returns:
-            A bool indicating the outcome of the validation
+        Raises:
+            ValueError: validation of instance against schema led to an error
         """
         logger.debug("SchemaManager: started validation of instance against schema.")
 
@@ -103,7 +103,7 @@ class SchemaManager(BaseModel):
             logger.debug(
                 "SchemaManager: completed validation of instance against schema."
             )
-            return True
         except jsonschema.exceptions.ValidationError as e:
-            logger.error(str(e))
-            return False
+            raise ValueError(
+                f"Validation of instance against schema led to an error: '{e!s}'"
+            ) from e
