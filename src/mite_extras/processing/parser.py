@@ -75,6 +75,8 @@ class Parser(BaseModel):
     def parse_raw_json(self: Self, name: str, input_data: dict) -> dict:
         """Read in data from a json file resulting from the 2024 MIBiG annotathons
 
+        # TODO(MMZ 19.07.24): Retire this function once the MIBiG Submission portal produces valid MITE jsons
+
         Args:
             name: the name of the file
             input_data: a dict coming from the MIBiG 2024 submission portal
