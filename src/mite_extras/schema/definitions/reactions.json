@@ -82,6 +82,13 @@
               "type": "string"
             }
           },
+          "forbidden_products": {
+            "title": "Product (sub)structures as SMILES that are absolutely forbidden to occur.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "isBalanced": {
             "title": "Is the validated reaction balanced (i.e. stoichiometric complete)?",
             "type": "boolean"

@@ -242,6 +242,7 @@ class ReactionEx(BaseModel):
     Attributes:
         substrate: SMILES string
         products: list of SMILES strings (result from substrate if reactionSMARTS appl)
+        forbidden_products: list of SMILES string of forbidden products (must not result)
         isBalanced: is reaction balanced
         isIntermediate: is the reaction an intermediate or a stable product
         description: an optional string
@@ -249,6 +250,7 @@ class ReactionEx(BaseModel):
 
     substrate: str
     products: list
+    forbidden_products: list | None = None
     isBalanced: bool
     isIntermediate: bool
     description: str | None = None
@@ -259,6 +261,12 @@ class ReactionEx(BaseModel):
         self.products = [
             ValidationManager().canonicalize_smiles(prod) for prod in self.products
         ]
+        if self.forbidden_products is not None:
+            self.forbidden_products = [
+                ValidationManager().canonicalize_smiles(prod)
+                for prod in self.forbidden_products
+            ]
+
         return self
 
     def to_json(self: Self) -> dict:
@@ -267,6 +275,7 @@ class ReactionEx(BaseModel):
         for attr in [
             "substrate",
             "products",
+            "forbidden_products",
             "isBalanced",
             "isIntermediate",
             "description",

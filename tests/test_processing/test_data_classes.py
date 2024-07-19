@@ -25,6 +25,7 @@ def reactionex():
     return ReactionEx(
         substrate="CCC",
         products=["CCCO", "OCCC"],
+        forbidden_products=["CCC"],
         isBalanced=False,
         isIntermediate=True,
         description="Nonexistent reaction",
