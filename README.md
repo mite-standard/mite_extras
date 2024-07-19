@@ -1,7 +1,9 @@
 mite_extras
 ==========
 
-Validation and conversion functionality for reaction SMARTS collected in the scope of MITE
+Validation and conversion functionality for reaction SMARTS collected in the scope of MITE.
+
+Attention: this program has only been tested with Ubuntu Linux.
 
 ## Installation
 
@@ -11,10 +13,19 @@ Validation and conversion functionality for reaction SMARTS collected in the sco
 - Download or clone the [repository](https://github.com/mmzdouc/mite_extras)
 - Run `hatch -v env create`
 
-## Quick Start
+## Quick Start: Example
 
 ### Run with `hatch`:
-- `hatch run mite_extras`
+
+First, pre-format the raw input files (assuming that they are coming from the MIBiG Submission Portal):
+
+- e.g. `hatch run python input_file_splitter.py example_input/new_608.json`
+
+Move the generated file(s) into a different directory (e.g. 'input')
+
+- `hatch run mite_extras -i input/ -o output/ -m raw`
+
+This will convert all files into the MITE schema.
 
 ## For devs
 

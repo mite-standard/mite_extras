@@ -383,6 +383,9 @@ class Parser(BaseModel):
                         reactions=_compile_ex_reactions(
                             data=data, count=reaction, count_ex=ex_react
                         ),
+                        description=self.remove_empty_string(
+                            data.get(f"enzymes-0-reactions-{reaction}-description")
+                        ),
                     )
                 )
 
@@ -424,13 +427,15 @@ class Parser(BaseModel):
                     for string in tailoring_dict.get(
                         "enzymes-0-enzyme-0-databaseIds"
                     ).split(", ")
+                    if self.remove_empty_string(string) is not None
                 ],
                 auxiliaryEnzymes=_compile_aux_enzymes(tailoring_dict),
                 references=[
-                    self.remove_quote(string)
+                    (self.remove_quote(string))
                     for string in tailoring_dict.get(
                         "enzymes-0-enzyme-0-references"
                     ).split(", ")
+                    if self.remove_empty_string(string) is not None
                 ],
             ),
             reactions=_compile_reactions(tailoring_dict),
