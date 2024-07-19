@@ -64,3 +64,17 @@ class ValidationManager(BaseModel):
             raise ValueError(f"Could not read SMILES string '{smiles}'")
 
         return self.unescape_smiles(CanonSmiles(MolToSmiles(canon)))
+
+    def validate_smarts(self: Self, smarts: str) -> str:
+        """Validate an input reaction SMARTS
+
+        Args:
+            smarts: a reactions SMARTS string
+
+        Returns:
+            A validated reaction SMARTS
+
+        Raises:
+            ValueError: RDKit could not read SMILES
+        """
+        # TODO(MMZ 19.07.24): stub for implementation of e.g. a SMARTS validation function @adafede
