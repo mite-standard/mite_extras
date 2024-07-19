@@ -21,35 +21,33 @@ def evidence():
 
 
 @pytest.fixture
-def reactionex(evidence):
+def reactionex():
     return ReactionEx(
         substrate="CCC",
         products=["CCCO", "OCCC"],
         isBalanced=False,
         isIntermediate=True,
         description="Nonexistent reaction",
-        databaseIds=["MITE0000000"],
-        evidence=[evidence],
     )
 
 
 @pytest.fixture
-def reactionsmarts(evidence):
+def reactionsmarts():
     return ReactionSmarts(
         reactionSMARTS="[#6]-[#6]>>[#6]-[#6]-[#8]",
         isIterative=False,
-        databaseIds=["MITE0000000"],
-        evidence=[evidence],
     )
 
 
 @pytest.fixture
-def reaction(reactionsmarts, reactionex):
+def reaction(reactionsmarts, reactionex, evidence):
     return Reaction(
         tailoring=["Hydrolysis"],
         description="A nonexistent reaction",
         reactionSMARTS=reactionsmarts,
         reactions=[reactionex],
+        evidence=[evidence],
+        databaseIds=["MITE0000000"],
     )
 
 

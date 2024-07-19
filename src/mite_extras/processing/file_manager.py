@@ -59,13 +59,21 @@ class FileManager(BaseModel):
 
     def read_files_indir(self: Self) -> None:
         """Read files in the indir, store to self"""
+        logger.debug(
+            f"FileManager: started reading file in input directory '{self.indir.name}'."
+        )
+
         for infile in self.indir.iterdir():
             if infile.suffix != ".json":
                 logger.warning(
-                    f"FileManager: file '{infile.name}' is not a json file - SKIP."
+                    f"FileManager: file '{infile.name}' does not apprear to be in .json-format - SKIP."
                 )
                 continue
             self.infiles.append(infile)
+
+        logger.debug(
+            f"FileManager: completed reading file in input directory '{self.indir.name}'."
+        )
 
     def write_to_outdir(self: Self, outfile_name: str, payload: dict) -> None:
         """Write dict as json file to outdir

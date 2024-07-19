@@ -31,14 +31,17 @@ import coloredlogs
 from mite_extras import CliManager, FileManager, Parser, SchemaManager
 
 
-def config_logger() -> logging.Logger:
+def config_logger(verboseness: str) -> logging.Logger:
     """Set up a named logger with nice formatting
+
+    Args:
+        verboseness: sets the logging verboseness
 
     Returns:
         A Logger object
     """
     logger = logging.getLogger("mite_extras")
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(getattr(logging, verboseness))
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(
         coloredlogs.ColoredFormatter(
@@ -51,23 +54,26 @@ def config_logger() -> logging.Logger:
 
 def main_cli() -> None:
     """Entry point for CLI"""
-    logger = config_logger()
+    args = CliManager().run(sys.argv[1:])
+    logger = config_logger(args.verboseness)
+
     logger.debug(f"Started 'mite_extras' v{metadata.version('mite_extras')} as CLI.")
 
-    args = CliManager().run(sys.argv[1:])
     file_manager = FileManager(indir=args.input_dir, outdir=args.output_dir)
     file_manager.read_files_indir()
 
     for entry in file_manager.infiles:
+        logger.info(
+            f"CLI: started parsing of file '{entry.name}' in '{args.format}' format."
+        )
+
         with open(entry) as infile:
             input_data = json.load(infile)
-
-        output_data = {}
 
         try:
             match args.format:
                 case "raw":
-                    output_data = Parser().parse_raw_json(entry.name, input_data)
+                    output_data = Parser().parse_raw_json(entry.stem, input_data)
                 case "mite":
                     output_data = Parser().parse_mite_json(input_data)
                 case _:
@@ -75,11 +81,13 @@ def main_cli() -> None:
                         f"Input format '{args.format}' could not be parsed."
                     )
             SchemaManager().validate_against_schema(output_data)
+            file_manager.write_to_outdir(outfile_name=entry.stem, payload=output_data)
+            logger.info(
+                f"CLI: completed parsing of file '{entry.name}' in '{args.format}' format."
+            )
         except Exception as e:
             logger.fatal(f"Could not process file '{entry.name}': {e!s}")
             continue
-
-        file_manager.write_to_outdir(outfile_name=entry.name, payload=output_data)
 
     logger.debug("Completed 'mite_extras' as CLI.")
 

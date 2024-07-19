@@ -30,7 +30,7 @@ from mite_extras.processing.validation_manager import ValidationManager
 
 logger = logging.getLogger("mite_extras")
 
-# TODO(MMZ 18.07.24): add validation functions like for SMILES in ReactionEx class
+# TODO(MMZ 18.07.24): add validation functions like for SMILES in ReactionEx class @adafede
 
 
 class Entry(BaseModel):
@@ -190,22 +190,27 @@ class Reaction(BaseModel):
         description: an optional human-readable description
         reactionSMARTS: a ReactionSmarts object
         reactions: a list of ReactionEx objects
+        evidence: list of Evidence objects
+        databaseIds: a list of database IDs
     """
 
     tailoring: list
     description: str | None = None
     reactionSMARTS: Any
     reactions: list
+    evidence: list
+    databaseIds: list | None = None
 
     def to_json(self: Self) -> dict:
         json_dict = {}
 
-        for attr in ["tailoring", "description"]:
+        for attr in ["tailoring", "description", "databaseIds"]:
             if (val := getattr(self, attr)) is not None:
                 json_dict[attr] = val
 
         json_dict["reactionSMARTS"] = self.reactionSMARTS.to_json()
         json_dict["reactions"] = [entry.to_json() for entry in self.reactions]
+        json_dict["evidence"] = [entry.to_json() for entry in self.evidence]
 
         return json_dict
 
@@ -216,23 +221,17 @@ class ReactionSmarts(BaseModel):
     Attributes:
         reactionSMARTS: a reaction SMARTS
         isIterative: flag indicating if reaction SMARTS is applied more than once
-        databaseIds: a list of database IDs
-        evidence: list of Evidence objects
     """
 
     reactionSMARTS: str
     isIterative: bool
-    databaseIds: list | None = None
-    evidence: list
 
     def to_json(self: Self) -> dict:
         json_dict = {}
 
-        for attr in ["reactionSMARTS", "isIterative", "databaseIds"]:
+        for attr in ["reactionSMARTS", "isIterative"]:
             if (val := getattr(self, attr)) is not None:
                 json_dict[attr] = val
-
-        json_dict["evidence"] = [entry.to_json() for entry in self.evidence]
 
         return json_dict
 
@@ -246,8 +245,6 @@ class ReactionEx(BaseModel):
         isBalanced: is reaction balanced
         isIntermediate: is the reaction an intermediate or a stable product
         description: an optional string
-        databaseIds: a list of database IDs
-        evidence: a list of Evidence objects
     """
 
     substrate: str
@@ -255,8 +252,6 @@ class ReactionEx(BaseModel):
     isBalanced: bool
     isIntermediate: bool
     description: str | None = None
-    databaseIds: list | None = None
-    evidence: list
 
     @model_validator(mode="after")
     def validate_smiles(self):
@@ -275,12 +270,9 @@ class ReactionEx(BaseModel):
             "isBalanced",
             "isIntermediate",
             "description",
-            "databaseIds",
         ]:
             if (val := getattr(self, attr)) is not None:
                 json_dict[attr] = val
-
-        json_dict["evidence"] = [entry.to_json() for entry in self.evidence]
 
         return json_dict
 

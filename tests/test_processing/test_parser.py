@@ -5,6 +5,13 @@ from mite_extras.processing.parser import Parser
 @pytest.fixture
 def raw_json():
     return {
+        "Changelog": [
+            {"Edited_at": "05/14/2024, 08:50:36", "Edited_by": 219},
+            {"Edited_at": "05/14/2024, 08:52:49", "Edited_by": 219},
+            {"Edited_at": "05/14/2024, 08:58:51", "Edited_by": 219},
+            {"Edited_at": "05/14/2024, 09:01:37", "Edited_by": 219},
+            {"Edited_at": "05/14/2024, 09:05:31", "Edited_by": 219},
+        ],
         "Tailoring": [
             ["enzymes-0-enzyme-0-name", "embB"],
             ["enzymes-0-enzyme-0-description", "Cytochrome P450 installing crosslink"],
@@ -25,7 +32,7 @@ def raw_json():
                 "enzymes-0-reactions-0-reaction_smarts-0-evidence_sm-0-references",
                 '"doi:10.1101/2023.11.03.565440"',
             ],
-            ["enzymes-0-reactions-0-reaction_smarts-0-databaseIds", ""],
+            ["enzymes-0-reactions-0-reaction_smarts-0-databaseIds", "MITE0000000"],
             [
                 "enzymes-0-reactions-0-validated_reactions-0-substrate_substructure",
                 "CC[C@H](C)[C@H](NC(=O)[C@H](CC1=CC=CC=C1)NC(=O)[C@@H](N)CC1=CNC2=C1C=CC=C2)C(=O)N[C@@H](CC1=CNC2=C1C=CC=C2)C(O)=O",
@@ -46,13 +53,16 @@ def raw_json():
                 '"doi:10.1101/2023.11.03.565440"',
             ],
             ["enzymes-0-reactions-0-validated_reactions-0-description", ""],
-            ["enzymes-0-reactions-0-validated_reactions-0-databaseIds", ""],
+            [
+                "enzymes-0-reactions-0-validated_reactions-0-databaseIds",
+                '"pubmed:17392281", "pubmed:21384874"',
+            ],
             ["enzymes-0-comment", ""],
             ["submit", "Submit"],
-        ]
+        ],
     }
 
 
 def test_parse_raw_json_valid(raw_json):
     out_dict = Parser().parse_raw_json(name="newfile", input_data=raw_json)
-    assert out_dict is not None
+    assert isinstance(out_dict, dict)

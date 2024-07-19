@@ -53,12 +53,7 @@ class CliManager(BaseModel):
         Returns:
             argparse.Namespace object with command line parameters
         """
-        logger.debug("CliManager: started setting up CLI args")
-
         parser = self.define_cli_args()
-
-        logger.debug("CliManager: completed setting up CLI args")
-
         return parser.parse_args(args)
 
     def define_cli_args(self: Self) -> argparse.ArgumentParser:
@@ -102,6 +97,16 @@ class CliManager(BaseModel):
                 "Specifies the format of the input files "
                 "(default: 'raw' (MIBiG Submission Portal output))."
             ),
+        )
+
+        parser.add_argument(
+            "-v",
+            "--verboseness",
+            type=str,
+            default="INFO",
+            choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+            required=False,
+            help=("Specifies the verboseness of logging (default: 'INFO')."),
         )
 
         return parser

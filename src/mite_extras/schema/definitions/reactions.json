@@ -4,7 +4,8 @@
   "required": [
     "tailoring",
     "reactionSMARTS",
-    "reactions"
+    "reactions",
+    "evidence"
   ],
   "properties": {
     "tailoring": {
@@ -20,14 +21,28 @@
       "title": "Additional information about tailoring/maturation reaction.",
       "type": "string"
     },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "databaseIds": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/databaseId"
+      },
+      "uniqueItems": true
+    },
     "reactionSMARTS": {
       "title": "A reaction SMARTS pattern describing the (sub)structure to match and the reaction to perform.",
       "type": "object",
       "additionalProperties": false,
       "required": [
         "reactionSMARTS",
-        "isIterative",
-        "evidence"
+        "isIterative"
       ],
       "properties": {
         "reactionSMARTS": {
@@ -38,22 +53,6 @@
         "isIterative": {
           "title": "Flag to indicate if the reaction is applied iteratively (modifying all possible substructures).",
           "type": "boolean"
-        },
-        "databaseIds": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/databaseId"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "evidence": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/evidence"
-          },
-          "minItems": 1,
-          "uniqueItems": true
         }
       }
     },
@@ -68,8 +67,7 @@
           "substrate",
           "products",
           "isBalanced",
-          "isIntermediate",
-          "evidence"
+          "isIntermediate"
         ],
         "properties": {
           "substrate": {
@@ -95,21 +93,6 @@
           "description": {
             "title": "Additional information about reaction example",
             "type": "string"
-          },
-          "databaseIds": {
-            "type": "array",
-            "items": {
-              "$ref": "#/$defs/databaseId"
-            },
-            "uniqueItems": true
-          },
-          "evidence": {
-            "type": "array",
-            "items": {
-              "$ref": "#/$defs/evidence"
-            },
-            "minItems": 1,
-            "uniqueItems": true
           }
         }
       }

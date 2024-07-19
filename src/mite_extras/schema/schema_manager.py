@@ -73,7 +73,9 @@ class SchemaManager(BaseModel):
         Raises:
             ValueError: validation of instance against schema led to an error
         """
-        logger.debug("SchemaManager: started validation of instance against schema.")
+        logger.debug(
+            f"SchemaManager: started validation against MITE schema v{self.version_schema}."
+        )
 
         with open(self.main) as infile:
             main = json.load(infile)
@@ -101,9 +103,9 @@ class SchemaManager(BaseModel):
         try:
             jsonschema.validate(instance=instance, schema=main, registry=registry)
             logger.debug(
-                "SchemaManager: completed validation of instance against schema."
+                f"SchemaManager: completed validation against MITE schema v{self.version_schema}."
             )
         except jsonschema.exceptions.ValidationError as e:
             raise ValueError(
-                f"Validation of instance against schema led to an error: '{e!s}'"
+                f"Validation of instance against MITE schema v{self.version_schema} led to an error: '{e!s}'"
             ) from e
