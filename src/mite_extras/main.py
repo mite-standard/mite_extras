@@ -21,16 +21,75 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import json
 import logging
 import sys
+from importlib import metadata
 
-logger = logging.getLogger(__name__)
+import coloredlogs
+
+from mite_extras import CliManager, FileManager, Parser, SchemaManager
 
 
-def main_cli():
-    """Main function"""
-    print("Hello, world!")
-    sys.exit(0)
+def config_logger(verboseness: str) -> logging.Logger:
+    """Set up a named logger with nice formatting
+
+    Args:
+        verboseness: sets the logging verboseness
+
+    Returns:
+        A Logger object
+    """
+    logger = logging.getLogger("mite_extras")
+    logger.setLevel(getattr(logging, verboseness))
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(
+        coloredlogs.ColoredFormatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+    )
+    logger.addHandler(console_handler)
+    return logger
+
+
+def main_cli() -> None:
+    """Entry point for CLI"""
+    args = CliManager().run(sys.argv[1:])
+    logger = config_logger(args.verboseness)
+
+    logger.debug(f"Started 'mite_extras' v{metadata.version('mite_extras')} as CLI.")
+
+    file_manager = FileManager(indir=args.input_dir, outdir=args.output_dir)
+    file_manager.read_files_indir()
+
+    for entry in file_manager.infiles:
+        logger.info(
+            f"CLI: started parsing of file '{entry.name}' in '{args.format}' format."
+        )
+
+        with open(entry) as infile:
+            input_data = json.load(infile)
+
+        try:
+            match args.format:
+                case "raw":
+                    output_data = Parser().parse_raw_json(entry.stem, input_data)
+                case "mite":
+                    output_data = Parser().parse_mite_json(input_data)
+                case _:
+                    raise RuntimeError(
+                        f"Input format '{args.format}' could not be parsed."
+                    )
+            SchemaManager().validate_against_schema(output_data)
+            file_manager.write_to_outdir(outfile_name=entry.stem, payload=output_data)
+            logger.info(
+                f"CLI: completed parsing of file '{entry.name}' in '{args.format}' format."
+            )
+        except Exception as e:
+            logger.fatal(f"Could not process file '{entry.name}': {e!s}")
+            continue
+
+    logger.debug("Completed 'mite_extras' as CLI.")
 
 
 if __name__ == "__main__":
