@@ -19,7 +19,7 @@ Attention: this program has only been tested with Ubuntu Linux.
 
 First, pre-format the raw input files (assuming that they are coming from the MIBiG Submission Portal):
 
-- e.g. `hatch run python input_file_splitter.py example_input/new_608.json`
+- e.g. `hatch run python input_file_splitter.py example_input/new608.json`
 
 Move the generated file(s) into a different directory (e.g. 'input')
 
@@ -32,4 +32,4 @@ This will convert all files into the MITE schema.
 - Install developer dependencies with `hatch -v env create dev`
 - Initialize `pre-commit` with `hatch run dev:pre-commit install`
 - Run tests with `hatch run dev:pytest`
-- Run CLI with `hatch run dev:mite_extas`
+- Run CLI with `hatch run dev:mite_extras`
