@@ -90,12 +90,12 @@ class Changelog(BaseModel):
 
     Attributes:
         version: the MITE version
-        date: the release date
+        date: the release date in YYYY-MM-DD
         entries: a list of ChangelogEntry objects
     """
 
-    version: str = "next"
-    date: str = "0000-00-00"
+    version: str
+    date: str
     entries: list
 
     def to_json(self: Self) -> dict:
@@ -112,7 +112,7 @@ class ChangelogEntry(BaseModel):
     Attributes:
         contributors: a list of contributors
         reviewers: a list of reviewers
-        date: the date of the review
+        date: the date (YYYY-MM-DD) of the last edit (e.g. review)
         comment: comment indicating changes
     """
 

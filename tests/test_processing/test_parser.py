@@ -5,6 +5,7 @@ from mite_extras.processing.parser import Parser
 @pytest.fixture
 def raw_json():
     return {
+        "Metadata": {"mibig_id": "BGC0000000"},
         "Changelog": [
             {"Edited_at": "05/14/2024, 08:50:36", "Edited_by": 219},
             {"Edited_at": "05/14/2024, 08:52:49", "Edited_by": 219},

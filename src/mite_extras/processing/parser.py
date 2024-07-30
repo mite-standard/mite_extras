@@ -23,8 +23,10 @@ SOFTWARE.
 
 import logging
 import re
+from pathlib import Path
 from typing import Self
 
+import polars as pl
 from pydantic import BaseModel
 
 from mite_extras.processing.data_classes import (
@@ -150,15 +152,18 @@ class Parser(BaseModel):
 
             changelog_list = data.get("Changelog", [])
 
+            df = pl.read_csv(
+                Path(__file__).parent.parent.joinpath("schema/mibig_id_mappings.csv")
+            )
+
             if len(changelog_list) == 0:
-                raise ValueError(f"Parser: file '{name}' does not contain Changelog.")
+                raise ValueError(f"Parser: file '{name}' does not contain a Changelog.")
 
             contributors = set()
             for i in changelog_list:
-                editor = str(i.get("Edited_by"))
-                n = 24 - len(editor)
-                editor = editor + "#" * n
-                contributors.add(editor)
+                editor_int = int(i.get("Edited_by"))
+                editor_hash = df.filter(pl.col("id_int") == editor_int)["id_hash"][0]
+                contributors.add(editor_hash)
 
             date = changelog_list[-1].get("Edited_at").split(",")[0]
             date = date.split("/")
@@ -404,19 +409,21 @@ class Parser(BaseModel):
 
         entry = Entry(
             accession=name,
-            quality="questionable",
+            quality="medium",
             status="pending",
             comment=self.remove_empty_string(tailoring_dict.get("enzymes-0-comment")),
             changelog=[
                 Changelog(
+                    date="2024-07-30",
+                    version="1.0",
                     entries=[
                         ChangelogEntry(
                             contributors=_compile_changelog_data(input_data)[1],
                             reviewers=["AAAAAAAAAAAAAAAAAAAAAAAA"],
                             date=_compile_changelog_data(input_data)[0],
-                            comment="Creation of entry.",
+                            comment="Initial entry.",
                         )
-                    ]
+                    ],
                 )
             ],
             enzyme=Enzyme(
@@ -439,6 +446,10 @@ class Parser(BaseModel):
                 ],
             ),
             reactions=_compile_reactions(tailoring_dict),
+        )
+
+        entry.enzyme.databaseIds.append(
+            f'mibig:{input_data.get("Metadata").get("mibig_id")}'
         )
 
         return entry.to_json()
