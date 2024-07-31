@@ -88,6 +88,7 @@ class Parser(BaseModel):
 
         Raises:
             ValueError: "Tailoring" data cannot be found
+            RuntimeError: "No reaction data found"
         """
 
         def _compile_aux_enzymes(data: dict) -> list | None:
@@ -259,7 +260,10 @@ class Parser(BaseModel):
                 )
                 if match:
                     codes.update(
-                        [self.remove_quote(string) for string in value.split(", ")]
+                        [
+                            self.remove_quote(string)
+                            for string in re.split(", |,", value)
+                        ]
                     )
 
             refs = set()
@@ -270,7 +274,10 @@ class Parser(BaseModel):
                 )
                 if match:
                     refs.update(
-                        [self.remove_quote(string) for string in value.split(", ")]
+                        [
+                            self.remove_quote(string)
+                            for string in re.split(", |,", value)
+                        ]
                     )
 
             logger.debug("Parser: completed compiling evidence data.")
@@ -307,21 +314,15 @@ class Parser(BaseModel):
                         products.add(value)
 
                 balanced = False
-                if (
-                    data.get(
-                        f"enzymes-0-reactions-{count}-validated_reactions-{c_ex}-isBalanced"
-                    )
-                    == "yes"
-                ):
+                if data.get(
+                    f"enzymes-0-reactions-{count}-validated_reactions-{c_ex}-isBalanced"
+                ) in {"yes", "y", "Y", "Yes", "YES"}:
                     balanced = True
 
                 intermediate = False
-                if (
-                    data.get(
-                        f"enzymes-0-reactions-{count}-validated_reactions-{c_ex}-isIntermediate"
-                    )
-                    == "yes"
-                ):
+                if data.get(
+                    f"enzymes-0-reactions-{count}-validated_reactions-{c_ex}-isIntermediate"
+                ) in {"yes", "y", "Y", "Yes", "YES"}:
                     intermediate = True
 
                 ex_reactions.append(
@@ -431,17 +432,17 @@ class Parser(BaseModel):
                 description=tailoring_dict.get("enzymes-0-enzyme-0-description"),
                 databaseIds=[
                     self.remove_quote(string)
-                    for string in tailoring_dict.get(
-                        "enzymes-0-enzyme-0-databaseIds"
-                    ).split(", ")
+                    for string in re.split(
+                        ", |,", tailoring_dict.get("enzymes-0-enzyme-0-databaseIds")
+                    )
                     if self.remove_empty_string(string) is not None
                 ],
                 auxiliaryEnzymes=_compile_aux_enzymes(tailoring_dict),
                 references=[
                     (self.remove_quote(string))
-                    for string in tailoring_dict.get(
-                        "enzymes-0-enzyme-0-references"
-                    ).split(", ")
+                    for string in re.split(
+                        ", |,", tailoring_dict.get("enzymes-0-enzyme-0-references")
+                    )
                     if self.remove_empty_string(string) is not None
                 ],
             ),
@@ -451,5 +452,8 @@ class Parser(BaseModel):
         entry.enzyme.databaseIds.append(
             f'mibig:{input_data.get("Metadata").get("mibig_id")}'
         )
+
+        if len(entry.reactions) == 0:
+            raise RuntimeError("No reaction data found - SKIP.")
 
         return entry.to_json()
