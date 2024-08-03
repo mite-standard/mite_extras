@@ -80,11 +80,19 @@ def main_cli() -> None:
                     raise RuntimeError(
                         f"Input format '{args.fin}' could not be parsed."
                     )
+
             SchemaManager().validate_against_schema(output_data)
-            file_manager.write_to_outdir(outfile_name=entry.stem, payload=output_data)
+
+            match args.fout:
+                case "json":
+                    file_manager.write_json(
+                        outfile_name=entry.stem, payload=output_data
+                    )
+
             logger.info(
                 f"CLI: completed parsing of file '{entry.name}' in '{args.fin}' format."
             )
+
         except Exception as e:
             logger.fatal(f"Could not process file '{entry.name}': {e!s}")
             continue

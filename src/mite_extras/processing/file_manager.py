@@ -75,7 +75,7 @@ class FileManager(BaseModel):
             f"FileManager: completed reading file in input directory '{self.indir.name}'."
         )
 
-    def write_to_outdir(self: Self, outfile_name: str, payload: dict) -> None:
+    def write_json(self: Self, outfile_name: str, payload: dict) -> None:
         """Write dict as json file to outdir
 
         Args:
