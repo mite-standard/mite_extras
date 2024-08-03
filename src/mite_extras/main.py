@@ -64,26 +64,26 @@ def main_cli() -> None:
 
     for entry in file_manager.infiles:
         logger.info(
-            f"CLI: started parsing of file '{entry.name}' in '{args.format}' format."
+            f"CLI: started parsing of file '{entry.name}' in '{args.fin}' format."
         )
 
         with open(entry) as infile:
             input_data = json.load(infile)
 
         try:
-            match args.format:
+            match args.fin:
                 case "raw":
                     output_data = Parser().parse_raw_json(entry.stem, input_data)
                 case "mite":
                     output_data = Parser().parse_mite_json(input_data)
                 case _:
                     raise RuntimeError(
-                        f"Input format '{args.format}' could not be parsed."
+                        f"Input format '{args.fin}' could not be parsed."
                     )
             SchemaManager().validate_against_schema(output_data)
             file_manager.write_to_outdir(outfile_name=entry.stem, payload=output_data)
             logger.info(
-                f"CLI: completed parsing of file '{entry.name}' in '{args.format}' format."
+                f"CLI: completed parsing of file '{entry.name}' in '{args.fin}' format."
             )
         except Exception as e:
             logger.fatal(f"Could not process file '{entry.name}': {e!s}")
