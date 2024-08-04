@@ -88,7 +88,6 @@ def main_cli() -> None:
                     file_manager.write_json(
                         outfile_name=entry.stem, payload=parser.to_json()
                     )
-                # TODO (MMZ 3.8.24): add html export
                 case "html":
                     file_manager.write_html(
                         outfile_name=entry.stem, payload=parser.to_html()

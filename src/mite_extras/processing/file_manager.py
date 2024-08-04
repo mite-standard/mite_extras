@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Self
 
 from pydantic import BaseModel, model_validator
+from staticjinja import Site
 
 logger = logging.getLogger("mite_extras")
 
@@ -101,5 +102,14 @@ class FileManager(BaseModel):
             payload: the dict information to write to file
         """
         logger.debug(f"FileManager: started writing file '{outfile_name}.html'.")
+
+        self.outdir.joinpath(outfile_name).mkdir(exist_ok=True)
+
+        site = Site.make_site(
+            searchpath=Path(__file__).parent.joinpath("templates"),
+            outpath=self.outdir.joinpath(outfile_name),
+            env_globals=payload,
+        )
+        site.render()
 
         logger.debug(f"FileManager: completed writing file '{outfile_name}.html'.")

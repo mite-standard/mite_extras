@@ -134,7 +134,7 @@ class MiteParser(BaseModel):
         return log
 
     @staticmethod
-    def get_auxenzymes(auxenzymes: list) -> list:
+    def get_auxenzymes(auxenzymes: list | None) -> list | None:
         """Extract auxiliary enzyme info and converts into internal data structure
 
         Args:
@@ -143,6 +143,9 @@ class MiteParser(BaseModel):
         Returns:
             A list of EnzymeAux objects
         """
+        if auxenzymes is None:
+            return None
+
         logger.debug("MiteParser: started creating EnzymeAux object(s).")
 
         log = []
