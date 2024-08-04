@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "0.2.1",
+  "$id": "1.0",
   "type": "object",
   "title": "Minimum Information about a Tailoring Enzyme/Maturase Data Standard",
   "additionalProperties": false,
