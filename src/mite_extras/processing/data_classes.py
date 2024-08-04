@@ -98,9 +98,9 @@ class Entry(BaseModel):
                 html_dict[attr] = val
 
         if self.changelog is not None:
-            html_dict["changelog"] = {
-                "releases": [changelog.to_html() for changelog in self.changelog]
-            }
+            html_dict["changelog"] = [
+                changelog.to_html() for changelog in self.changelog
+            ]
 
         if self.enzyme is not None:
             html_dict["enzyme"] = self.enzyme.to_html()
