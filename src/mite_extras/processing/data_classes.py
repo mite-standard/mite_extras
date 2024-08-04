@@ -84,6 +84,9 @@ class Entry(BaseModel):
 
         return json_dict
 
+    def to_html(self: Self) -> dict:
+        logger.fatal("Entry: 'to_html' not implemented yet")
+
 
 class Changelog(BaseModel):
     """Pydantic-based class to represent changelog

@@ -92,3 +92,12 @@ class FileManager(BaseModel):
             outfile.write(json.dumps(payload, indent=4, ensure_ascii=False))
 
         logger.debug(f"FileManager: completed writing file '{outfile_name}.json'.")
+
+    def write_html(self: Self, outfile_name: str, payload: dict) -> None:
+        """Write dict as html file to outdir
+
+        Args:
+            outfile_name: filename of file to be written
+            payload: the dict information to write to file
+        """
+        logger.fatal("FileManager: 'write_html' not implemented yet.")
