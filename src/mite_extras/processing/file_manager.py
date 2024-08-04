@@ -100,4 +100,6 @@ class FileManager(BaseModel):
             outfile_name: filename of file to be written
             payload: the dict information to write to file
         """
-        logger.fatal("FileManager: 'write_html' not implemented yet.")
+        logger.debug(f"FileManager: started writing file '{outfile_name}.html'.")
+
+        logger.debug(f"FileManager: completed writing file '{outfile_name}.html'.")

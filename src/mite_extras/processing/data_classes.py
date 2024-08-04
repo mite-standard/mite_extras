@@ -85,7 +85,30 @@ class Entry(BaseModel):
         return json_dict
 
     def to_html(self: Self) -> dict:
-        logger.fatal("Entry: 'to_html' not implemented yet")
+        html_dict = {}
+        for attr in [
+            "accession",
+            "quality",
+            "status",
+            "retirementReasons",
+            "comment",
+            "attachments",
+        ]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+
+        if self.changelog is not None:
+            html_dict["changelog"] = {
+                "releases": [changelog.to_html() for changelog in self.changelog]
+            }
+
+        if self.enzyme is not None:
+            html_dict["enzyme"] = self.enzyme.to_html()
+
+        if self.reactions is not None:
+            html_dict["reactions"] = [reaction.to_html() for reaction in self.reactions]
+
+        return html_dict
 
 
 class Changelog(BaseModel):
@@ -108,6 +131,13 @@ class Changelog(BaseModel):
             "entries": [entry.to_json() for entry in self.entries],
         }
 
+    def to_html(self: Self) -> dict:
+        return {
+            "version": self.version,
+            "date": self.date,
+            "entries": [entry.to_html() for entry in self.entries],
+        }
+
 
 class ChangelogEntry(BaseModel):
     """Pydantic-based class to represent changelog entries
@@ -125,6 +155,14 @@ class ChangelogEntry(BaseModel):
     comment: str
 
     def to_json(self: Self) -> dict:
+        return {
+            "contributors": self.contributors,
+            "reviewers": self.reviewers,
+            "date": self.date,
+            "comment": self.comment,
+        }
+
+    def to_html(self: Self) -> dict:
         return {
             "contributors": self.contributors,
             "reviewers": self.reviewers,
@@ -163,6 +201,19 @@ class Enzyme(BaseModel):
 
         return json_dict
 
+    def to_html(self: Self) -> dict:
+        html_dict = {}
+        for attr in ["name", "description", "databaseIds", "references"]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+
+        if self.auxiliaryEnzymes is not None:
+            html_dict["auxiliaryEnzymes"] = [
+                entry.to_html() for entry in self.auxiliaryEnzymes
+            ]
+
+        return html_dict
+
 
 class EnzymeAux(BaseModel):
     """Pydantic-based class to represent auxiliary enzyme information
@@ -183,6 +234,13 @@ class EnzymeAux(BaseModel):
             if (val := getattr(self, attr)) is not None:
                 json_dict[attr] = val
         return json_dict
+
+    def to_html(self: Self) -> dict:
+        html_dict = {}
+        for attr in ["name", "description", "databaseIds"]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+        return html_dict
 
 
 class Reaction(BaseModel):
@@ -217,6 +275,19 @@ class Reaction(BaseModel):
 
         return json_dict
 
+    def to_html(self: Self) -> dict:
+        html_dict = {}
+
+        for attr in ["tailoring", "description", "databaseIds"]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+
+        html_dict["reactionSMARTS"] = self.reactionSMARTS.to_html()
+        html_dict["reactions"] = [entry.to_html() for entry in self.reactions]
+        html_dict["evidence"] = [entry.to_html() for entry in self.evidence]
+
+        return html_dict
+
 
 class ReactionSmarts(BaseModel):
     """Pydantic-based class to represent reactions
@@ -237,6 +308,15 @@ class ReactionSmarts(BaseModel):
                 json_dict[attr] = val
 
         return json_dict
+
+    def to_html(self: Self) -> dict:
+        html_dict = {}
+
+        for attr in ["reactionSMARTS", "isIterative"]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+
+        return html_dict
 
 
 class ReactionEx(BaseModel):
@@ -288,6 +368,22 @@ class ReactionEx(BaseModel):
 
         return json_dict
 
+    def to_html(self: Self) -> dict:
+        html_dict = {}
+
+        for attr in [
+            "substrate",
+            "products",
+            "forbidden_products",
+            "isBalanced",
+            "isIntermediate",
+            "description",
+        ]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+
+        return html_dict
+
 
 class Evidence(BaseModel):
     """Pydantic-based class to represent evidence information
@@ -301,4 +397,7 @@ class Evidence(BaseModel):
     references: list
 
     def to_json(self: Self) -> dict:
+        return {"evidenceCode": self.evidenceCode, "references": self.references}
+
+    def to_html(self: Self) -> dict:
         return {"evidenceCode": self.evidenceCode, "references": self.references}
