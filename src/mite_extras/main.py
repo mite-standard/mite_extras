@@ -28,7 +28,7 @@ from importlib import metadata
 
 import coloredlogs
 
-from mite_extras import CliManager, FileManager, Parser, SchemaManager
+from mite_extras import CliManager, FileManager, MiteParser, RawParser, SchemaManager
 
 
 def config_logger(verboseness: str) -> logging.Logger:
@@ -73,21 +73,28 @@ def main_cli() -> None:
         try:
             match args.fin:
                 case "raw":
-                    output_data = Parser().parse_raw_json(entry.stem, input_data)
+                    parser = RawParser()
+                    parser.parse_raw_json(name=entry.stem, input_data=input_data)
                 case "mite":
-                    output_data = Parser().parse_mite_json(input_data)
+                    parser = MiteParser()
+                    parser.parse_mite_json(data=input_data)
                 case _:
-                    raise RuntimeError(
-                        f"Input format '{args.fin}' could not be parsed."
-                    )
+                    raise RuntimeError(f"Unsupported input format '{args.fin}'.")
 
-            SchemaManager().validate_against_schema(output_data)
+            SchemaManager().validate_against_schema(parser.to_json())
 
             match args.fout:
                 case "json":
                     file_manager.write_json(
-                        outfile_name=entry.stem, payload=output_data
+                        outfile_name=entry.stem, payload=parser.to_json()
                     )
+                # TODO (MMZ 3.8.24): add html export
+                case "html":
+                    file_manager.write_json(
+                        outfile_name=entry.stem, payload=parser.to_html()
+                    )
+                case _:
+                    raise RuntimeError(f"Unsupported output format '{args.fout}'.")
 
             logger.info(
                 f"CLI: completed parsing of file '{entry.name}' in '{args.fin}' format."

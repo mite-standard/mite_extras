@@ -1,4 +1,4 @@
-"""Parsing of data from input format
+"""Parsing of data from input raw json input format
 
 Copyright (c) 2024 to present Mitja Maximilian Zdouc, PhD and individual contributors.
 
@@ -24,7 +24,7 @@ SOFTWARE.
 import logging
 import re
 from pathlib import Path
-from typing import Self
+from typing import Any, Self
 
 import polars as pl
 from pydantic import BaseModel
@@ -44,8 +44,16 @@ from mite_extras.processing.data_classes import (
 logger = logging.getLogger("mite_extras")
 
 
-class Parser(BaseModel):
-    """Collection of parsers to assign input data to internal data structure"""
+class RawParser(BaseModel):
+    """Assign data from raw input files to internal data structure
+
+    Attributes:
+        entry: an Entry object to represent MITE data
+
+    # TODO(MMZ 19.07.24): Retire this class once the MIBiG Submission portal produces valid MITE jsons
+    """
+
+    entry: Any | None = None
 
     @staticmethod
     def remove_quote(instring: str) -> str:
@@ -58,26 +66,22 @@ class Parser(BaseModel):
         else:
             return instring
 
-    @staticmethod
-    def parse_mite_json(input_data: dict) -> dict:
-        """Read in data from a json file formatted after mite schema
-
-        Args:
-            input_data: a dict coming from a mite json file
+    def to_json(self: Self) -> dict:
+        """Prepare for export to json
 
         Returns:
-            A validated and mite-formatted dict for json export
+            A dict formatted to be written to json
+
+        Raises:
+            RuntimeError: entry has not been assigned yet.
         """
-        # TODO(MMZ 18.07.24): Needs to be implemented
+        if self.entry:
+            return self.entry.to_json()
+        else:
+            raise RuntimeError("'RawParser': function 'to_json()' called out of order.")
 
-        logger.fatal("MITE JSON PARSER CURRENTLY NOT IMPLEMENTED")
-
-        return {}
-
-    def parse_raw_json(self: Self, name: str, input_data: dict) -> dict:
+    def parse_raw_json(self: Self, name: str, input_data: dict):
         """Read in data from a json file resulting from the 2024 MIBiG annotathons
-
-        # TODO(MMZ 19.07.24): Retire this function once the MIBiG Submission portal produces valid MITE jsons
 
         Args:
             name: the name of the file
@@ -456,4 +460,4 @@ class Parser(BaseModel):
         if len(entry.reactions) == 0:
             raise RuntimeError("No reaction data found - SKIP.")
 
-        return entry.to_json()
+        self.entry = entry
