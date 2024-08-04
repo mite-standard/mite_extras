@@ -1,5 +1,13 @@
 import pytest
-from mite_extras.processing.data_classes import Changelog, ChangelogEntry, Entry
+from mite_extras.processing.data_classes import (
+    Changelog,
+    ChangelogEntry,
+    Entry,
+    EnzymeAux,
+    Evidence,
+    Reaction,
+    ReactionEx,
+)
 from mite_extras.processing.mite_parser import MiteParser
 
 
@@ -36,6 +44,13 @@ def mite_json():
             "name": "aviG6",
             "description": "putative methyltransferase",
             "databaseIds": ["genpept:AAK83186.1", "mibig:BGC0000026"],
+            "auxiliaryEnzymes": [
+                {
+                    "name": "AbcD",
+                    "description": "A nonexisting enzyme",
+                    "databaseIds": ["genpept:AAK83186.1", "mibig:BGC0000026"],
+                }
+            ],
             "references": ["pubmed:15489167"],
         },
         "reactions": [
@@ -80,6 +95,38 @@ def test_get_changelog_valid(mite_json):
     log = parser.get_changelog(releases=mite_json.get("changelog").get("releases"))
     assert len(log) == 1
     assert isinstance(log[0], Changelog)
+
+
+def test_get_auxenzymes_valid(mite_json):
+    parser = MiteParser()
+    log = parser.get_auxenzymes(
+        auxenzymes=mite_json.get("enzyme").get("auxiliaryEnzymes")
+    )
+    assert len(log) == 1
+    assert isinstance(log[0], EnzymeAux)
+
+
+def test_get_reactionex_valid(mite_json):
+    parser = MiteParser()
+    log = parser.get_reactionex(
+        reactions=mite_json.get("reactions")[0].get("reactions")
+    )
+    assert len(log) == 1
+    assert isinstance(log[0], ReactionEx)
+
+
+def test_get_evidence_valid(mite_json):
+    parser = MiteParser()
+    log = parser.get_evidence(evidences=mite_json.get("reactions")[0].get("evidence"))
+    assert len(log) == 1
+    assert isinstance(log[0], Evidence)
+
+
+def test_get_reactions_valid(mite_json):
+    parser = MiteParser()
+    log = parser.get_reactions(reactions=mite_json.get("reactions"))
+    assert len(log) == 1
+    assert isinstance(log[0], Reaction)
 
 
 def test_parse_raw_json_valid(mite_json):
