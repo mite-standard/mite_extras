@@ -21,10 +21,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import base64
 import logging
 from typing import Any, Self
 
 from pydantic import BaseModel, model_validator
+from rdkit.Chem import MolFromSmiles
+from rdkit.Chem.Draw import rdMolDraw2D
 
 from mite_extras.processing.validation_manager import ValidationManager
 
@@ -369,18 +372,39 @@ class ReactionEx(BaseModel):
         return json_dict
 
     def to_html(self: Self) -> dict:
+        def _smiles_to_svg(smiles: str) -> str:
+            """Generates a base64 encoded SVG strin"""
+            m = MolFromSmiles(smiles)
+
+            for atom in m.GetAtoms():
+                atom.SetAtomMapNum(0)
+
+            m = rdMolDraw2D.PrepareMolForDrawing(m)
+
+            drawer = rdMolDraw2D.MolDraw2DSVG(-1, -1)
+            drawer.DrawMolecule(m)
+            drawer.FinishDrawing()
+            svg = drawer.GetDrawingText()
+            return base64.b64encode(svg.encode("utf-8")).decode("utf-8")
+
         html_dict = {}
 
         for attr in [
-            "substrate",
-            "products",
-            "forbidden_products",
             "isBalanced",
             "isIntermediate",
             "description",
         ]:
             if (val := getattr(self, attr)) is not None:
                 html_dict[attr] = val
+
+        html_dict["substrate"] = (self.substrate, _smiles_to_svg(self.substrate))
+
+        html_dict["products"] = [(mol, _smiles_to_svg(mol)) for mol in self.products]
+
+        if self.forbidden_products:
+            html_dict["forbidden_products"] = [
+                (mol, _smiles_to_svg(mol)) for mol in self.forbidden_products
+            ]
 
         return html_dict
 

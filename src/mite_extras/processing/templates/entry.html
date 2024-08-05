@@ -23,8 +23,12 @@
 	<div class="container-fluid">
 		<div class="row d-flex align-items-center">
 			<div class="col-6">
-				<img class="img-fluid mx-auto d-block" src="https://cdn.rcsb.org/images/structures/101m_assembly-1.jpeg" alt="Placeholder">
-				<p class="text-center">Placeholder image</p>
+<!--				<img class="img-fluid mx-auto d-block" src="https://cdn.rcsb.org/images/structures/101m_assembly-1.jpeg" alt="Placeholder">-->
+<!--				<p class="text-center">Placeholder image</p>-->
+
+				<img class="img-fluid mx-auto d-block" src="data:image/svg+xml;base64,{{ reactions[0].reactions[0].products[0][1] }}" alt="Placeholder">
+
+
 			</div>
 			<div class="col-6">
 				<ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -76,6 +80,7 @@
 				</div>
 
 			</div>
+
 		</div>
 	</div>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
