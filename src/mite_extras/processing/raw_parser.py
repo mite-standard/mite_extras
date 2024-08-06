@@ -1,4 +1,4 @@
-"""Parsing of data from input format
+"""Parsing of data from input raw json input format
 
 Copyright (c) 2024 to present Mitja Maximilian Zdouc, PhD and individual contributors.
 
@@ -23,8 +23,10 @@ SOFTWARE.
 
 import logging
 import re
-from typing import Self
+from pathlib import Path
+from typing import Any, Self
 
+import polars as pl
 from pydantic import BaseModel
 
 from mite_extras.processing.data_classes import (
@@ -42,8 +44,16 @@ from mite_extras.processing.data_classes import (
 logger = logging.getLogger("mite_extras")
 
 
-class Parser(BaseModel):
-    """Collection of parsers to assign input data to internal data structure"""
+class RawParser(BaseModel):
+    """Assign data from raw input files to internal data structure
+
+    Attributes:
+        entry: an Entry object to represent MITE data
+
+    # TODO(MMZ 19.07.24): Retire this class once the MIBiG Submission portal produces valid MITE jsons
+    """
+
+    entry: Any | None = None
 
     @staticmethod
     def remove_quote(instring: str) -> str:
@@ -56,26 +66,22 @@ class Parser(BaseModel):
         else:
             return instring
 
-    @staticmethod
-    def parse_mite_json(input_data: dict) -> dict:
-        """Read in data from a json file formatted after mite schema
-
-        Args:
-            input_data: a dict coming from a mite json file
+    def to_json(self: Self) -> dict:
+        """Prepare for export to json
 
         Returns:
-            A validated and mite-formatted dict for json export
+            A dict formatted to be written to json
+
+        Raises:
+            RuntimeError: entry has not been assigned yet.
         """
-        # TODO(MMZ 18.07.24): Needs to be implemented
+        if self.entry:
+            return self.entry.to_json()
+        else:
+            raise RuntimeError("'RawParser': function 'to_json()' called out of order.")
 
-        logger.fatal("MITE JSON PARSER CURRENTLY NOT IMPLEMENTED")
-
-        return {}
-
-    def parse_raw_json(self: Self, name: str, input_data: dict) -> dict:
+    def parse_raw_json(self: Self, name: str, input_data: dict):
         """Read in data from a json file resulting from the 2024 MIBiG annotathons
-
-        # TODO(MMZ 19.07.24): Retire this function once the MIBiG Submission portal produces valid MITE jsons
 
         Args:
             name: the name of the file
@@ -86,6 +92,7 @@ class Parser(BaseModel):
 
         Raises:
             ValueError: "Tailoring" data cannot be found
+            RuntimeError: "No reaction data found"
         """
 
         def _compile_aux_enzymes(data: dict) -> list | None:
@@ -150,15 +157,18 @@ class Parser(BaseModel):
 
             changelog_list = data.get("Changelog", [])
 
+            df = pl.read_csv(
+                Path(__file__).parent.parent.joinpath("schema/mibig_id_mappings.csv")
+            )
+
             if len(changelog_list) == 0:
-                raise ValueError(f"Parser: file '{name}' does not contain Changelog.")
+                raise ValueError(f"Parser: file '{name}' does not contain a Changelog.")
 
             contributors = set()
             for i in changelog_list:
-                editor = str(i.get("Edited_by"))
-                n = 24 - len(editor)
-                editor = editor + "#" * n
-                contributors.add(editor)
+                editor_int = int(i.get("Edited_by"))
+                editor_hash = df.filter(pl.col("id_int") == editor_int)["id_hash"][0]
+                contributors.add(editor_hash)
 
             date = changelog_list[-1].get("Edited_at").split(",")[0]
             date = date.split("/")
@@ -254,7 +264,10 @@ class Parser(BaseModel):
                 )
                 if match:
                     codes.update(
-                        [self.remove_quote(string) for string in value.split(", ")]
+                        [
+                            self.remove_quote(string)
+                            for string in re.split(", |,", value)
+                        ]
                     )
 
             refs = set()
@@ -265,7 +278,10 @@ class Parser(BaseModel):
                 )
                 if match:
                     refs.update(
-                        [self.remove_quote(string) for string in value.split(", ")]
+                        [
+                            self.remove_quote(string)
+                            for string in re.split(", |,", value)
+                        ]
                     )
 
             logger.debug("Parser: completed compiling evidence data.")
@@ -302,21 +318,15 @@ class Parser(BaseModel):
                         products.add(value)
 
                 balanced = False
-                if (
-                    data.get(
-                        f"enzymes-0-reactions-{count}-validated_reactions-{c_ex}-isBalanced"
-                    )
-                    == "yes"
-                ):
+                if data.get(
+                    f"enzymes-0-reactions-{count}-validated_reactions-{c_ex}-isBalanced"
+                ) in {"yes", "y", "Y", "Yes", "YES"}:
                     balanced = True
 
                 intermediate = False
-                if (
-                    data.get(
-                        f"enzymes-0-reactions-{count}-validated_reactions-{c_ex}-isIntermediate"
-                    )
-                    == "yes"
-                ):
+                if data.get(
+                    f"enzymes-0-reactions-{count}-validated_reactions-{c_ex}-isIntermediate"
+                ) in {"yes", "y", "Y", "Yes", "YES"}:
                     intermediate = True
 
                 ex_reactions.append(
@@ -404,19 +414,21 @@ class Parser(BaseModel):
 
         entry = Entry(
             accession=name,
-            quality="questionable",
+            quality="medium",
             status="pending",
             comment=self.remove_empty_string(tailoring_dict.get("enzymes-0-comment")),
             changelog=[
                 Changelog(
+                    date="2024-07-30",
+                    version="1.0",
                     entries=[
                         ChangelogEntry(
                             contributors=_compile_changelog_data(input_data)[1],
                             reviewers=["AAAAAAAAAAAAAAAAAAAAAAAA"],
                             date=_compile_changelog_data(input_data)[0],
-                            comment="Creation of entry.",
+                            comment="Initial entry.",
                         )
-                    ]
+                    ],
                 )
             ],
             enzyme=Enzyme(
@@ -424,21 +436,28 @@ class Parser(BaseModel):
                 description=tailoring_dict.get("enzymes-0-enzyme-0-description"),
                 databaseIds=[
                     self.remove_quote(string)
-                    for string in tailoring_dict.get(
-                        "enzymes-0-enzyme-0-databaseIds"
-                    ).split(", ")
+                    for string in re.split(
+                        ", |,", tailoring_dict.get("enzymes-0-enzyme-0-databaseIds")
+                    )
                     if self.remove_empty_string(string) is not None
                 ],
                 auxiliaryEnzymes=_compile_aux_enzymes(tailoring_dict),
                 references=[
                     (self.remove_quote(string))
-                    for string in tailoring_dict.get(
-                        "enzymes-0-enzyme-0-references"
-                    ).split(", ")
+                    for string in re.split(
+                        ", |,", tailoring_dict.get("enzymes-0-enzyme-0-references")
+                    )
                     if self.remove_empty_string(string) is not None
                 ],
             ),
             reactions=_compile_reactions(tailoring_dict),
         )
 
-        return entry.to_json()
+        entry.enzyme.databaseIds.append(
+            f'mibig:{input_data.get("Metadata").get("mibig_id")}'
+        )
+
+        if len(entry.reactions) == 0:
+            raise RuntimeError("No reaction data found - SKIP.")
+
+        self.entry = entry

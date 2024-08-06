@@ -4,6 +4,7 @@ import json
 import os
 import re
 import sys
+from pathlib import Path
 
 
 def generate_unique_filename(json_file_path, digits=7):
@@ -25,6 +26,11 @@ def write_json(data, json_file_path):
 def split_files(data, json_file_path):
     changelog_list = data.get("Changelog")
     tailoring_list = data.get("Tailoring")
+
+    filepath = Path(json_file_path)
+    metadata = {
+        "mibig_id": filepath.stem,
+    }
 
     if tailoring_list is None:
         print(f"Error: File '{json_file_path}' has no tailoring info - pass.")
@@ -49,7 +55,11 @@ def split_files(data, json_file_path):
                 payload.append([new_key, value])
 
         write_json(
-            data={"Changelog": changelog_list, "Tailoring": payload},
+            data={
+                "Changelog": changelog_list,
+                "Tailoring": payload,
+                "Metadata": metadata,
+            },
             json_file_path=json_file_path,
         )
 

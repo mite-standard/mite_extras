@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Self
 
 from pydantic import BaseModel, model_validator
+from staticjinja import Site
 
 logger = logging.getLogger("mite_extras")
 
@@ -75,7 +76,7 @@ class FileManager(BaseModel):
             f"FileManager: completed reading file in input directory '{self.indir.name}'."
         )
 
-    def write_to_outdir(self: Self, outfile_name: str, payload: dict) -> None:
+    def write_json(self: Self, outfile_name: str, payload: dict) -> None:
         """Write dict as json file to outdir
 
         Args:
@@ -92,3 +93,23 @@ class FileManager(BaseModel):
             outfile.write(json.dumps(payload, indent=4, ensure_ascii=False))
 
         logger.debug(f"FileManager: completed writing file '{outfile_name}.json'.")
+
+    def write_html(self: Self, outfile_name: str, payload: dict) -> None:
+        """Write dict as html file to outdir
+
+        Args:
+            outfile_name: filename of file to be written
+            payload: the dict information to write to file
+        """
+        logger.debug(f"FileManager: started writing file '{outfile_name}.html'.")
+
+        self.outdir.joinpath(outfile_name).mkdir(exist_ok=True)
+
+        site = Site.make_site(
+            searchpath=Path(__file__).parent.joinpath("templates"),
+            outpath=self.outdir.joinpath(outfile_name),
+            env_globals=payload,
+        )
+        site.render()
+
+        logger.debug(f"FileManager: completed writing file '{outfile_name}.html'.")

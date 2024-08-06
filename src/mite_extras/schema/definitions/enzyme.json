@@ -71,7 +71,11 @@
         },
         {
           "title": "MIBiG ID reference",
-          "pattern": "^BGC\\d{7}$"
+          "pattern": "^mibig:BGC\\d{7}$"
+        },
+        {
+          "title": "Temporary MIBiG ID reference",
+          "pattern": "^mibig:new\\d+$"
         }
       ]
     }

@@ -22,15 +22,12 @@ SOFTWARE.
 """
 
 import argparse
-import logging
 from importlib import metadata
 from typing import Self
 
 from pydantic import BaseModel
 
 from mite_extras.schema.schema_manager import SchemaManager
-
-logger = logging.getLogger("mite_extras")
 
 
 class CliManager(BaseModel):
@@ -87,15 +84,26 @@ class CliManager(BaseModel):
         )
 
         parser.add_argument(
-            "-m",
-            "--format",
+            "-fin",
             type=str,
             default="raw",
             choices=["raw", "mite"],
             required=False,
             help=(
-                "Specifies the format of the input files "
+                "Specifies the format of the files in the input directory "
                 "(default: 'raw' (MIBiG Submission Portal output))."
+            ),
+        )
+
+        parser.add_argument(
+            "-fout",
+            type=str,
+            default="json",
+            choices=["json", "html"],
+            required=False,
+            help=(
+                "Specifies the output data format "
+                "(default: 'json' (MITE-formatted))."
             ),
         )
 
@@ -106,7 +114,7 @@ class CliManager(BaseModel):
             default="INFO",
             choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
             required=False,
-            help=("Specifies the verboseness of logging (default: 'INFO')."),
+            help="Specifies the verboseness of logging (default: 'INFO').",
         )
 
         return parser

@@ -21,10 +21,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import base64
 import logging
 from typing import Any, Self
 
 from pydantic import BaseModel, model_validator
+from rdkit.Chem import MolFromSmiles
+from rdkit.Chem.Draw import rdMolDraw2D
 
 from mite_extras.processing.validation_manager import ValidationManager
 
@@ -84,18 +87,44 @@ class Entry(BaseModel):
 
         return json_dict
 
+    def to_html(self: Self) -> dict:
+        html_dict = {}
+        for attr in [
+            "accession",
+            "quality",
+            "status",
+            "retirementReasons",
+            "comment",
+            "attachments",
+        ]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+
+        if self.changelog is not None:
+            html_dict["changelog"] = [
+                changelog.to_html() for changelog in self.changelog
+            ]
+
+        if self.enzyme is not None:
+            html_dict["enzyme"] = self.enzyme.to_html()
+
+        if self.reactions is not None:
+            html_dict["reactions"] = [reaction.to_html() for reaction in self.reactions]
+
+        return html_dict
+
 
 class Changelog(BaseModel):
     """Pydantic-based class to represent changelog
 
     Attributes:
         version: the MITE version
-        date: the release date
+        date: the release date in YYYY-MM-DD
         entries: a list of ChangelogEntry objects
     """
 
-    version: str = "next"
-    date: str = "0000-00-00"
+    version: str
+    date: str
     entries: list
 
     def to_json(self: Self) -> dict:
@@ -105,6 +134,13 @@ class Changelog(BaseModel):
             "entries": [entry.to_json() for entry in self.entries],
         }
 
+    def to_html(self: Self) -> dict:
+        return {
+            "version": self.version,
+            "date": self.date,
+            "entries": [entry.to_html() for entry in self.entries],
+        }
+
 
 class ChangelogEntry(BaseModel):
     """Pydantic-based class to represent changelog entries
@@ -112,7 +148,7 @@ class ChangelogEntry(BaseModel):
     Attributes:
         contributors: a list of contributors
         reviewers: a list of reviewers
-        date: the date of the review
+        date: the date (YYYY-MM-DD) of the last edit (e.g. review)
         comment: comment indicating changes
     """
 
@@ -122,6 +158,14 @@ class ChangelogEntry(BaseModel):
     comment: str
 
     def to_json(self: Self) -> dict:
+        return {
+            "contributors": self.contributors,
+            "reviewers": self.reviewers,
+            "date": self.date,
+            "comment": self.comment,
+        }
+
+    def to_html(self: Self) -> dict:
         return {
             "contributors": self.contributors,
             "reviewers": self.reviewers,
@@ -160,6 +204,19 @@ class Enzyme(BaseModel):
 
         return json_dict
 
+    def to_html(self: Self) -> dict:
+        html_dict = {}
+        for attr in ["name", "description", "databaseIds", "references"]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+
+        if self.auxiliaryEnzymes is not None:
+            html_dict["auxiliaryEnzymes"] = [
+                entry.to_html() for entry in self.auxiliaryEnzymes
+            ]
+
+        return html_dict
+
 
 class EnzymeAux(BaseModel):
     """Pydantic-based class to represent auxiliary enzyme information
@@ -180,6 +237,13 @@ class EnzymeAux(BaseModel):
             if (val := getattr(self, attr)) is not None:
                 json_dict[attr] = val
         return json_dict
+
+    def to_html(self: Self) -> dict:
+        html_dict = {}
+        for attr in ["name", "description", "databaseIds"]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+        return html_dict
 
 
 class Reaction(BaseModel):
@@ -214,6 +278,19 @@ class Reaction(BaseModel):
 
         return json_dict
 
+    def to_html(self: Self) -> dict:
+        html_dict = {}
+
+        for attr in ["tailoring", "description", "databaseIds"]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+
+        html_dict["reactionSMARTS"] = self.reactionSMARTS.to_html()
+        html_dict["reactions"] = [entry.to_html() for entry in self.reactions]
+        html_dict["evidence"] = [entry.to_html() for entry in self.evidence]
+
+        return html_dict
+
 
 class ReactionSmarts(BaseModel):
     """Pydantic-based class to represent reactions
@@ -234,6 +311,15 @@ class ReactionSmarts(BaseModel):
                 json_dict[attr] = val
 
         return json_dict
+
+    def to_html(self: Self) -> dict:
+        html_dict = {}
+
+        for attr in ["reactionSMARTS", "isIterative"]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+
+        return html_dict
 
 
 class ReactionEx(BaseModel):
@@ -285,6 +371,43 @@ class ReactionEx(BaseModel):
 
         return json_dict
 
+    def to_html(self: Self) -> dict:
+        def _smiles_to_svg(smiles: str) -> str:
+            """Generates a base64 encoded SVG strin"""
+            m = MolFromSmiles(smiles)
+
+            for atom in m.GetAtoms():
+                atom.SetAtomMapNum(0)
+
+            m = rdMolDraw2D.PrepareMolForDrawing(m)
+
+            drawer = rdMolDraw2D.MolDraw2DSVG(-1, -1)
+            drawer.DrawMolecule(m)
+            drawer.FinishDrawing()
+            svg = drawer.GetDrawingText()
+            return base64.b64encode(svg.encode("utf-8")).decode("utf-8")
+
+        html_dict = {}
+
+        for attr in [
+            "isBalanced",
+            "isIntermediate",
+            "description",
+        ]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+
+        html_dict["substrate"] = (self.substrate, _smiles_to_svg(self.substrate))
+
+        html_dict["products"] = [(mol, _smiles_to_svg(mol)) for mol in self.products]
+
+        if self.forbidden_products:
+            html_dict["forbidden_products"] = [
+                (mol, _smiles_to_svg(mol)) for mol in self.forbidden_products
+            ]
+
+        return html_dict
+
 
 class Evidence(BaseModel):
     """Pydantic-based class to represent evidence information
@@ -298,4 +421,7 @@ class Evidence(BaseModel):
     references: list
 
     def to_json(self: Self) -> dict:
+        return {"evidenceCode": self.evidenceCode, "references": self.references}
+
+    def to_html(self: Self) -> dict:
         return {"evidenceCode": self.evidenceCode, "references": self.references}

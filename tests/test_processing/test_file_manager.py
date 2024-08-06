@@ -41,11 +41,11 @@ def test_read_files_indir_invalid():
     assert len(instance.infiles) == 0
 
 
-def test_write_to_outdir_valid():
+def test_write_json_valid():
     instance = FileManager(
         indir=Path(__file__).parent.joinpath("example_indir"),
         outdir=Path(__file__).parent.joinpath("example_outdir"),
     )
-    instance.write_to_outdir(outfile_name="testfile", payload={})
+    instance.write_json(outfile_name="testfile", payload={})
     assert instance.outdir.joinpath("testfile.json").exists()
     os.remove(path=instance.outdir.joinpath("testfile.json"))
