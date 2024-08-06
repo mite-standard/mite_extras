@@ -15,7 +15,7 @@ license-files = { paths = ["LICENSE"] }
 authors = [
     { name = "Mitja M. Zdouc", email = "zdoucmm@gmail.com" },
     { name = "Adriano Rutz", email = "adafede@gmail.com" }
-    ]
+]
 dependencies = [
     "argparse~=1.4",
     "coloredlogs~=15.0",
@@ -52,7 +52,7 @@ testpaths = [
     "tests",
 ]
 pythonpath = [
-  "src/mite_extras"
+    "src/mite_extras"
 ]
 
 [tool.ruff]

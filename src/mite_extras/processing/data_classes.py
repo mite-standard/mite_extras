@@ -343,13 +343,13 @@ class ReactionEx(BaseModel):
 
     @model_validator(mode="after")
     def validate_smiles(self):
-        self.substrate = ValidationManager().canonicalize_smiles(self.substrate)
+        self.substrate = ValidationManager().cleanup_smiles(self.substrate)
         self.products = [
-            ValidationManager().canonicalize_smiles(prod) for prod in self.products
+            ValidationManager().cleanup_smiles(prod) for prod in self.products
         ]
         if self.forbidden_products is not None:
             self.forbidden_products = [
-                ValidationManager().canonicalize_smiles(prod)
+                ValidationManager().cleanup_smiles(prod)
                 for prod in self.forbidden_products
             ]
 

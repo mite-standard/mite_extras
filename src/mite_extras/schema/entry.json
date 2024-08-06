@@ -63,11 +63,21 @@
     },
     "quality": {
       "type": "string",
-      "enum": ["questionable", "low", "medium", "high"]
+      "enum": [
+        "questionable",
+        "low",
+        "medium",
+        "high"
+      ]
     },
     "status": {
       "type": "string",
-      "enum": ["pending", "embargoed", "active", "retired"]
+      "enum": [
+        "pending",
+        "embargoed",
+        "active",
+        "retired"
+      ]
     }
   }
 }
