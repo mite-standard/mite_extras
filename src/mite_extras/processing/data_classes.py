@@ -180,22 +180,24 @@ class Enzyme(BaseModel):
     Attributes:
         name: the protein name
         description: an optional description
-        databaseIds: a list of database IDs
+        databaseIds: an EnzymeDatabaseIds object
         auxiliaryEnzymes: a list of EnzymeAux objects
         references: a list of references
     """
 
     name: str
     description: str | None = None
-    databaseIds: list
+    databaseIds: Any
     auxiliaryEnzymes: list | None = None
     references: list
 
     def to_json(self: Self) -> dict:
         json_dict = {}
-        for attr in ["name", "description", "databaseIds", "references"]:
+        for attr in ["name", "description", "references"]:
             if (val := getattr(self, attr)) is not None:
                 json_dict[attr] = val
+
+        json_dict["databaseIds"] = self.databaseIds.to_json()
 
         if self.auxiliaryEnzymes is not None:
             json_dict["auxiliaryEnzymes"] = [
@@ -206,9 +208,11 @@ class Enzyme(BaseModel):
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-        for attr in ["name", "description", "databaseIds", "references"]:
+        for attr in ["name", "description", "references"]:
             if (val := getattr(self, attr)) is not None:
                 html_dict[attr] = val
+
+        html_dict["databaseIds"] = self.databaseIds.to_html()
 
         if self.auxiliaryEnzymes is not None:
             html_dict["auxiliaryEnzymes"] = [
@@ -224,23 +228,63 @@ class EnzymeAux(BaseModel):
     Attributes:
         name: name of the auxiliary enzyme
         description: an optional description
-        databaseIds: a list of database IDs
+        databaseIds: an EnyzmeDatabaseIds instance
     """
 
     name: str
     description: str | None = None
-    databaseIds: list
+    databaseIds: Any
 
     def to_json(self: Self) -> dict:
         json_dict = {}
-        for attr in ["name", "description", "databaseIds"]:
+        for attr in ["name", "description"]:
+            if (val := getattr(self, attr)) is not None:
+                json_dict[attr] = val
+
+        json_dict["databaseIds"] = self.databaseIds.to_json()
+
+        return json_dict
+
+    def to_html(self: Self) -> dict:
+        html_dict = {}
+        for attr in ["name", "description"]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
+
+        html_dict["databaseIds"] = self.databaseIds.to_html()
+
+        return html_dict
+
+
+class EnyzmeDatabaseIds(BaseModel):
+    """Pydantic-based class to represent enzyme-related database ids
+
+    Attributes:
+        uniprot: an uniprot ID
+        genpept: an NCBI GenPept ID
+        mibig: a MIBiG ID
+    """
+
+    uniprot: str | None = None
+    genpept: str | None = None
+    mibig: str | None = None
+
+    @model_validator(mode="after")
+    def populate_ids(self):
+        # TODO(MMZ 06.08.24): implement the population function (e.g. call from validationmanager)
+        return self
+
+    def to_json(self: Self) -> dict:
+        json_dict = {}
+        for attr in ["uniprot", "genpept", "mibig"]:
             if (val := getattr(self, attr)) is not None:
                 json_dict[attr] = val
         return json_dict
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-        for attr in ["name", "description", "databaseIds"]:
+        # TODO(MMZ 06.08.24): implement URLs to bioregistry/mibig
+        for attr in ["uniprot", "genpept", "mibig"]:
             if (val := getattr(self, attr)) is not None:
                 html_dict[attr] = val
         return html_dict
@@ -255,7 +299,7 @@ class Reaction(BaseModel):
         reactionSMARTS: a ReactionSmarts object
         reactions: a list of ReactionEx objects
         evidence: list of Evidence objects
-        databaseIds: a list of database IDs
+        databaseIds: a ReactionDatabaseIds object
     """
 
     tailoring: list
@@ -263,12 +307,12 @@ class Reaction(BaseModel):
     reactionSMARTS: Any
     reactions: list
     evidence: list
-    databaseIds: list | None = None
+    databaseIds: Any | None = None
 
     def to_json(self: Self) -> dict:
         json_dict = {}
 
-        for attr in ["tailoring", "description", "databaseIds"]:
+        for attr in ["tailoring", "description"]:
             if (val := getattr(self, attr)) is not None:
                 json_dict[attr] = val
 
@@ -276,18 +320,24 @@ class Reaction(BaseModel):
         json_dict["reactions"] = [entry.to_json() for entry in self.reactions]
         json_dict["evidence"] = [entry.to_json() for entry in self.evidence]
 
+        if self.databaseIds is not None:
+            json_dict["databaseIds"] = self.databaseIds.to_json()
+
         return json_dict
 
     def to_html(self: Self) -> dict:
         html_dict = {}
 
-        for attr in ["tailoring", "description", "databaseIds"]:
+        for attr in ["tailoring", "description"]:
             if (val := getattr(self, attr)) is not None:
                 html_dict[attr] = val
 
         html_dict["reactionSMARTS"] = self.reactionSMARTS.to_html()
         html_dict["reactions"] = [entry.to_html() for entry in self.reactions]
         html_dict["evidence"] = [entry.to_html() for entry in self.evidence]
+
+        if self.databaseIds is not None:
+            html_dict["databaseIds"] = self.databaseIds.to_html()
 
         return html_dict
 
@@ -406,6 +456,35 @@ class ReactionEx(BaseModel):
                 (mol, _smiles_to_svg(mol)) for mol in self.forbidden_products
             ]
 
+        return html_dict
+
+
+class ReactionDatabaseIds(BaseModel):
+    """Pydantic-based class to represent reaction-related database ids
+
+    Attributes:
+        rhea: a RHEA ID
+        ec: an EC (Enzyme Commission) number
+        mite: a MITE ID
+    """
+
+    rhea: str | None = None
+    ec: str | None = None
+    mite: str | None = None
+
+    def to_json(self: Self) -> dict:
+        json_dict = {}
+        for attr in ["rhea", "ec", "mite"]:
+            if (val := getattr(self, attr)) is not None:
+                json_dict[attr] = val
+        return json_dict
+
+    def to_html(self: Self) -> dict:
+        html_dict = {}
+        # TODO(MMZ 06.08.24): implement URLs to bioregistry/mite
+        for attr in ["rhea", "ec", "mite"]:
+            if (val := getattr(self, attr)) is not None:
+                html_dict[attr] = val
         return html_dict
 
 

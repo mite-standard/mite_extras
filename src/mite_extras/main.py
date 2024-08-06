@@ -55,14 +55,14 @@ def config_logger(verboseness: str) -> logging.Logger:
 def main_cli() -> None:
     """Entry point for CLI"""
     args = CliManager().run(sys.argv[1:])
-    logger = config_logger(args.verboseness)
 
+    logger = config_logger(args.verboseness)
     logger.debug(f"Started 'mite_extras' v{metadata.version('mite_extras')} as CLI.")
+
+    schema_manager = SchemaManager()
 
     file_manager = FileManager(indir=args.input_dir, outdir=args.output_dir)
     file_manager.read_files_indir()
-
-    schema_manager = SchemaManager()
 
     for entry in file_manager.infiles:
         logger.info(

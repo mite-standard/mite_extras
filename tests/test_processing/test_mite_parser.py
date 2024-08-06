@@ -4,13 +4,13 @@ import pytest
 from mite_extras.processing.data_classes import (
     Changelog,
     ChangelogEntry,
-    Entry,
     EnzymeAux,
     Evidence,
     Reaction,
     ReactionEx,
 )
 from mite_extras.processing.mite_parser import MiteParser
+from mite_schema import SchemaManager
 
 
 @pytest.fixture
@@ -35,6 +35,12 @@ def test_get_changelog_valid(mite_json):
     assert isinstance(log[0], Changelog)
 
 
+def test_get_databaseids_enzyme_valid(mite_json):
+    parser = MiteParser()
+    log = parser.get_databaseids_enzyme(data=mite_json.get("enzyme").get("databaseIds"))
+    assert log.mibig == "BGC0000026"
+
+
 def test_get_auxenzymes_valid(mite_json):
     parser = MiteParser()
     log = parser.get_auxenzymes(
@@ -42,6 +48,14 @@ def test_get_auxenzymes_valid(mite_json):
     )
     assert len(log) == 1
     assert isinstance(log[0], EnzymeAux)
+
+
+def test_get_databaseids_reaction_valid(mite_json):
+    parser = MiteParser()
+    log = parser.get_databaseids_reaction(
+        data=mite_json.get("reactions")[0].get("databaseIds")
+    )
+    assert log.mite == "MITE0000000"
 
 
 def test_get_reactionex_valid(mite_json):
@@ -70,4 +84,4 @@ def test_get_reactions_valid(mite_json):
 def test_parse_raw_json_valid(mite_json):
     parser = MiteParser()
     parser.parse_mite_json(data=mite_json)
-    assert isinstance(parser.entry, Entry)
+    assert SchemaManager().validate_mite(instance=parser.to_json()) is None
