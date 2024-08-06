@@ -21,14 +21,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import json
 import logging
 import sys
 from importlib import metadata
 
 import coloredlogs
+from mite_schema import SchemaManager
 
-from mite_extras import CliManager, FileManager, MiteParser, RawParser, SchemaManager
+from mite_extras import CliManager, FileManager, MiteParser, RawParser
 
 
 def config_logger(verboseness: str) -> logging.Logger:
@@ -55,9 +55,11 @@ def config_logger(verboseness: str) -> logging.Logger:
 def main_cli() -> None:
     """Entry point for CLI"""
     args = CliManager().run(sys.argv[1:])
-    logger = config_logger(args.verboseness)
 
+    logger = config_logger(args.verboseness)
     logger.debug(f"Started 'mite_extras' v{metadata.version('mite_extras')} as CLI.")
+
+    schema_manager = SchemaManager()
 
     file_manager = FileManager(indir=args.input_dir, outdir=args.output_dir)
     file_manager.read_files_indir()
@@ -67,8 +69,7 @@ def main_cli() -> None:
             f"CLI: started parsing of file '{entry.name}' in '{args.fin}' format."
         )
 
-        with open(entry) as infile:
-            input_data = json.load(infile)
+        input_data = schema_manager.read_json(infile=entry)
 
         try:
             match args.fin:
@@ -81,7 +82,7 @@ def main_cli() -> None:
                 case _:
                     raise RuntimeError(f"Unsupported input format '{args.fin}'.")
 
-            SchemaManager().validate_against_schema(parser.to_json())
+            schema_manager.validate_mite(instance=parser.to_json())
 
             match args.fout:
                 case "json":

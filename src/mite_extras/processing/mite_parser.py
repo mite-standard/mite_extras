@@ -30,10 +30,12 @@ from mite_extras.processing.data_classes import (
     Changelog,
     ChangelogEntry,
     Entry,
+    EnyzmeDatabaseIds,
     Enzyme,
     EnzymeAux,
     Evidence,
     Reaction,
+    ReactionDatabaseIds,
     ReactionEx,
     ReactionSmarts,
 )
@@ -134,7 +136,37 @@ class MiteParser(BaseModel):
         return log
 
     @staticmethod
-    def get_auxenzymes(auxenzymes: list | None) -> list | None:
+    def get_databaseids_enzyme(data: list | dict | None) -> EnyzmeDatabaseIds | None:
+        """Parse enzyme-related databaseids info
+
+        Args:
+            data: a dict with database ids (list for MITE schema < 1.1)
+
+        Returns:
+            An EnyzmeDatabaseIds object
+        """
+        if isinstance(data, list):
+            data_dict = {}
+            for entry in data:
+                if entry.startswith("genpept:"):
+                    data_dict["genpept"] = entry.split(":")[1]
+                elif entry.startswith("uniprot:"):
+                    data_dict["uniprot"] = entry.split(":")[1]
+                elif entry.startswith("mibig:"):
+                    data_dict["mibig"] = entry.split(":")[1]
+                else:
+                    continue
+            return EnyzmeDatabaseIds(**data_dict)
+        elif isinstance(data, dict):
+            return EnyzmeDatabaseIds(
+                mibig=data.get("mibig"),
+                uniprot=data.get("uniprot"),
+                genpept=data.get("genpept"),
+            )
+        else:
+            return None
+
+    def get_auxenzymes(self: Self, auxenzymes: list | None) -> list | None:
         """Extract auxiliary enzyme info and converts into internal data structure
 
         Args:
@@ -155,13 +187,46 @@ class MiteParser(BaseModel):
                 EnzymeAux(
                     name=auxenz.get("name"),
                     description=auxenz.get("description"),
-                    databaseIds=auxenz.get("databaseIds"),
+                    databaseIds=self.get_databaseids_enzyme(
+                        data=auxenz.get("databaseIds")
+                    ),
                 )
             )
 
         logger.debug("MiteParser: complete creating EnzymeAux object(s).")
 
         return log
+
+    @staticmethod
+    def get_databaseids_reaction(
+        data: list | dict | None,
+    ) -> ReactionDatabaseIds | None:
+        """Parse reaction-related databaseids info
+
+        Args:
+            data: a dict with database IDs (list for MITE schema < 1.1)
+
+        Returns:
+            An ReactionDatabaseIds object
+        """
+        if isinstance(data, list):
+            data_dict = {}
+            for entry in data:
+                if entry.startswith("rhea:"):
+                    data_dict["rhea"] = entry.split(":")[1]
+                elif entry.startswith("EC"):
+                    data_dict["ec"] = entry
+                elif entry.startswith("MITE"):
+                    data_dict["mite"] = entry
+                else:
+                    continue
+            return ReactionDatabaseIds(**data_dict)
+        elif isinstance(data, dict):
+            return ReactionDatabaseIds(
+                rhea=data.get("rhea"), ec=data.get("ec"), mite=data.get("mite")
+            )
+        else:
+            return None
 
     @staticmethod
     def get_reactionex(reactions: list) -> list:
@@ -245,7 +310,9 @@ class MiteParser(BaseModel):
                     ),
                     reactions=self.get_reactionex(reactions=reaction.get("reactions")),
                     evidence=self.get_evidence(evidences=reaction.get("evidence")),
-                    databaseIds=reaction.get("databaseIds"),
+                    databaseIds=self.get_databaseids_reaction(
+                        reaction.get("databaseIds")
+                    ),
                 )
             )
 
@@ -273,7 +340,9 @@ class MiteParser(BaseModel):
             enzyme=Enzyme(
                 name=data.get("enzyme").get("name"),
                 description=data.get("enzyme").get("description"),
-                databaseIds=data.get("enzyme").get("databaseIds"),
+                databaseIds=self.get_databaseids_enzyme(
+                    data=data.get("enzyme").get("databaseIds")
+                ),
                 auxiliaryEnzymes=self.get_auxenzymes(
                     auxenzymes=data.get("enzyme").get("auxiliaryEnzymes")
                 ),

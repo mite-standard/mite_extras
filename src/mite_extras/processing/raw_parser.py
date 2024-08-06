@@ -37,9 +37,11 @@ from mite_extras.processing.data_classes import (
     EnzymeAux,
     Evidence,
     Reaction,
+    ReactionDatabaseIds,
     ReactionEx,
     ReactionSmarts,
 )
+from mite_extras.processing.mite_parser import MiteParser
 
 logger = logging.getLogger("mite_extras")
 
@@ -122,12 +124,14 @@ class RawParser(BaseModel):
                         description=data.get(
                             f"enzymes-0-enzyme-0-auxiliary_enzymes-{enz}-description"
                         ),
-                        databaseIds=[
-                            self.remove_quote(string)
-                            for string in data.get(
-                                f"enzymes-0-enzyme-0-auxiliary_enzymes-{enz}-databaseIds"
-                            ).split(", ")
-                        ],
+                        databaseIds=MiteParser.get_databaseids_enzyme(
+                            [
+                                self.remove_quote(string)
+                                for string in data.get(
+                                    f"enzymes-0-enzyme-0-auxiliary_enzymes-{enz}-databaseIds"
+                                ).split(", ")
+                            ]
+                        ),
                     )
                 )
 
@@ -157,9 +161,7 @@ class RawParser(BaseModel):
 
             changelog_list = data.get("Changelog", [])
 
-            df = pl.read_csv(
-                Path(__file__).parent.parent.joinpath("schema/mibig_id_mappings.csv")
-            )
+            df = pl.read_csv(Path(__file__).parent.joinpath("mibig_id_mappings.csv"))
 
             if len(changelog_list) == 0:
                 raise ValueError(f"Parser: file '{name}' does not contain a Changelog.")
@@ -206,7 +208,9 @@ class RawParser(BaseModel):
 
             return list(tailoring_funct)
 
-        def _compile_reaction_dbids(data: dict, count: str) -> list | None:
+        def _compile_reaction_dbids(
+            data: dict, count: str
+        ) -> ReactionDatabaseIds | None:
             """Compile the databaseIDs of a reaction
 
             databaseIDs are parsed from both 'validated_reactions' and 'reaction_smarts'
@@ -239,7 +243,7 @@ class RawParser(BaseModel):
                         [self.remove_quote(string) for string in db.split(", ")]
                     )
                 logger.debug("Parser: completed compiling reaction databaseIDs.")
-                return list(db_entries)
+                return MiteParser.get_databaseids_reaction(list(db_entries))
             else:
                 logger.debug("Parser: completed compiling reaction databaseIDs.")
                 return None
@@ -434,13 +438,15 @@ class RawParser(BaseModel):
             enzyme=Enzyme(
                 name=tailoring_dict.get("enzymes-0-enzyme-0-name"),
                 description=tailoring_dict.get("enzymes-0-enzyme-0-description"),
-                databaseIds=[
-                    self.remove_quote(string)
-                    for string in re.split(
-                        ", |,", tailoring_dict.get("enzymes-0-enzyme-0-databaseIds")
-                    )
-                    if self.remove_empty_string(string) is not None
-                ],
+                databaseIds=MiteParser.get_databaseids_enzyme(
+                    [
+                        self.remove_quote(string)
+                        for string in re.split(
+                            ", |,", tailoring_dict.get("enzymes-0-enzyme-0-databaseIds")
+                        )
+                        if self.remove_empty_string(string) is not None
+                    ]
+                ),
                 auxiliaryEnzymes=_compile_aux_enzymes(tailoring_dict),
                 references=[
                     (self.remove_quote(string))
@@ -453,9 +459,7 @@ class RawParser(BaseModel):
             reactions=_compile_reactions(tailoring_dict),
         )
 
-        entry.enzyme.databaseIds.append(
-            f'mibig:{input_data.get("Metadata").get("mibig_id")}'
-        )
+        entry.enzyme.databaseIds.mibig = f'{input_data.get("Metadata").get("mibig_id")}'
 
         if len(entry.reactions) == 0:
             raise RuntimeError("No reaction data found - SKIP.")

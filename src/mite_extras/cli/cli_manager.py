@@ -27,19 +27,9 @@ from typing import Self
 
 from pydantic import BaseModel
 
-from mite_extras.schema.schema_manager import SchemaManager
-
 
 class CliManager(BaseModel):
-    """Manage command line interface and parsing.
-
-    Attributes:
-        version_program: the version of mite_extras
-        version_schema: the version of the MITE json schema
-    """
-
-    version_program: str = metadata.version("mite_extras")
-    version_schema: str = SchemaManager().version_schema
+    """Manage command line interface and parsing."""
 
     def run(self: Self, args: list) -> argparse.Namespace:
         """Run command line interface using argparse.
@@ -53,17 +43,15 @@ class CliManager(BaseModel):
         parser = self.define_cli_args()
         return parser.parse_args(args)
 
-    def define_cli_args(self: Self) -> argparse.ArgumentParser:
+    @staticmethod
+    def define_cli_args() -> argparse.ArgumentParser:
         """Define command line interface options.
 
         Returns:
             argparse object containing command line interface options.
         """
         parser = argparse.ArgumentParser(
-            description=(
-                f"'mite_extras' CLI v{self.version_program} using "
-                f"MITE schema v{self.version_schema}.\n"
-            ),
+            description=(f"'mite_extras' CLI v{metadata.version('mite_extras')}."),
             formatter_class=argparse.RawTextHelpFormatter,
         )
 
@@ -86,7 +74,7 @@ class CliManager(BaseModel):
         parser.add_argument(
             "-fin",
             type=str,
-            default="raw",
+            default="mite",
             choices=["raw", "mite"],
             required=False,
             help=(
