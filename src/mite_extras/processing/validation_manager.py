@@ -207,20 +207,22 @@ class ValidationManager(BaseModel):
             results = response.json().get("results", {}).get("bindings", [])
             if not results:
                 raise ValueError("No matching results found")
-            return results[0]["protein"]["value"]
+            return results[0]["protein"]["value"].rsplit("/", 1)[-1]
 
-        genpept_result = fetch_result(genpept_query) if genpept_query else None
-        uniprot_result = fetch_result(uniprot_query) if uniprot_query else None
+        genpept_result = fetch_result(genpept_query) if genpept_query else genpept
+        uniprot_result = fetch_result(uniprot_query) if uniprot_query else uniprot
 
         if genpept and uniprot:
-            if genpept_result != f"http://purl.uniprot.org/uniprot/{uniprot}":
-                raise ValueError("The provided genpept ID and uniprot ID do not match")
+            if genpept_result != uniprot:
+                raise ValueError(
+                    f"The provided genpept ID '{genpept}' and uniprot ID '{uniprot}' do not match"
+                )
             return {"genpept": genpept, "uniprot": uniprot}
 
         if genpept:
-            return {"genpept": genpept, "uniprot": uniprot_result}
+            return {"genpept": genpept, "uniprot": genpept_result}
         elif uniprot:
-            return {"uniprot_id": uniprot, "embl_id": genpept_result}
+            return {"uniprot_id": uniprot, "genpept": uniprot_result}
 
     # TODO (AR 2024-08-06): implement tests
 
