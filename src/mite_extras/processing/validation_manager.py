@@ -151,50 +151,20 @@ class ValidationManager(BaseModel):
     def cleanup_ids(
         genpept: str | None = None, uniprot: str | None = None
     ) -> dict[str, str]:
-        """Cleans up IDs using the UniProt SPARQL endpoint
+        """Cleans up IDs using the UniProt SPARQL endpoint.
 
         Args:
-            genpept: an EMBL ID to be converted to UniProt ID
-            uniprot: a UniProt ID to be converted to EMBL ID
+            genpept: An EMBL ID to be converted to UniProt ID.
+            uniprot: A UniProt ID to be converted to EMBL ID.
 
         Returns:
-            A dictionary with the original and corresponding ID
+            A dictionary with the original and corresponding ID.
 
         Raises:
-            ValueError: if neither embl_id nor uniprot_id is provided, or if the IDs do not match
+            ValueError: If neither genpept nor uniprot is provided, or if the IDs do not match.
         """
         if not genpept and not uniprot:
             raise ValueError("Please provide one of 'genpept' or 'uniprot'.")
-
-        genpept_query = (
-            f"""
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX up: <http://purl.uniprot.org/core/>
-        SELECT ?protein
-        WHERE {{
-            VALUES ?target {{<http://purl.uniprot.org/embl-cds/{genpept}>}} 
-            ?protein a up:Protein .
-            ?protein rdfs:seeAlso ?target.
-        }}
-        """
-            if genpept
-            else None
-        )
-
-        uniprot_query = (
-            f"""
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX up: <http://purl.uniprot.org/core/>
-        SELECT ?protein
-        WHERE {{
-            VALUES ?prefix {{<http://purl.uniprot.org/database/EMBL>}}
-            <http://purl.uniprot.org/uniprot/{uniprot}> rdfs:seeAlso ?protein .
-            ?protein up:database ?prefix .
-        }}
-        """
-            if uniprot
-            else None
-        )
 
         def fetch_result(query: str) -> str:
             response = requests.get(
@@ -209,20 +179,44 @@ class ValidationManager(BaseModel):
                 raise ValueError("No matching results found")
             return results[0]["protein"]["value"].rsplit("/", 1)[-1]
 
-        genpept_result = fetch_result(genpept_query) if genpept_query else genpept
-        uniprot_result = fetch_result(uniprot_query) if uniprot_query else uniprot
+        def build_genpept_query(genpept: str) -> str:
+            return f"""
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX up: <http://purl.uniprot.org/core/>
+            SELECT ?protein
+            WHERE {{
+                VALUES ?target {{<http://purl.uniprot.org/embl-cds/{genpept}>}} 
+                ?protein a up:Protein .
+                ?protein rdfs:seeAlso ?target.
+            }}
+            """
 
-        if genpept and uniprot:
-            if genpept_result != uniprot:
-                raise ValueError(
-                    f"The provided genpept ID '{genpept}' and uniprot ID '{uniprot}' do not match"
-                )
-            return {"genpept": genpept, "uniprot": uniprot}
+        def build_uniprot_query(uniprot: str) -> str:
+            return f"""
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX up: <http://purl.uniprot.org/core/>
+            SELECT ?protein
+            WHERE {{
+                VALUES ?prefix {{<http://purl.uniprot.org/database/EMBL>}}
+                <http://purl.uniprot.org/uniprot/{uniprot}> rdfs:seeAlso ?protein .
+                ?protein up:database ?prefix .
+            }}
+            """
 
         if genpept:
-            return {"genpept": genpept, "uniprot": genpept_result}
-        elif uniprot:
-            return {"uniprot_id": uniprot, "genpept": uniprot_result}
+            genpept_result = fetch_result(build_genpept_query(genpept))
+        if uniprot:
+            uniprot_result = fetch_result(build_uniprot_query(uniprot))
+
+        if genpept and uniprot and genpept_result != uniprot:
+            raise ValueError(
+                f"The provided genpept ID '{genpept}' and uniprot ID '{uniprot}' do not match"
+            )
+
+        return {
+            "genpept": genpept if genpept else uniprot_result,
+            "uniprot": uniprot if uniprot else genpept_result,
+        }
 
     # TODO (AR 2024-08-06): implement tests
 

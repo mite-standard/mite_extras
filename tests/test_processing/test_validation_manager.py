@@ -94,7 +94,7 @@ def test_cleanup_ids_genpept(mock_get):
 @patch("requests.get", side_effect=mock_requests_get)
 def test_cleanup_ids_uniprot(mock_get):
     result = ValidationManager().cleanup_ids(uniprot="Q8KND5")
-    assert result == {"genpept": "AAM70353.1", "uniprot_id": "Q8KND5"}
+    assert result == {"genpept": "AAM70353.1", "uniprot": "Q8KND5"}
 
 
 @patch("requests.get", side_effect=mock_requests_get)
