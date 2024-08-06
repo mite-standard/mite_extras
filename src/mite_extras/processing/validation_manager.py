@@ -46,30 +46,43 @@ class ValidationManager(BaseModel):
         """
         return smiles.replace("\\\\", "\\")
 
-    def canonicalize_smiles(self: Self, smiles: str) -> str:
-        """Validate and canonicalize an input SMILES string
+    @staticmethod
+    def canonicalize_smiles(smiles: str) -> str:
+        """Canonicalizes a SMILES
+
+        Args:
+            smiles: a user-submitted SMILES string
+
+        Returns:
+            A canonical SMILES string
+
+        Raises:
+            ValueError: RDKit could not read SMILES
+        """
+        mol = MolFromSmiles(smiles)
+        if mol is None:
+            raise ValueError(f"Could not read SMILES string '{smiles}'")
+        return CanonSmiles(MolToSmiles(mol))
+
+    def cleanup_smiles(self: Self, smiles: str) -> str:
+        """Cleans up an input SMILES string
 
         Args:
             smiles: a SMILES string
 
         Returns:
-            The SMILES in RDKit-canonicalized format
+            The SMILES in RDKit-canonical format
 
         Raises:
             ValueError: RDKit could not read SMILES
         """
-        m = MolFromSmiles(self.unescape_smiles(smiles))
+        return self.canonicalize_smiles(self.unescape_smiles(smiles))
 
-        if m is None:
-            raise ValueError(f"Could not read SMILES string '{smiles}'")
-
-        return self.unescape_smiles(CanonSmiles(MolToSmiles(m)))
-
-    def validate_smarts(self: Self, smarts: str) -> str:
+    def validate_reaction_smarts(self: Self, reaction_smarts: str) -> str:
         """Validate an input reaction SMARTS
 
         Args:
-            smarts: a reactions SMARTS string
+            reaction_smarts: a reactions SMARTS string
 
         Returns:
             A validated reaction SMARTS
