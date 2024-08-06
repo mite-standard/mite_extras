@@ -37,6 +37,7 @@ from rdkit.Chem import (
     MolToSmarts,
     MolToSmiles,
 )
+from rdkit.Chem.rdChemReactions import ReactionFromSmarts
 
 logger = logging.getLogger("mite_extras")
 
@@ -91,6 +92,29 @@ class ValidationManager(BaseModel):
         if mol is None:
             raise ValueError(f"Could not read SMARTS string '{smarts}'")
         return MolToSmarts(MolFromSmiles(CanonSmiles(MolToSmiles(mol))))
+
+    # TODO (AR 2024-08-06): implement tests
+
+    @staticmethod
+    def check_reaction_smarts(reaction_smarts: str) -> str:
+        """Checks a reaction SMARTS
+
+        Args:
+            reaction_smarts: a reaction SMARTS string
+
+        Returns:
+            The same reaction SMARTS string if valid
+
+        Raises:
+            ValueError: RDKit could not read reaction SMARTS
+        """
+        try:
+            reaction = AllChem.ReactionFromSmarts(reaction_smarts)
+            if reaction is None:
+                raise ValueError(f"Invalid reaction SMARTS string '{reaction_smarts}'")
+            return reaction_smarts
+        except Exception as e:
+            raise ValueError(f"Error parsing reaction SMARTS: {e!s}") from None
 
     # TODO (AR 2024-08-06): implement tests
 
