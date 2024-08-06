@@ -8,6 +8,7 @@ Attention: this program has only been tested with Ubuntu Linux.
 ## Installation
 
 ### With `hatch` from GitHub
+
 - Install `python 3.12.x`
 - Install hatch (e.g. with `pipx install hatch`)
 - Download or clone the [repository](https://github.com/mmzdouc/mite_extras)
@@ -19,7 +20,7 @@ Attention: this program has only been tested with Ubuntu Linux.
 
 #### Input format: `raw` (MIBiG Submission Portal)
 
-First, pre-format the raw input files (assuming that they are coming from the :
+First, pre-format the raw input files:
 
 - e.g. `hatch run python input_file_splitter.py example_input/new608.json`
 
@@ -34,7 +35,6 @@ This will convert all files into the MITE schema.
 To validate MITE entries or update them to a new schema version
 
 - `hatch run mite_extras -i input/ -o output/ -fin mite -fout json`
-
 
 ## For devs
 
