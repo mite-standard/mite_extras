@@ -26,7 +26,13 @@ import logging
 from typing import Self
 
 from pydantic import BaseModel
-from rdkit.Chem import CanonSmiles, MolFromSmiles, MolToSmiles
+from rdkit.Chem import (
+    CanonSmiles,
+    MolFromSmarts,
+    MolFromSmiles,
+    MolToSmarts,
+    MolToSmiles,
+)
 
 logger = logging.getLogger("mite_extras")
 
@@ -63,6 +69,40 @@ class ValidationManager(BaseModel):
         if mol is None:
             raise ValueError(f"Could not read SMILES string '{smiles}'")
         return CanonSmiles(MolToSmiles(mol))
+
+    @staticmethod
+    def canonicalize_smarts(smarts: str) -> str:
+        """Canonicalizes a SMARTS
+
+        Args:
+            smarts: a user-submitted SMARTS string
+
+        Returns:
+            A canonical SMARTS string
+
+        Raises:
+            ValueError: RDKit could not read SMARTS
+        """
+        mol = MolFromSmarts(smarts)
+        if mol is None:
+            raise ValueError(f"Could not read SMARTS string '{smarts}'")
+        return MolToSmarts(MolFromSmiles(CanonSmiles(MolToSmiles(mol))))
+
+    # TODO (AR 2024-08-06): implement tests
+
+    def cleanup_smarts(self: Self, smarts: str) -> str:
+        """Cleans up an input SMARTS string
+
+        Args:
+            smarts: a SMARTS string
+
+        Returns:
+            The SMARTS in RDKit-canonical format
+
+        Raises:
+            ValueError: RDKit could not read SMARTS
+        """
+        return self.canonicalize_smarts(smarts)
 
     def cleanup_smiles(self: Self, smiles: str) -> str:
         """Cleans up an input SMILES string
