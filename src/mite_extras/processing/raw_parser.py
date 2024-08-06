@@ -157,9 +157,7 @@ class RawParser(BaseModel):
 
             changelog_list = data.get("Changelog", [])
 
-            df = pl.read_csv(
-                Path(__file__).parent.parent.joinpath("schema/mibig_id_mappings.csv")
-            )
+            df = pl.read_csv(Path(__file__).parent.joinpath("mibig_id_mappings.csv"))
 
             if len(changelog_list) == 0:
                 raise ValueError(f"Parser: file '{name}' does not contain a Changelog.")

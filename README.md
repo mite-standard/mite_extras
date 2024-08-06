@@ -22,13 +22,13 @@ Attention: this program has only been tested with Ubuntu Linux.
 
 First, pre-format the raw input files:
 
-- e.g. `hatch run python input_file_splitter.py example_input/new608.json`
+- e.g. `hatch run python input_file_splitter.py <new000.json>`
 
 Move the generated file(s) into a different directory (e.g. 'input')
 
 - `hatch run mite_extras -i input/ -o output/ -fin raw -fout json`
 
-This will convert all files into the MITE schema.
+This will convert all files into json-files following the MITE schema.
 
 #### Input format: `mite` (MITE-formatted json)
 
