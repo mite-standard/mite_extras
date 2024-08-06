@@ -11,7 +11,7 @@ version = "1.0.0"
 description = "Parsing, conversion, and validation functionality for Minimum Information about a Tailoring Enzyme (MITE) files."
 readme = "README.md"
 requires-python = ">=3.12"
-license-files = { paths = ["LICENSE"] }
+license = "LICENSE"
 authors = [
     { name = "Mitja M. Zdouc", email = "zdoucmm@gmail.com" },
     { name = "Adriano Rutz", email = "adafede@gmail.com" }
