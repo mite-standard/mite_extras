@@ -23,8 +23,12 @@ SOFTWARE.
 """
 
 import logging
-from typing import Self
+from typing import (
+    Optional,
+    Self,
+)
 
+import requests
 from pydantic import BaseModel
 from rdkit.Chem import (
     CanonSmiles,
@@ -117,6 +121,82 @@ class ValidationManager(BaseModel):
             ValueError: RDKit could not read SMILES
         """
         return self.canonicalize_smiles(self.unescape_smiles(smiles))
+
+    def cleanup_ids(
+        self: Self, genpept: str | None = None, uniprot: str | None = None
+    ) -> dict[str, str]:
+        """Cleans up IDs using the UniProt SPARQL endpoint
+
+        Args:
+            genpept: an EMBL ID to be converted to UniProt ID
+            uniprot: a UniProt ID to be converted to EMBL ID
+
+        Returns:
+            A dictionary with the original and corresponding ID
+
+        Raises:
+            ValueError: if neither embl_id nor uniprot_id is provided, or if the IDs do not match
+        """
+        if not genpept and not uniprot:
+            raise ValueError("Please provide one of 'genpept' or 'uniprot'.")
+
+        genpept_query = (
+            f"""
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX up: <http://purl.uniprot.org/core/>
+        SELECT ?protein
+        WHERE {{
+            VALUES ?target {{<http://purl.uniprot.org/embl-cds/{genpept}>}} 
+            ?protein a up:Protein .
+            ?protein rdfs:seeAlso ?target.
+        }}
+        """
+            if genpept
+            else None
+        )
+
+        uniprot_query = (
+            f"""
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX up: <http://purl.uniprot.org/core/>
+        SELECT ?protein
+        WHERE {{
+            VALUES ?prefix {{<http://purl.uniprot.org/database/EMBL>}}
+            <http://purl.uniprot.org/uniprot/{uniprot}> rdfs:seeAlso ?protein .
+            ?protein up:database ?prefix .
+        }}
+        """
+            if uniprot
+            else None
+        )
+
+        def fetch_result(query: str) -> str:
+            response = requests.get(
+                "https://sparql.uniprot.org/sparql",
+                params={"query": query, "format": "srj"},
+                headers={"Accept": "application/sparql-results+json"},
+            )
+            if not response.ok:
+                raise ValueError("Failed to fetch data from UniProt SPARQL endpoint")
+            results = response.json().get("results", {}).get("bindings", [])
+            if not results:
+                raise ValueError("No matching results found")
+            return results[0]["protein"]["value"]
+
+        genpept_result = fetch_result(genpept_query) if genpept_query else None
+        uniprot_result = fetch_result(uniprot_query) if uniprot_query else None
+
+        if genpept and uniprot_id:
+            if genpept_result != f"http://purl.uniprot.org/uniprot/{uniprot_id}":
+                raise ValueError("The provided genpept ID and uniprot ID do not match")
+            return {"genpept": genpept, "uniprot": uniprot}
+
+        if genpept:
+            return {"genpept": genpept, "uniprot": uniprot_result}
+        elif uniprot:
+            return {"uniprot_id": uniprot, "embl_id": uniprot_result}
+
+    # TODO (AR 2024-08-06): implement tests
 
     def validate_reaction_smarts(self: Self, reaction_smarts: str) -> str:
         """Validate an input reaction SMARTS
