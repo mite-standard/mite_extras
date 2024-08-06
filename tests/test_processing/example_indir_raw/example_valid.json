@@ -10,7 +10,7 @@
   "Tailoring": [
       ["enzymes-0-enzyme-0-name", "embB"],
       ["enzymes-0-enzyme-0-description", "Cytochrome P450 installing crosslink"],
-      ["enzymes-0-enzyme-0-databaseIds", "genpept:MYS84939.1"],
+      ["enzymes-0-enzyme-0-databaseIds", "genpept:AAD28495.1"],
       ["enzymes-0-enzyme-0-references", "doi:10.1101/2023.11.03.565440"],
       ["enzymes-0-reactions-0-tailoring-0-function", "Biaryl bond formation"],
       ["enzymes-0-reactions-0-tailoring-0-details", ""],

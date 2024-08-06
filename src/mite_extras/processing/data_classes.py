@@ -271,8 +271,19 @@ class EnyzmeDatabaseIds(BaseModel):
 
     @model_validator(mode="after")
     def populate_ids(self):
-        # TODO(MMZ 06.08.24): implement the population function (e.g. call from validationmanager)
-        return self
+        if self.uniprot and self.genpept:
+            ValidationManager().cleanup_ids(genpept=self.genpept, uniprot=self.uniprot)
+            return self
+
+        if self.uniprot:
+            data = ValidationManager().cleanup_ids(uniprot=self.uniprot)
+            self.genpept = data.get("embl_id")
+            return self
+
+        if self.genpept:
+            data = ValidationManager().cleanup_ids(genpept=self.genpept)
+            self.uniprot = data.get("uniprot")
+            return self
 
     def to_json(self: Self) -> dict:
         json_dict = {}

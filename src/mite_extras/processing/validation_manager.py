@@ -31,6 +31,7 @@ from typing import (
 import requests
 from pydantic import BaseModel
 from rdkit.Chem import (
+    AllChem,
     CanonSmiles,
     MolFromSmarts,
     MolFromSmiles,
@@ -146,8 +147,9 @@ class ValidationManager(BaseModel):
         """
         return self.canonicalize_smiles(self.unescape_smiles(smiles))
 
+    @staticmethod
     def cleanup_ids(
-        self: Self, genpept: str | None = None, uniprot: str | None = None
+        genpept: str | None = None, uniprot: str | None = None
     ) -> dict[str, str]:
         """Cleans up IDs using the UniProt SPARQL endpoint
 
@@ -210,15 +212,15 @@ class ValidationManager(BaseModel):
         genpept_result = fetch_result(genpept_query) if genpept_query else None
         uniprot_result = fetch_result(uniprot_query) if uniprot_query else None
 
-        if genpept and uniprot_id:
-            if genpept_result != f"http://purl.uniprot.org/uniprot/{uniprot_id}":
+        if genpept and uniprot:
+            if genpept_result != f"http://purl.uniprot.org/uniprot/{uniprot}":
                 raise ValueError("The provided genpept ID and uniprot ID do not match")
             return {"genpept": genpept, "uniprot": uniprot}
 
         if genpept:
             return {"genpept": genpept, "uniprot": uniprot_result}
         elif uniprot:
-            return {"uniprot_id": uniprot, "embl_id": uniprot_result}
+            return {"uniprot_id": uniprot, "embl_id": genpept_result}
 
     # TODO (AR 2024-08-06): implement tests
 
