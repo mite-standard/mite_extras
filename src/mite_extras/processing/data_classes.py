@@ -271,19 +271,24 @@ class EnyzmeDatabaseIds(BaseModel):
 
     @model_validator(mode="after")
     def populate_ids(self):
-        if self.uniprot and self.genpept:
-            ValidationManager().cleanup_ids(genpept=self.genpept, uniprot=self.uniprot)
-            return self
+        try:
+            if self.uniprot and self.genpept:
+                ValidationManager().cleanup_ids(
+                    genpept=self.genpept, uniprot=self.uniprot
+                )
+                return self
 
-        if self.uniprot:
-            data = ValidationManager().cleanup_ids(uniprot=self.uniprot)
-            self.genpept = data.get("embl_id")
-            return self
+            if self.uniprot:
+                data = ValidationManager().cleanup_ids(uniprot=self.uniprot)
+                self.genpept = data.get("genpept")
+                return self
 
-        if self.genpept:
-            data = ValidationManager().cleanup_ids(genpept=self.genpept)
-            self.uniprot = data.get("uniprot")
-            return self
+            if self.genpept:
+                data = ValidationManager().cleanup_ids(genpept=self.genpept)
+                self.uniprot = data.get("uniprot")
+                return self
+        except Exception as e:
+            logger.warning(f"EnyzmeDatabaseIds: error during ID validation: {e!s}")
 
     def to_json(self: Self) -> dict:
         json_dict = {}

@@ -61,7 +61,7 @@ def reaction(reactionsmarts, reactionex, evidence, reaction_databaseid):
 
 @pytest.fixture
 def enzyme_databaseids():
-    return EnyzmeDatabaseIds(genpept="AAD28495.1", uniprot="Q9X2V8", mibig="BGC0000581")
+    return EnyzmeDatabaseIds(genpept="AAM70353.1", mibig="BGC0000581")
 
 
 @pytest.fixture
@@ -166,7 +166,7 @@ def test_reaction_to_html_valid(reaction):
 
 def test_enzymedatabaseids_to_json_valid(enzyme_databaseids):
     json_dict = enzyme_databaseids.to_json()
-    assert json_dict["mibig"] == "BGC0000581"
+    assert json_dict["uniprot"] == "Q8KND5"
 
 
 def test_enzymedatabaseids_to_html_valid(enzyme_databaseids):
