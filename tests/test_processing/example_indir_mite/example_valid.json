@@ -5,6 +5,7 @@
     "retirementReasons": [
         "Example reason"
     ],
+    "comment": "No comment",
     "changelog": {
         "releases": [
             {

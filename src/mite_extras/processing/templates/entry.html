@@ -99,7 +99,7 @@
 										{% endif %}
 									</td>
 								</tr>
-								{% if comment is not none %}
+								{% if comment %}
 									<tr>
 										<td width="25%"><b>Comment</b></td>
 										<td>{{ comment }}</td>
@@ -131,8 +131,8 @@
 									<td>
 										{% if auxenzyme.databaseIds is not none %}
 											<ul class="list-unstyled mb-0">
-											{% for row in auxenzyme.databaseIds %}
-												<li>{{ row }}</li>
+											{% for key, value in auxenzyme.databaseIds.items() %}
+												<li>{{ key }}: <a href="{{ value[1] }}">{{ value[0] }}</a></li>
 											{% endfor %}
 											</ul>
 										{% else %}
