@@ -171,7 +171,7 @@ def test_enzymedatabaseids_to_json_valid(enzyme_databaseids):
 
 def test_enzymedatabaseids_to_html_valid(enzyme_databaseids):
     html_dict = enzyme_databaseids.to_html()
-    assert html_dict["mibig"] == "BGC0000581"
+    assert html_dict["mibig"][0] == "BGC0000581"
 
 
 def test_enyzmeaux_to_json_valid(enyzmeaux):

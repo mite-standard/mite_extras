@@ -21,11 +21,15 @@
 		</div>
 	</div>
 	<div class="container-fluid">
-		<div class="row d-flex align-items-start">
+		<div class="row d-flex align-items-start" style="max-height: 50vh; ">
 
 			<div class="col-6">
-				<img class="img-fluid mx-auto d-block" src="https://cdn.rcsb.org/images/structures/101m_assembly-1.jpeg" alt="Placeholder">
-				<p class="text-center">Placeholder image</p>
+				{% if enzyme.databaseIds.get("uniprot", [None,])[0] is not none  %}
+				<img class="img-fluid mx-auto d-block" src="https://raw.githubusercontent.com/mite-standard/mite_data/main/img/{{ enzyme.databaseIds.get('uniprot')[0] }}.png" alt="Protein visualization">
+				<p class="text-center">Visualization of <a href="https://alphafold.ebi.ac.uk/entry/{{ enzyme.databaseIds.get('uniprot') }}">AlphaFold-predicted structure</a> (visualized by <a href="https://github.com/schrodinger/pymol-open-source">PyMol OS</a>)</p>
+				{% else %}
+				<img class="img-fluid mx-auto d-block" src="https://raw.githubusercontent.com/mite-standard/mite_data/main/img/None.png" alt="Placeholder for missing protein visualization">
+				{% endif %}
 			</div>
 
 			<div class="col-6">
@@ -72,8 +76,8 @@
 									<td>
 										{% if enzyme.databaseIds is not none %}
 											<ul class="list-unstyled mb-0">
-											{% for row in enzyme.databaseIds %}
-												<li>{{ row }}</li>
+											{% for key, value in enzyme.databaseIds.items() %}
+												<li>{{ key }}: <a href="{{ value[1] }}">{{ value[0] }}</a></li>
 											{% endfor %}
 											</ul>
 										{% else %}

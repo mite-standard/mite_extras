@@ -299,10 +299,23 @@ class EnyzmeDatabaseIds(BaseModel):
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-        # TODO(MMZ 06.08.24): implement URLs to bioregistry/mibig
-        for attr in ["uniprot", "genpept", "mibig"]:
-            if (val := getattr(self, attr)) is not None:
-                html_dict[attr] = val
+
+        if self.uniprot:
+            html_dict["uniprot"] = (
+                self.uniprot,
+                f"https://bioregistry.io/uniprot:{self.uniprot}",
+            )
+        if self.genpept:
+            html_dict["genpept"] = (
+                self.genpept,
+                f"https://bioregistry.io/ncbiprotein:{self.genpept}",
+            )
+        if self.mibig:
+            html_dict["mibig"] = (
+                self.mibig,
+                f"https://mibig.secondarymetabolites.org/repository/{self.mibig}",
+            )
+
         return html_dict
 
 
