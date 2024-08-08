@@ -22,7 +22,6 @@
 	</div>
 	<div class="container-fluid">
 		<div class="row d-flex align-items-start" style="max-height: 50vh; ">
-
 			<div class="col-6">
 				{% if enzyme.databaseIds.get("uniprot", [None,])[0] is not none  %}
 				<img class="img-fluid mx-auto d-block" src="https://raw.githubusercontent.com/mite-standard/mite_data/main/img/{{ enzyme.databaseIds.get('uniprot')[0] }}.png" alt="Protein visualization">
@@ -31,7 +30,6 @@
 				<img class="img-fluid mx-auto d-block" src="https://raw.githubusercontent.com/mite-standard/mite_data/main/img/None.png" alt="Placeholder for missing protein visualization">
 				{% endif %}
 			</div>
-
 			<div class="col-6">
 				<ul class="nav nav-tabs" id="myTab" role="tablist">
 					<li class="nav-item" role="presentation">
@@ -197,21 +195,40 @@
 	</div>
 	<div class="container-fluid">
 		<div class="row d-flex align-items-start">
-
-			<div class="col-6">
-
-
-
-
-
-
-
-				<img class="img-fluid mx-auto d-block" src="data:image/svg+xml;base64,{{ reactions[0].reactions[0].products[0][1] }}" alt="Placeholder SMILES">
-				<p class="text-center">Placeholder SMILES</p>
+			<div class="dropdown">
+				<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+					Select an entry:
+				</button>
+				<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+					{% for reaction in reactions %}
+					<li><a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target="#reaction-{{ loop.index }}">Reaction {{ loop.index }}</a></li>
+					{% endfor %}
+				</ul>
 			</div>
+
+			{% for reaction in reactions %}
+			<div class="collapse" id="reaction-{{ loop.index }}">
+				<div class="card card-body">
+					<div class="col">
+						<p>Tailoring: {{ reaction.tailoring }}</p>
+					</div>
+					<div class="col">
+						<p>Tailoring: {{ reaction.tailoring }}</p>
+					</div>
+				</div>
+			</div>
+			{% endfor %}
+
+
+
+
+
+
+<!--				<img class="img-fluid mx-auto d-block" src="data:image/svg+xml;base64,{{ reactions[0].reactions[0].products[0][1] }}" alt="Placeholder SMILES">-->
+<!--				<p class="text-center">Placeholder SMILES</p>-->
 
 		</div>
 	</div>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
