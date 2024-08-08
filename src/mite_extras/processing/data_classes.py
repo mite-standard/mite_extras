@@ -395,7 +395,16 @@ class Reaction(BaseModel):
 
         html_dict["reactionSMARTS"] = self.reactionSMARTS.to_html()
         html_dict["reactions"] = [entry.to_html() for entry in self.reactions]
-        html_dict["evidence"] = [entry.to_html() for entry in self.evidence]
+
+        evidences = [entry.to_html() for entry in self.evidence]
+        codes = set()
+        refs = set()
+        for evidence in evidences:
+            codes.update(evidence["evidenceCode"])
+            refs.update(evidence["references"])
+
+        html_dict["evidenceCode"] = list(codes)
+        html_dict["references"] = list(refs)
 
         if self.databaseIds is not None:
             html_dict["databaseIds"] = self.databaseIds.to_html()
