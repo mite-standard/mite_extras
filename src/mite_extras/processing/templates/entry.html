@@ -205,19 +205,27 @@
 					{% endfor %}
 				</ul>
 			</div>
-
-			{% for reaction in reactions %}
-			<div class="collapse" id="reaction-{{ loop.index }}">
-				<div class="card card-body">
-					<div class="col">
+		</div>
+	</div>
+	{% for reaction in reactions %}
+	<div class="collapse" id="reaction-{{ loop.index }}">
+		<div class="card card-body">
+			<div class="container-fluid">
+				<div class="row d-flex align-items-start">
+					<div class="col-6">
 						<p>Tailoring: {{ reaction.tailoring }}</p>
 					</div>
-					<div class="col">
+					<div class="col-6">
 						<p>Tailoring: {{ reaction.tailoring }}</p>
 					</div>
 				</div>
 			</div>
-			{% endfor %}
+		</div>
+	</div>
+
+	{% endfor %}
+
+
 
 
 
