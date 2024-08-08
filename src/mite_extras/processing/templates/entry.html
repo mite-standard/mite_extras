@@ -91,7 +91,7 @@
 										{% if enzyme.references is not none %}
 											<ul class="list-unstyled mb-0">
 											{% for row in enzyme.references %}
-												<li>{{ row }}</li>
+												<li><a href="{{ row[1] }}">{{ row[0] }}</a></li>
 											{% endfor %}
 											</ul>
 										{% else %}
@@ -199,6 +199,13 @@
 		<div class="row d-flex align-items-start">
 
 			<div class="col-6">
+
+
+
+
+
+
+
 				<img class="img-fluid mx-auto d-block" src="data:image/svg+xml;base64,{{ reactions[0].reactions[0].products[0][1] }}" alt="Placeholder SMILES">
 				<p class="text-center">Placeholder SMILES</p>
 			</div>

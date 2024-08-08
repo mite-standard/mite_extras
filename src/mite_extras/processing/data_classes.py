@@ -33,7 +33,36 @@ from mite_extras.processing.validation_manager import ValidationManager
 
 logger = logging.getLogger("mite_extras")
 
-# TODO(MMZ 18.07.24): add validation functions like for SMILES in ReactionEx class @adafede
+
+class Helper(BaseModel):
+    """Pydantic-based class with static helper functions"""
+
+    @staticmethod
+    def resolve_references_html(references: list) -> list:
+        """Resolves references to links
+
+        Args:
+            references: a list of references
+
+        Returns:
+            A list of tuples, each with (reference string, reference url string)
+        """
+        new_refs = []
+        for ref in references:
+            if ref.startswith("pubmed"):
+                new_refs.append(
+                    (ref, f'https://pubmed.ncbi.nlm.nih.gov/{ref.split(":", 1)[1]}')
+                )
+            elif ref.startswith("doi"):
+                new_refs.append((ref, f'https://www.doi.org/{ref.split(":", 1)[1]}'))
+            elif ref.startswith("url"):
+                new_refs.append((ref, f'{ref.split(":", 1)[1]}'))
+            elif ref.startswith("patent"):
+                new_refs.append(
+                    (ref, f'https://patents.google.com/patent/{ref.split(":", 1)[1]}')
+                )
+
+        return new_refs
 
 
 class Entry(BaseModel):
@@ -208,7 +237,7 @@ class Enzyme(BaseModel):
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-        for attr in ["name", "description", "references"]:
+        for attr in ["name", "description"]:
             if (val := getattr(self, attr)) is not None:
                 html_dict[attr] = val
 
@@ -218,6 +247,9 @@ class Enzyme(BaseModel):
             html_dict["auxiliaryEnzymes"] = [
                 entry.to_html() for entry in self.auxiliaryEnzymes
             ]
+
+        if self.references is not None:
+            html_dict["references"] = Helper().resolve_references_html(self.references)
 
         return html_dict
 
@@ -510,10 +542,26 @@ class ReactionDatabaseIds(BaseModel):
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-        # TODO(MMZ 06.08.24): implement URLs to bioregistry/mite
-        for attr in ["rhea", "ec", "mite"]:
-            if (val := getattr(self, attr)) is not None:
-                html_dict[attr] = val
+
+        if self.rhea:
+            html_dict["rhea"] = (
+                self.rhea,
+                f"https://www.rhea-db.org/rhea/{self.rhea}",
+            )
+
+        if self.ec:
+            html_dict["ec"] = (
+                self.ec,
+                f"https://www.brenda-enzymes.org/enzyme.php?ecno={self.ec}",
+            )
+
+        # TODO(MMZ 08.08.2024): swap link for MITE-one once it is online
+        if self.mite:
+            html_dict["mite"] = (
+                self.mite,
+                f"https://mibig.secondarymetabolites.org/",
+            )
+
         return html_dict
 
 
@@ -532,4 +580,7 @@ class Evidence(BaseModel):
         return {"evidenceCode": self.evidenceCode, "references": self.references}
 
     def to_html(self: Self) -> dict:
-        return {"evidenceCode": self.evidenceCode, "references": self.references}
+        return {
+            "evidenceCode": self.evidenceCode,
+            "references": Helper().resolve_references_html(self.references),
+        }

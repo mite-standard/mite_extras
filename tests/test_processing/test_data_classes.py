@@ -131,7 +131,7 @@ def test_reaction_databaseid_to_json_valid(reaction_databaseid):
 
 def test_reaction_databaseid_to_html_valid(reaction_databaseid):
     html_dict = reaction_databaseid.to_html()
-    assert html_dict["mite"] == "MITE0000000"
+    assert html_dict["mite"][0] == "MITE0000000"
 
 
 def test_reactionex_to_json_valid(reactionex):

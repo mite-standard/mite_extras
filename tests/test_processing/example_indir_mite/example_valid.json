@@ -66,7 +66,7 @@
         "name": "aviG6",
         "description": "putative methyltransferase",
         "references": [
-            "pubmed:15489167"
+            "pubmed:15489167", "url:https://pubmed.ncbi.nlm.nih.gov/15489167/", "doi:10.1016/j.chembiol.2004.08.016", "patent:JP2023154034A"
         ],
         "databaseIds": {
             "genpept": "AAK83186.1",
