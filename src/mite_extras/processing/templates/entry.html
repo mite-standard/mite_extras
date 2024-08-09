@@ -244,7 +244,7 @@
 											<tr>
 												<td>
 													<img class="img-fluid mx-auto d-block" src="data:image/svg+xml;base64,{{ reaction.reactionSMARTS.reactionSMARTS[1] }}" alt="reaction SMARTS">
-													<button class="btn btn-light" data-clipboard-text="{{ reaction.reactionSMARTS.reactionSMARTS[0] }}">Copy reaction SMARTS</button>
+													<button class="btn btn-light btn-sm" data-clipboard-text="{{ reaction.reactionSMARTS.reactionSMARTS[0] }}">Copy reaction SMARTS</button>
 												</td>
 											</tr>
 										</tbody>
@@ -316,9 +316,15 @@
 								</div>
 							</div>
 						</div>
-
-
 						<div class="col-6">
+							<table class="table table-striped">
+								<tbody>
+
+								</tbody>
+
+							</table>
+
+
 							<p>Tailoring: {{ reaction.tailoring }}</p>
 						</div>
 					</div>
@@ -344,14 +350,14 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js"></script>
 	<script>
-   var clipboard = new ClipboardJS('.btn-light');
-   clipboard.on('success', function(e) {
-       alert('Copied to clipboard!');
-       e.clearSelection();
-   });
-   clipboard.on('error', function(e) {
-       alert('Failed to copy text.');
-   });
-</script>
+		var clipboard = new ClipboardJS('.btn-light');
+		clipboard.on('success', function(e) {
+			 alert('Copied to clipboard!');
+			 e.clearSelection();
+		});
+		clipboard.on('error', function(e) {
+			 alert('Failed to copy text.');
+		});
+	</script>
 </body>
 </html>
