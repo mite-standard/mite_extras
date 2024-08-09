@@ -31,12 +31,12 @@ from typing import (
 import requests
 from pydantic import BaseModel
 from rdkit.Chem import (
-    AllChem,
     CanonSmiles,
     MolFromSmarts,
     MolFromSmiles,
     MolToSmarts,
     MolToSmiles,
+    rdMolEnumerator,
 )
 from rdkit.Chem.rdChemReactions import ReactionFromSmarts
 
@@ -94,8 +94,6 @@ class ValidationManager(BaseModel):
             raise ValueError(f"Could not read SMARTS string '{smarts}'")
         return MolToSmarts(MolFromSmiles(CanonSmiles(MolToSmiles(mol))))
 
-    # TODO (AR 2024-08-06): implement tests
-
     @staticmethod
     def check_reaction_smarts(reaction_smarts: str) -> str:
         """Checks a reaction SMARTS
@@ -110,14 +108,12 @@ class ValidationManager(BaseModel):
             ValueError: RDKit could not read reaction SMARTS
         """
         try:
-            reaction = AllChem.ReactionFromSmarts(reaction_smarts)
+            reaction = ReactionFromSmarts(reaction_smarts)
             if reaction is None:
                 raise ValueError(f"Invalid reaction SMARTS string '{reaction_smarts}'")
             return reaction_smarts
         except Exception as e:
             raise ValueError(f"Error parsing reaction SMARTS: {e!s}") from None
-
-    # TODO (AR 2024-08-06): implement tests
 
     def cleanup_smarts(self: Self, smarts: str) -> str:
         """Cleans up an input SMARTS string
@@ -218,18 +214,89 @@ class ValidationManager(BaseModel):
             "uniprot": uniprot if uniprot else genpept_result,
         }
 
-    # TODO (AR 2024-08-06): implement tests
-
-    def validate_reaction_smarts(self: Self, reaction_smarts: str) -> str:
-        """Validate an input reaction SMARTS
+    def validate_reaction_smarts(
+        self,
+        reaction_smarts: str,
+        substrate_smiles: str,
+        expected_products: list[str],
+        forbidden_products: list[str],
+    ) -> str:
+        """Validates the reaction SMARTS
 
         Args:
-            reaction_smarts: a reactions SMARTS string
+            reaction_smarts: a reaction SMARTS string
+            substrate_smiles: a SMILES string representing the substrate
+            expected_products: a list of expected product SMILES strings
+            forbidden_products: a list of forbidden product SMILES strings
 
         Returns:
-            A validated reaction SMARTS
+            The validated reaction SMARTS string
 
         Raises:
-            ValueError: RDKit could not read SMILES
+            ValueError: If the reaction does not meet the expectations
         """
-        # TODO(MMZ 19.07.24): stub for implementation of e.g. a SMARTS validation function @adafede
+        # Check for forbidden products in expected products
+        forbidden_smiles_set = set(forbidden_products)
+        expected_smiles_set = set(expected_products)
+        if forbidden_smiles_set.intersection(expected_smiles_set):
+            raise ValueError("Some expected products are listed as forbidden products.")
+
+        # Check that expected products are not empty
+        if not expected_products:
+            raise ValueError("Expected products list cannot be empty.")
+
+        # Attempt to parse the reaction SMARTS
+        reaction = ReactionFromSmarts(reaction_smarts)
+        if reaction is None:
+            raise ValueError(f"Invalid reaction SMARTS '{reaction_smarts}'")
+
+        # Convert expected and forbidden products to RDKit molecule objects
+        expected_mols = {
+            MolFromSmiles(self.unescape_smiles(smiles)) for smiles in expected_products
+        }
+        forbidden_mols = {
+            MolFromSmiles(self.unescape_smiles(smiles)) for smiles in forbidden_products
+        }
+
+        if None in expected_mols or None in forbidden_mols:
+            raise ValueError(
+                "One or more expected/forbidden products could not be parsed."
+            )
+
+        # Convert substrate to RDKit molecule object
+        substrate_mol = MolFromSmiles(self.unescape_smiles(substrate_smiles))
+        if substrate_mol is None:
+            raise ValueError(f"Invalid substrate SMILES '{substrate_smiles}'")
+
+        # Enumerate possible conformations of the substrate molecule
+        substrate_mol_enumerated = rdMolEnumerator.Enumerate(substrate_mol)
+        if not substrate_mol_enumerated:
+            substrate_mol_enumerated = [substrate_mol]
+
+        # Generate products from the reaction and substrate
+        predicted_products = []
+        for substrate in substrate_mol_enumerated:
+            products = reaction.RunReactants([substrate])
+            predicted_products.extend(products)
+
+        predicted_smiles = set()
+        for product_set in predicted_products:
+            for product in product_set:
+                predicted_smiles.add(CanonSmiles(MolToSmiles(product)))
+
+        predicted_mols = {MolFromSmiles(smiles) for smiles in predicted_smiles}
+
+        if None in predicted_mols:
+            raise ValueError("One or more predicted products could not be parsed.")
+
+        # Check products meet expectations
+        if not expected_smiles_set.issubset(predicted_smiles):
+            raise ValueError(
+                f"Products '{predicted_smiles}' do not meet expectations '{expected_smiles_set}'."
+            )
+
+        # Check if any forbidden products are present in the predicted products
+        if forbidden_smiles_set.intersection(predicted_smiles):
+            raise ValueError("Forbidden products were found in the reaction output.")
+
+        return reaction_smarts
