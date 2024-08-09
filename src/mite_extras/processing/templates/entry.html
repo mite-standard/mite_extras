@@ -225,6 +225,7 @@
 		{% for reaction in reactions %}
 		<div class="collapse {% if loop.index == 1 %}show{% endif %}" id="reaction-{{ loop.index }}" data-bs-parent="#reactions-group">
 			<div class="card card-body">
+				<h5>Reaction {{ loop.index }}</h5>
 				<div class="container-fluid">
 					<div class="row d-flex align-items-start">
 						<div class="col-6">
@@ -268,6 +269,24 @@
 														{% endfor %}
 													</ul>
 												</td>
+											</tr>
+											<tr>
+												<td width="25%"><b>Database References</b></td>
+												<td>
+													{% if reaction.get("databaseIds") is not none %}
+														<ul class="list-unstyled mb-0">
+														{% for key, value in reaction.databaseIds.items() %}
+															<li>{{ key }}: <a target="_blank" href="{{ value[1] }}">{{ value[0] }}</a></li>
+														{% endfor %}
+														</ul>
+													{% else %}
+														No database crosslinks available
+													{% endif %}
+												</td>
+											</tr>
+											<tr>
+												<td width="20%"><b>Iterative reaction</b></td>
+												<td>{{ reaction.reactionSMARTS.isIterative }}</td>
 											</tr>
 											<tr>
 												<td width="20%"><b>Evidence</b></td>

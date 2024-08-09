@@ -134,7 +134,7 @@
                     ],
                     "isBalanced": false,
                     "isIntermediate": false,
-                    "description": "An example description"
+                    "description": "An example description about halogenation"
                 }
             ],
             "evidence": [
@@ -146,10 +146,7 @@
                         "pubmed:15489167"
                     ]
                 }
-            ],
-            "databaseIds": {
-                "mite": "MITE0000000"
-            }
+            ]
         }
     ]
 }
