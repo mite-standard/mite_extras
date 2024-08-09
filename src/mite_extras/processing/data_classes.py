@@ -439,6 +439,7 @@ class ReactionSmarts(BaseModel):
             drawer = rdMolDraw2D.MolDraw2DSVG(-1, -1)
             dopts = drawer.drawOptions()
             dopts.padding = 1e-5
+            dopts.clearBackground = False
             drawer.DrawReaction(rxn)
             drawer.FinishDrawing()
 
