@@ -515,6 +515,9 @@ class ReactionEx(BaseModel):
             m = rdMolDraw2D.PrepareMolForDrawing(m)
 
             drawer = rdMolDraw2D.MolDraw2DSVG(-1, -1)
+            dopts = drawer.drawOptions()
+            dopts.clearBackground = False
+
             drawer.DrawMolecule(m)
             drawer.FinishDrawing()
             svg = drawer.GetDrawingText()
