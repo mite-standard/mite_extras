@@ -26,7 +26,7 @@ import logging
 from typing import Any, Self
 
 from pydantic import BaseModel, model_validator
-from rdkit.Chem import MolFromSmiles
+from rdkit.Chem import AllChem, MolFromSmiles
 from rdkit.Chem.Draw import rdMolDraw2D
 
 from mite_extras.processing.validation_manager import ValidationManager
@@ -433,13 +433,25 @@ class ReactionSmarts(BaseModel):
         return json_dict
 
     def to_html(self: Self) -> dict:
-        html_dict = {}
+        def _smarts_to_svg(smarts: str) -> str:
+            """Generates a base64 encoded SVG string of the reaction SMARTS"""
+            rxn = AllChem.ReactionFromSmarts(smarts)
+            drawer = rdMolDraw2D.MolDraw2DSVG(-1, -1)
+            dopts = drawer.drawOptions()
+            dopts.padding = 1e-5
+            drawer.DrawReaction(rxn)
+            drawer.FinishDrawing()
 
-        for attr in ["reactionSMARTS", "isIterative"]:
-            if (val := getattr(self, attr)) is not None:
-                html_dict[attr] = val
+            svg = drawer.GetDrawingText()
+            return base64.b64encode(svg.encode("utf-8")).decode("utf-8")
 
-        return html_dict
+        return {
+            "isIterative": self.isIterative,
+            "reactionSMARTS": (
+                self.reactionSMARTS,
+                _smarts_to_svg(self.reactionSMARTS),
+            ),
+        }
 
 
 class ReactionEx(BaseModel):
