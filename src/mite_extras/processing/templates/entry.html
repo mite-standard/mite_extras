@@ -7,8 +7,15 @@
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 	{% block custom_css %}
 	<style>
+		:root {
+			--bs-primary-rgb: 0, 108, 162;
+		}
+		body {
+			font-family: Arial, sans-serif;
+			font-size: 14px;
+		}
 		.heading {
-			background-color: #006CA2;
+			background-color: rgb(var(--bs-primary-rgb));
 			color: white;
 		}
 	</style>
@@ -22,12 +29,16 @@
 	</div>
 	<div class="container-fluid">
 		<div class="row d-flex align-items-start">
-
-			<div class="col-6">
-				<img class="img-fluid mx-auto d-block" src="https://cdn.rcsb.org/images/structures/101m_assembly-1.jpeg" alt="Placeholder">
-				<p class="text-center">Placeholder image</p>
+			<div class="col-6" style="max-height: 45vh; overflow-y: auto">
+				{% if enzyme.databaseIds.get("uniprot", [None,])[0] is not none  %}
+				<div>
+					<p class="text-center">Visualization of <a target="_blank" href="https://alphafold.ebi.ac.uk/entry/{{ enzyme.databaseIds.get('uniprot')[0] }}">AlphaFold-predicted protein structure</a> (visualized by <a target="_blank" href="https://github.com/schrodinger/pymol-open-source">PyMol OS</a>)</p>
+					<img class="img-fluid mx-auto d-block" src="https://raw.githubusercontent.com/mite-standard/mite_data/main/img/{{ enzyme.databaseIds.get('uniprot')[0] }}.png" alt="Protein visualization">
+				</div>
+				{% else %}
+				<img class="img-fluid mx-auto d-block" src="https://raw.githubusercontent.com/mite-standard/mite_data/main/img/None.png" alt="Placeholder for missing protein visualization">
+				{% endif %}
 			</div>
-
 			<div class="col-6">
 				<ul class="nav nav-tabs" id="myTab" role="tablist">
 					<li class="nav-item" role="presentation">
@@ -72,8 +83,8 @@
 									<td>
 										{% if enzyme.databaseIds is not none %}
 											<ul class="list-unstyled mb-0">
-											{% for row in enzyme.databaseIds %}
-												<li>{{ row }}</li>
+											{% for key, value in enzyme.databaseIds.items() %}
+												<li>{{ key }}: <a target="_blank" href="{{ value[1] }}">{{ value[0] }}</a></li>
 											{% endfor %}
 											</ul>
 										{% else %}
@@ -85,9 +96,9 @@
 									<td width="25%"><b>References</b></td>
 									<td>
 										{% if enzyme.references is not none %}
-											<ul class="list-unstyled mb-0">
+											<ul class="mb-0">
 											{% for row in enzyme.references %}
-												<li>{{ row }}</li>
+												<li><a target="_blank" href="{{ row[1] }}">{{ row[0] }}</a></li>
 											{% endfor %}
 											</ul>
 										{% else %}
@@ -95,7 +106,7 @@
 										{% endif %}
 									</td>
 								</tr>
-								{% if comment is not none %}
+								{% if comment %}
 									<tr>
 										<td width="25%"><b>Comment</b></td>
 										<td>{{ comment }}</td>
@@ -127,8 +138,8 @@
 									<td>
 										{% if auxenzyme.databaseIds is not none %}
 											<ul class="list-unstyled mb-0">
-											{% for row in auxenzyme.databaseIds %}
-												<li>{{ row }}</li>
+											{% for key, value in auxenzyme.databaseIds.items() %}
+												<li>{{ key }}: <a target="_blank" href="{{ value[1] }}">{{ value[0] }}</a></li>
 											{% endfor %}
 											</ul>
 										{% else %}
@@ -192,15 +203,155 @@
 		</div>
 	</div>
 	<div class="container-fluid">
-		<div class="row d-flex align-items-start">
-
-			<div class="col-6">
-				<img class="img-fluid mx-auto d-block" src="data:image/svg+xml;base64,{{ reactions[0].reactions[0].products[0][1] }}" alt="Placeholder SMILES">
-				<p class="text-center">Placeholder SMILES</p>
+		<div class="row d-flex align-items-start my-2 ">
+			<div class="col-auto">
+				<h4>Reactions:</h4>
 			</div>
+			<div class="col-auto">
+				<div class="dropdown">
+					<button class="btn btn-primary dropdown-toggle" style="background-color: rgb(var(--bs-primary-rgb)); border-color: rgb(var(--bs-primary-rgb));" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+						Select a reaction:
+					</button>
+					<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+						{% for reaction in reactions %}
+						<li><a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target="#reaction-{{ loop.index }}">Reaction {{ loop.index }}</a></li>
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="reactions-group">
+		{% for reaction in reactions %}
+		<div class="collapse {% if loop.index == 1 %}show{% endif %}" id="reaction-{{ loop.index }}" data-bs-parent="#reactions-group">
+			<div class="card card-body">
+				<h5>Reaction {{ loop.index }}</h5>
+				<div class="container-fluid">
+					<div class="row d-flex align-items-start">
+						<div class="col-6">
+							<ul class="nav nav-tabs" id="reactionNavTab-{{ loop.index }}" role="tablist">
+								<li class="nav-item" role="presentation">
+									<button class="nav-link active" id="reaction-tab-{{ loop.index }}" data-bs-toggle="tab" data-bs-target="#reaction-content-{{ loop.index }}" type="button" role="tab" aria-controls="reaction-content-{{ loop.index }}" aria-selected="true"><b>Reaction SMARTS</b></button>
+								</li>
+								<li class="nav-item" role="presentation">
+									<button class="nav-link" id="info-tab-{{ loop.index }}" data-bs-toggle="tab" data-bs-target="#info-content-{{ loop.index }}" type="button" role="tab" aria-controls="info-content-{{ loop.index }}" aria-selected="false"><b>Reaction Information</b></button>
+								</li>
+							</ul>
+							<div class="tab-content" id="reactionTabContent-{{ loop.index }}">
+								<div class="tab-pane fade show active" id="reaction-content-{{ loop.index }}" role="tabpanel" aria-labelledby="reaction-content-{{ loop.index }}">
+									<table class="table table-striped">
+										<tbody>
+											<tr>
+												<td>
+													<img class="img-fluid mx-auto d-block" src="data:image/svg+xml;base64,{{ reaction.reactionSMARTS.reactionSMARTS[1] }}" alt="reaction SMARTS">
+													<button class="btn btn-light" data-clipboard-text="{{ reaction.reactionSMARTS.reactionSMARTS[0] }}">Copy reaction SMARTS</button>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="tab-pane fade" id="info-content-{{ loop.index }}" role="tabpanel" aria-labelledby="info-content-{{ loop.index }}">
+									<table class="table table-striped">
+										<tbody>
+											<tr>
+												{% if reaction.description %}
+													<td width="20%"><b>Description</b></td>
+													<td>{{ reaction.description }}</td>
+												{% endif %}
+											</tr>
+											<tr>
+												<td width="20%"><b>Tailoring</b></td>
+												<td>
+													<ul class="list-unstyled mb-0">
+														{% for tail in reaction.tailoring %}
+															<li>{{ tail }}</li>
+														{% endfor %}
+													</ul>
+												</td>
+											</tr>
+											<tr>
+												<td width="25%"><b>Database References</b></td>
+												<td>
+													{% if reaction.get("databaseIds") is not none %}
+														<ul class="list-unstyled mb-0">
+														{% for key, value in reaction.databaseIds.items() %}
+															<li>{{ key }}: <a target="_blank" href="{{ value[1] }}">{{ value[0] }}</a></li>
+														{% endfor %}
+														</ul>
+													{% else %}
+														No database crosslinks available
+													{% endif %}
+												</td>
+											</tr>
+											<tr>
+												<td width="20%"><b>Iterative reaction</b></td>
+												<td>{{ reaction.reactionSMARTS.isIterative }}</td>
+											</tr>
+											<tr>
+												<td width="20%"><b>Evidence</b></td>
+												<td>
+													<ul class="list-unstyled mb-0">
+														{% for code in reaction.evidenceCode %}
+															<li>{{ code }}</li>
+														{% endfor %}
+													</ul>
+												</td>
+											</tr>
+											<tr>
+												<td width="25%"><b>References</b></td>
+												<td>
+													{% if reaction.references is not none %}
+														<ul class="mb-0">
+														{% for ref in reaction.references %}
+															<li><a target="_blank" href="{{ ref[1] }}">{{ ref[0] }}</a></li>
+														{% endfor %}
+														</ul>
+													{% else %}
+														No references available
+													{% endif %}
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+
+
+						<div class="col-6">
+							<p>Tailoring: {{ reaction.tailoring }}</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+
+
+
+
+
+
+
+
+
+<!--				<img class="img-fluid mx-auto d-block" src="data:image/svg+xml;base64,{{ reactions[0].reactions[0].products[0][1] }}" alt="Placeholder SMILES">-->
+<!--				<p class="text-center">Placeholder SMILES</p>-->
 
 		</div>
 	</div>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js"></script>
+	<script>
+   var clipboard = new ClipboardJS('.btn-light');
+   clipboard.on('success', function(e) {
+       alert('Copied to clipboard!');
+       e.clearSelection();
+   });
+   clipboard.on('error', function(e) {
+       alert('Failed to copy text.');
+   });
+</script>
 </body>
 </html>

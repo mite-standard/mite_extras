@@ -26,14 +26,43 @@ import logging
 from typing import Any, Self
 
 from pydantic import BaseModel, model_validator
-from rdkit.Chem import MolFromSmiles
+from rdkit.Chem import AllChem, MolFromSmiles
 from rdkit.Chem.Draw import rdMolDraw2D
 
 from mite_extras.processing.validation_manager import ValidationManager
 
 logger = logging.getLogger("mite_extras")
 
-# TODO(MMZ 18.07.24): add validation functions like for SMILES in ReactionEx class @adafede
+
+class Helper(BaseModel):
+    """Pydantic-based class with static helper functions"""
+
+    @staticmethod
+    def resolve_references_html(references: list) -> list:
+        """Resolves references to links
+
+        Args:
+            references: a list of references
+
+        Returns:
+            A list of tuples, each with (reference string, reference url string)
+        """
+        new_refs = []
+        for ref in references:
+            if ref.startswith("pubmed"):
+                new_refs.append(
+                    (ref, f'https://pubmed.ncbi.nlm.nih.gov/{ref.split(":", 1)[1]}')
+                )
+            elif ref.startswith("doi"):
+                new_refs.append((ref, f'https://www.doi.org/{ref.split(":", 1)[1]}'))
+            elif ref.startswith("url"):
+                new_refs.append((ref, f'{ref.split(":", 1)[1]}'))
+            elif ref.startswith("patent"):
+                new_refs.append(
+                    (ref, f'https://patents.google.com/patent/{ref.split(":", 1)[1]}')
+                )
+
+        return new_refs
 
 
 class Entry(BaseModel):
@@ -208,7 +237,7 @@ class Enzyme(BaseModel):
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-        for attr in ["name", "description", "references"]:
+        for attr in ["name", "description"]:
             if (val := getattr(self, attr)) is not None:
                 html_dict[attr] = val
 
@@ -218,6 +247,9 @@ class Enzyme(BaseModel):
             html_dict["auxiliaryEnzymes"] = [
                 entry.to_html() for entry in self.auxiliaryEnzymes
             ]
+
+        if self.references is not None:
+            html_dict["references"] = Helper().resolve_references_html(self.references)
 
         return html_dict
 
@@ -271,19 +303,24 @@ class EnyzmeDatabaseIds(BaseModel):
 
     @model_validator(mode="after")
     def populate_ids(self):
-        if self.uniprot and self.genpept:
-            ValidationManager().cleanup_ids(genpept=self.genpept, uniprot=self.uniprot)
-            return self
+        try:
+            if self.uniprot and self.genpept:
+                ValidationManager().cleanup_ids(
+                    genpept=self.genpept, uniprot=self.uniprot
+                )
+                return self
 
-        if self.uniprot:
-            data = ValidationManager().cleanup_ids(uniprot=self.uniprot)
-            self.genpept = data.get("embl_id")
-            return self
+            if self.uniprot:
+                data = ValidationManager().cleanup_ids(uniprot=self.uniprot)
+                self.genpept = data.get("genpept")
+                return self
 
-        if self.genpept:
-            data = ValidationManager().cleanup_ids(genpept=self.genpept)
-            self.uniprot = data.get("uniprot")
-            return self
+            if self.genpept:
+                data = ValidationManager().cleanup_ids(genpept=self.genpept)
+                self.uniprot = data.get("uniprot")
+                return self
+        except Exception as e:
+            logger.warning(f"EnyzmeDatabaseIds: error during ID validation: {e!s}")
 
     def to_json(self: Self) -> dict:
         json_dict = {}
@@ -294,10 +331,23 @@ class EnyzmeDatabaseIds(BaseModel):
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-        # TODO(MMZ 06.08.24): implement URLs to bioregistry/mibig
-        for attr in ["uniprot", "genpept", "mibig"]:
-            if (val := getattr(self, attr)) is not None:
-                html_dict[attr] = val
+
+        if self.uniprot:
+            html_dict["uniprot"] = (
+                self.uniprot,
+                f"https://bioregistry.io/uniprot:{self.uniprot}",
+            )
+        if self.genpept:
+            html_dict["genpept"] = (
+                self.genpept,
+                f"https://bioregistry.io/ncbiprotein:{self.genpept}",
+            )
+        if self.mibig:
+            html_dict["mibig"] = (
+                self.mibig,
+                f"https://mibig.secondarymetabolites.org/repository/{self.mibig}",
+            )
+
         return html_dict
 
 
@@ -345,7 +395,16 @@ class Reaction(BaseModel):
 
         html_dict["reactionSMARTS"] = self.reactionSMARTS.to_html()
         html_dict["reactions"] = [entry.to_html() for entry in self.reactions]
-        html_dict["evidence"] = [entry.to_html() for entry in self.evidence]
+
+        evidences = [entry.to_html() for entry in self.evidence]
+        codes = set()
+        refs = set()
+        for evidence in evidences:
+            codes.update(evidence["evidenceCode"])
+            refs.update(evidence["references"])
+
+        html_dict["evidenceCode"] = list(codes)
+        html_dict["references"] = list(refs)
 
         if self.databaseIds is not None:
             html_dict["databaseIds"] = self.databaseIds.to_html()
@@ -374,13 +433,26 @@ class ReactionSmarts(BaseModel):
         return json_dict
 
     def to_html(self: Self) -> dict:
-        html_dict = {}
+        def _smarts_to_svg(smarts: str) -> str:
+            """Generates a base64 encoded SVG string of the reaction SMARTS"""
+            rxn = AllChem.ReactionFromSmarts(smarts)
+            drawer = rdMolDraw2D.MolDraw2DSVG(-1, -1)
+            dopts = drawer.drawOptions()
+            dopts.padding = 1e-5
+            dopts.clearBackground = False
+            drawer.DrawReaction(rxn)
+            drawer.FinishDrawing()
 
-        for attr in ["reactionSMARTS", "isIterative"]:
-            if (val := getattr(self, attr)) is not None:
-                html_dict[attr] = val
+            svg = drawer.GetDrawingText()
+            return base64.b64encode(svg.encode("utf-8")).decode("utf-8")
 
-        return html_dict
+        return {
+            "isIterative": self.isIterative,
+            "reactionSMARTS": (
+                self.reactionSMARTS,
+                _smarts_to_svg(self.reactionSMARTS),
+            ),
+        }
 
 
 class ReactionEx(BaseModel):
@@ -443,6 +515,9 @@ class ReactionEx(BaseModel):
             m = rdMolDraw2D.PrepareMolForDrawing(m)
 
             drawer = rdMolDraw2D.MolDraw2DSVG(-1, -1)
+            dopts = drawer.drawOptions()
+            dopts.clearBackground = False
+
             drawer.DrawMolecule(m)
             drawer.FinishDrawing()
             svg = drawer.GetDrawingText()
@@ -492,10 +567,26 @@ class ReactionDatabaseIds(BaseModel):
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-        # TODO(MMZ 06.08.24): implement URLs to bioregistry/mite
-        for attr in ["rhea", "ec", "mite"]:
-            if (val := getattr(self, attr)) is not None:
-                html_dict[attr] = val
+
+        if self.rhea:
+            html_dict["rhea"] = (
+                self.rhea,
+                f"https://www.rhea-db.org/rhea/{self.rhea}",
+            )
+
+        if self.ec:
+            html_dict["ec"] = (
+                self.ec,
+                f"https://www.brenda-enzymes.org/enzyme.php?ecno={self.ec}",
+            )
+
+        # TODO(MMZ 08.08.2024): swap link for MITE-one once it is online
+        if self.mite:
+            html_dict["mite"] = (
+                self.mite,
+                f"https://mibig.secondarymetabolites.org/",
+            )
+
         return html_dict
 
 
@@ -514,4 +605,7 @@ class Evidence(BaseModel):
         return {"evidenceCode": self.evidenceCode, "references": self.references}
 
     def to_html(self: Self) -> dict:
-        return {"evidenceCode": self.evidenceCode, "references": self.references}
+        return {
+            "evidenceCode": self.evidenceCode,
+            "references": Helper().resolve_references_html(self.references),
+        }
