@@ -99,12 +99,11 @@ def main_cli() -> None:
             logger.info(
                 f"CLI: completed parsing of file '{entry.name}' in '{args.fin}' format."
             )
-
         except Exception as e:
             logger.fatal(f"Could not process file '{entry.name}': {e!s}")
             continue
 
-    logger.debug("Completed 'mite_extras' as CLI.")
+    logger.info("Completed 'mite_extras' as CLI.")
 
 
 if __name__ == "__main__":
