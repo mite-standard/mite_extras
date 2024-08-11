@@ -277,7 +277,9 @@
 													{% if reaction.get("databaseIds") is not none %}
 														<ul class="list-unstyled mb-0">
 														{% for key, value in reaction.databaseIds.items() %}
-															<li>{{ key }}: <a target="_blank" href="{{ value[1] }}">{{ value[0] }}</a></li>
+															{% for member in value %}
+															<li><a target="_blank" href="{{ member[1] }}">{{ key }}: {{ member[0] }}</a></li>
+															{% endfor %}
 														{% endfor %}
 														</ul>
 													{% else %}

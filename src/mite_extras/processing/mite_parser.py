@@ -210,14 +210,14 @@ class MiteParser(BaseModel):
             An ReactionDatabaseIds object
         """
         if isinstance(data, list):
-            data_dict = {}
+            data_dict = {"rhea": [], "ec": [], "mite": []}
             for entry in data:
                 if entry.startswith("rhea:"):
-                    data_dict["rhea"] = entry.split(":")[1]
+                    data_dict["rhea"].append(entry.split(":")[1])
                 elif entry.startswith("EC"):
-                    data_dict["ec"] = entry
+                    data_dict["ec"].append(entry)
                 elif entry.startswith("MITE"):
-                    data_dict["mite"] = entry
+                    data_dict["mite"].append(entry)
                 else:
                     continue
             return ReactionDatabaseIds(**data_dict)
