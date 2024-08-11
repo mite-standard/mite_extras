@@ -215,12 +215,12 @@ class ValidationManager(BaseModel):
         }
 
     def validate_reaction_smarts(
-        self,
+        self: Self,
         reaction_smarts: str,
         substrate_smiles: str,
         expected_products: list[str],
         forbidden_products: list[str],
-    ) -> str:
+    ) -> None:
         """Validates the reaction SMARTS
 
         Args:
@@ -229,14 +229,14 @@ class ValidationManager(BaseModel):
             expected_products: a list of expected product SMILES strings
             forbidden_products: a list of forbidden product SMILES strings
 
-        Returns:
-            The validated reaction SMARTS string
-
         Raises:
             ValueError: If the reaction does not meet the expectations
         """
         # Check for forbidden products in expected products
-        forbidden_smiles_set = set(forbidden_products)
+        forbidden_smiles_set = set()
+        if forbidden_products:
+            forbidden_smiles_set = set(forbidden_smiles_set)
+
         expected_smiles_set = set(expected_products)
         if forbidden_smiles_set.intersection(expected_smiles_set):
             raise ValueError("Some expected products are listed as forbidden products.")
@@ -255,7 +255,8 @@ class ValidationManager(BaseModel):
             MolFromSmiles(self.unescape_smiles(smiles)) for smiles in expected_products
         }
         forbidden_mols = {
-            MolFromSmiles(self.unescape_smiles(smiles)) for smiles in forbidden_products
+            MolFromSmiles(self.unescape_smiles(smiles))
+            for smiles in forbidden_smiles_set
         }
 
         if None in expected_mols or None in forbidden_mols:
@@ -299,4 +300,4 @@ class ValidationManager(BaseModel):
         if forbidden_smiles_set.intersection(predicted_smiles):
             raise ValueError("Forbidden products were found in the reaction output.")
 
-        return reaction_smarts
+        logger.debug("ValidationManager: successfully validated reaction SMARTS")

@@ -31,7 +31,7 @@ def reaction_databaseid():
 def reactionex():
     return ReactionEx(
         substrate="CCC",
-        products=["CCCO", "OCCC"],
+        products=["CCCO"],
         forbidden_products=["CCC"],
         isBalanced=False,
         isIntermediate=True,
@@ -42,7 +42,7 @@ def reactionex():
 @pytest.fixture
 def reactionsmarts():
     return ReactionSmarts(
-        reactionSMARTS="[#6]-[#6]>>[#6]-[#6]-[#8]",
+        reactionSMARTS="[#6]-[#6]-[#6]>>[#6]-[#6]-[#6]-[#8]",
         isIterative=False,
     )
 
@@ -146,12 +146,12 @@ def test_reactionex_to_html_valid(reactionex):
 
 def test_reactionsmarts_to_json_valid(reactionsmarts):
     json_dict = reactionsmarts.to_json()
-    assert json_dict["reactionSMARTS"] == "[#6]-[#6]>>[#6]-[#6]-[#8]"
+    assert json_dict["reactionSMARTS"] == "[#6]-[#6]-[#6]>>[#6]-[#6]-[#6]-[#8]"
 
 
 def test_reactionsmarts_to_html_valid(reactionsmarts):
     html_dict = reactionsmarts.to_html()
-    assert html_dict["reactionSMARTS"][0] == "[#6]-[#6]>>[#6]-[#6]-[#8]"
+    assert html_dict["reactionSMARTS"][0] == "[#6]-[#6]-[#6]>>[#6]-[#6]-[#6]-[#8]"
 
 
 def test_reaction_to_json_valid(reaction):

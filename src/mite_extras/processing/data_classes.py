@@ -370,6 +370,18 @@ class Reaction(BaseModel):
     evidence: list
     databaseIds: Any | None = None
 
+    @model_validator(mode="after")
+    def validate_reactions(self):
+        for reaction in self.reactions:
+            ValidationManager().validate_reaction_smarts(
+                reaction_smarts=self.reactionSMARTS.reactionSMARTS,
+                substrate_smiles=reaction.substrate,
+                expected_products=reaction.products,
+                forbidden_products=reaction.forbidden_products,
+            )
+
+        return self
+
     def to_json(self: Self) -> dict:
         json_dict = {}
 
@@ -422,6 +434,12 @@ class ReactionSmarts(BaseModel):
 
     reactionSMARTS: str
     isIterative: bool
+
+    @model_validator(mode="after")
+    def cleanup_smarts(self):
+        smarts = ValidationManager().check_reaction_smarts(self.reactionSMARTS)
+        self.reactionSMARTS = smarts
+        return self
 
     def to_json(self: Self) -> dict:
         json_dict = {}
