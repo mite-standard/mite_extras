@@ -567,14 +567,22 @@ class ReactionDatabaseIds(BaseModel):
     """Pydantic-based class to represent reaction-related database ids
 
     Attributes:
-        rhea: a RHEA ID
-        ec: an EC (Enzyme Commission) number
-        mite: a MITE ID
+        rhea: a list of RHEA IDs
+        ec: a list of EC (Enzyme Commission) numbers
+        mite: a list of MITE IDs
     """
 
-    rhea: str | None = None
-    ec: str | None = None
-    mite: str | None = None
+    rhea: list[str] | None = None
+    ec: list[str] | None = None
+    mite: list[str] | None = None
+
+    @model_validator(mode="after")
+    def uniq_values(self):
+        for attr in ["rhea", "ec", "mite"]:
+            if (val := getattr(self, attr)) is not None:
+                temp_set = {v for v in val if v is not None}
+                setattr(self, attr, list(temp_set))
+        return self
 
     def to_json(self: Self) -> dict:
         json_dict = {}
@@ -587,23 +595,32 @@ class ReactionDatabaseIds(BaseModel):
         html_dict = {}
 
         if self.rhea:
-            html_dict["rhea"] = (
-                self.rhea,
-                f"https://www.rhea-db.org/rhea/{self.rhea}",
-            )
+            html_dict["rhea"] = [
+                (
+                    rhea,
+                    f"https://www.rhea-db.org/rhea/{rhea}",
+                )
+                for rhea in self.rhea
+            ]
 
         if self.ec:
-            html_dict["ec"] = (
-                self.ec,
-                f"https://www.brenda-enzymes.org/enzyme.php?ecno={self.ec}",
-            )
+            html_dict["ec"] = [
+                (
+                    ec,
+                    f"https://www.brenda-enzymes.org/enzyme.php?ecno={ec}",
+                )
+                for ec in self.ec
+            ]
 
         # TODO(MMZ 08.08.2024): swap link for MITE-one once it is online
         if self.mite:
-            html_dict["mite"] = (
-                self.mite,
-                f"https://mibig.secondarymetabolites.org/",
-            )
+            html_dict["mite"] = [
+                (
+                    mite,
+                    f"https://raw.githubusercontent.com/mite-standard/mite_data/main/data/{mite}.json",
+                )
+                for mite in self.mite
+            ]
 
         return html_dict
 

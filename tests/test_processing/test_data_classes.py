@@ -24,7 +24,7 @@ def evidence():
 
 @pytest.fixture
 def reaction_databaseid():
-    return ReactionDatabaseIds(ec="EC 1.2.3.4", mite="MITE0000000", rhea="32647")
+    return ReactionDatabaseIds(ec=["EC 1.2.3.4"], mite=["MITE0000000"], rhea=["32647"])
 
 
 @pytest.fixture
@@ -126,12 +126,12 @@ def test_evidence_to_html_valid(evidence):
 
 def test_reaction_databaseid_to_json_valid(reaction_databaseid):
     json_dict = reaction_databaseid.to_json()
-    assert json_dict["mite"] == "MITE0000000"
+    assert json_dict["mite"] == ["MITE0000000"]
 
 
 def test_reaction_databaseid_to_html_valid(reaction_databaseid):
     html_dict = reaction_databaseid.to_html()
-    assert html_dict["mite"][0] == "MITE0000000"
+    assert html_dict["mite"][0][0] == "MITE0000000"
 
 
 def test_reactionex_to_json_valid(reactionex):

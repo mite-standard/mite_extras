@@ -55,7 +55,7 @@ def test_get_databaseids_reaction_valid(mite_json):
     log = parser.get_databaseids_reaction(
         data=mite_json.get("reactions")[0].get("databaseIds")
     )
-    assert log.mite == "MITE0000000"
+    assert log.mite == ["MITE0000001"]
 
 
 def test_get_reactionex_valid(mite_json):

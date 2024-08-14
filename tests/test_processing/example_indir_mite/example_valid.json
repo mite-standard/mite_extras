@@ -113,7 +113,8 @@
                 }
             ],
             "databaseIds": {
-                "mite": "MITE0000000"
+                "mite": ["MITE0000001"],
+                "ec": ["EC 1.2.3.4"]
             }
         },
         {
