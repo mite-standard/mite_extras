@@ -47,6 +47,21 @@ class ValidationManager(BaseModel):
     """Pydantic-based class to manage validation functions"""
 
     @staticmethod
+    def has_cx_layer(string: str) -> bool:
+        """
+        Detects if a given SMILES string is a CXSMILES (Canonical Extended SMILES).
+
+        Args:
+            string: A string.
+
+        Returns:
+            True if the string has a cx layer, False otherwise.
+        """
+        if " " in string and "|" in string.split(" ", 1)[1]:
+            return True
+        return False
+
+    @staticmethod
     def unescape_smiles(smiles: str) -> str:
         """Remove superfluous backslashes from SMILES string
 
@@ -127,7 +142,10 @@ class ValidationManager(BaseModel):
         Raises:
             ValueError: RDKit could not read SMARTS
         """
-        return self.canonicalize_smarts(smarts)
+        if self.has_cx_layer(smarts):
+            return smarts
+        else:
+            return self.canonicalize_smarts(smarts)
 
     def cleanup_smiles(self: Self, smiles: str) -> str:
         """Cleans up an input SMILES string
@@ -141,7 +159,11 @@ class ValidationManager(BaseModel):
         Raises:
             ValueError: RDKit could not read SMILES
         """
-        return self.canonicalize_smiles(self.unescape_smiles(smiles))
+        unescaped = self.unescape_smiles(smiles)
+        if self.has_cx_layer(smiles):
+            return unescaped
+        else:
+            return self.canonicalize_smiles(unescaped)
 
     @staticmethod
     def cleanup_ids(
@@ -235,7 +257,7 @@ class ValidationManager(BaseModel):
         # Check for forbidden products in expected products
         forbidden_smiles_set = set()
         if forbidden_products:
-            forbidden_smiles_set = set(forbidden_smiles_set)
+            forbidden_smiles_set = set(forbidden_products)
 
         expected_smiles_set = set(expected_products)
         if forbidden_smiles_set.intersection(expected_smiles_set):
@@ -252,10 +274,10 @@ class ValidationManager(BaseModel):
 
         # Convert expected and forbidden products to RDKit molecule objects
         expected_mols = {
-            MolFromSmiles(self.unescape_smiles(smiles)) for smiles in expected_products
+            MolFromSmiles(self.cleanup_smiles(smiles)) for smiles in expected_products
         }
         forbidden_mols = {
-            MolFromSmiles(self.unescape_smiles(smiles))
+            MolFromSmiles(self.cleanup_smiles(smiles))
             for smiles in forbidden_smiles_set
         }
 
@@ -265,7 +287,7 @@ class ValidationManager(BaseModel):
             )
 
         # Convert substrate to RDKit molecule object
-        substrate_mol = MolFromSmiles(self.unescape_smiles(substrate_smiles))
+        substrate_mol = MolFromSmiles(self.cleanup_smiles(substrate_smiles))
         if substrate_mol is None:
             raise ValueError(f"Invalid substrate SMILES '{substrate_smiles}'")
 
@@ -283,7 +305,7 @@ class ValidationManager(BaseModel):
         predicted_smiles = set()
         for product_set in predicted_products:
             for product in product_set:
-                predicted_smiles.add(CanonSmiles(MolToSmiles(product)))
+                predicted_smiles.add(self.cleanup_smiles(MolToSmiles(product)))
 
         predicted_mols = {MolFromSmiles(smiles) for smiles in predicted_smiles}
 

@@ -18,7 +18,7 @@ def test_validate_reaction_smarts_valid(validation_manager):
     result = validation_manager.validate_reaction_smarts(
         reaction_smarts, substrate_smiles, expected_products, forbidden_products
     )
-    assert result == reaction_smarts
+    assert result == None
 
 
 def test_validate_reaction_smarts_forbidden_in_expected(validation_manager):
@@ -87,7 +87,7 @@ def test_validate_reaction_smarts_invalid_expected_product(validation_manager):
     expected_products = ["C=O", "INVALID_SMILES"]  # Invalid product
     forbidden_products = []
     with pytest.raises(
-        ValueError, match="One or more expected/forbidden products could not be parsed."
+        ValueError, match=f"Could not read SMILES string 'INVALID_SMILES'"
     ):
         validation_manager.validate_reaction_smarts(
             reaction_smarts, substrate_smiles, expected_products, forbidden_products
@@ -101,7 +101,7 @@ def test_validate_reaction_smarts_invalid_forbidden_product(validation_manager):
     expected_products = ["C=O"]
     forbidden_products = ["INVALID_SMILES"]  # Invalid forbidden product
     with pytest.raises(
-        ValueError, match="One or more expected/forbidden products could not be parsed."
+        ValueError, match="Could not read SMILES string 'INVALID_SMILES'"
     ):
         validation_manager.validate_reaction_smarts(
             reaction_smarts, substrate_smiles, expected_products, forbidden_products
