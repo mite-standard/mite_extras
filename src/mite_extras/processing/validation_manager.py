@@ -37,7 +37,9 @@ from rdkit.Chem import (
     MolToSmarts,
     MolToSmiles,
     rdMolEnumerator,
+    SanitizeMol
 )
+from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit.Chem.rdChemReactions import ReactionFromSmarts
 
 logger = logging.getLogger("mite_extras")
@@ -89,6 +91,9 @@ class ValidationManager(BaseModel):
         mol = MolFromSmiles(smiles)
         if mol is None:
             raise ValueError(f"Could not read SMILES string '{smiles}'")
+        for atom in mol.GetAtoms():
+            atom.SetAtomMapNum(0)
+        mol = rdMolStandardize.Cleanup(mol)
         return CanonSmiles(MolToSmiles(mol))
 
     @staticmethod
@@ -107,6 +112,10 @@ class ValidationManager(BaseModel):
         mol = MolFromSmarts(smarts)
         if mol is None:
             raise ValueError(f"Could not read SMARTS string '{smarts}'")
+
+        for atom in mol.GetAtoms():
+            atom.SetAtomMapNum(0)
+        mol = rdMolStandardize.Cleanup(mol)
         return MolToSmarts(MolFromSmiles(CanonSmiles(MolToSmiles(mol))))
 
     @staticmethod
@@ -254,18 +263,24 @@ class ValidationManager(BaseModel):
         Raises:
             ValueError: If the reaction does not meet the expectations
         """
-        # Check for forbidden products in expected products
-        forbidden_smiles_set = set()
-        if forbidden_products:
-            forbidden_smiles_set = set(forbidden_products)
-
-        expected_smiles_set = set(expected_products)
-        if forbidden_smiles_set.intersection(expected_smiles_set):
-            raise ValueError("Some expected products are listed as forbidden products.")
-
         # Check that expected products are not empty
         if not expected_products:
             raise ValueError("Expected products list cannot be empty.")
+
+        expected_smiles_set = {
+            self.cleanup_smiles(expected_product)
+            for expected_product in expected_products
+            }
+
+        # Check for forbidden products in expected products
+        forbidden_smiles_set = set()
+        if forbidden_products:
+            forbidden_smiles_set = {
+            self.cleanup_smiles(forbidden_product)
+            for forbidden_product in forbidden_products
+            }
+        if forbidden_smiles_set.intersection(expected_smiles_set):
+            raise ValueError("Some expected products are listed as forbidden products.")
 
         # Attempt to parse the reaction SMARTS
         reaction = ReactionFromSmarts(reaction_smarts)
@@ -305,6 +320,7 @@ class ValidationManager(BaseModel):
         predicted_smiles = set()
         for product_set in predicted_products:
             for product in product_set:
+                SanitizeMol(product)
                 predicted_smiles.add(self.cleanup_smiles(MolToSmiles(product)))
 
         predicted_mols = {MolFromSmiles(smiles) for smiles in predicted_smiles}
