@@ -302,7 +302,7 @@ class ValidationManager(BaseModel):
         if substrate_mol is None:
             raise ValueError(f"Invalid substrate SMILES '{substrate_smiles}'")
 
-        print(MolToSmiles(substrate_mol))
+        # print(MolToSmiles(substrate_mol))
 
         # Generate products from the reaction and substrate
         predicted_products = reaction.RunReactants((substrate_mol,))
@@ -310,6 +310,7 @@ class ValidationManager(BaseModel):
         predicted_smiles = set()
         for products in predicted_products:
             for mol in products:
+                # print(MolToSmiles(mol))
                 predicted_smiles.add(self.cleanup_smiles(MolToSmiles(mol)))
 
         predicted_mols = {MolFromSmiles(smiles) for smiles in predicted_smiles}
