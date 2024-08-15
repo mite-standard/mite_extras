@@ -113,10 +113,8 @@ class ValidationManager(BaseModel):
         mol = MolFromSmarts(smarts)
         if mol is None:
             raise ValueError(f"Could not read SMARTS string '{smarts}'")
-        for atom in mol.GetAtoms():
-            atom.SetAtomMapNum(0)
-        mol = rdMolStandardize.Cleanup(mol)
-        SanitizeMol(mol)
+        for i, atom in enumerate(mol.GetAtoms()):
+            atom.SetAtomMapNum(i)
         return MolToSmarts(MolFromSmiles(CanonSmiles(MolToSmiles(mol))))
 
     @staticmethod
