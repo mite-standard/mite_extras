@@ -35,12 +35,11 @@ from rdkit.Chem import (
     MolFromSmarts,
     MolFromSmiles,
     MolToSmarts,
-    MolToSmiles,
-    rdMolEnumerator,
-    SanitizeMol
+    MolToSmiles
 )
-from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit.Chem.rdChemReactions import ReactionFromSmarts
+from rdkit.Chem.SimpleEnum import Enumerator
+
 
 logger = logging.getLogger("mite_extras")
 
@@ -93,8 +92,6 @@ class ValidationManager(BaseModel):
             raise ValueError(f"Could not read SMILES string '{smiles}'")
         for atom in mol.GetAtoms():
             atom.SetAtomMapNum(0)
-        mol = rdMolStandardize.Cleanup(mol)
-        SanitizeMol(mol)
         return CanonSmiles(MolToSmiles(mol))
 
     @staticmethod
@@ -302,33 +299,17 @@ class ValidationManager(BaseModel):
 
         # Convert substrate to RDKit molecule object
         substrate_mol = MolFromSmiles(self.cleanup_smiles(substrate_smiles))
-        substrate_mol = rdMolStandardize.Cleanup(substrate_mol)
-        SanitizeMol(substrate_mol)
         if substrate_mol is None:
             raise ValueError(f"Invalid substrate SMILES '{substrate_smiles}'")
 
-        # Enumerate possible conformations of the substrate molecule
-        substrate_mol_enumerated = rdMolEnumerator.Enumerate(substrate_mol)
-        if not substrate_mol_enumerated:
-            substrate_mol_enumerated = [substrate_mol]
+        print(MolToSmiles(substrate_mol))
 
         # Generate products from the reaction and substrate
-        predicted_products = []
-        for mol in substrate_mol_enumerated:
-            mol = rdMolStandardize.Cleanup(mol)
-            SanitizeMol(mol)
-            products_tuple = reaction.RunReactants((mol,))
-            predicted_products.extend(products_tuple)
+        predicted_products = reaction.RunReactants((substrate_mol,))
 
         predicted_smiles = set()
         for products in predicted_products:
             for mol in products:
-                try:
-                    s = MolToSmiles(mol)
-                    rdMolStandardize.StandardizeSmiles(s)
-                    # print("Predicted molecule is valid!")
-                except Exception as e:
-                    print("Sanitization of product failed:", e)
                 predicted_smiles.add(self.cleanup_smiles(MolToSmiles(mol)))
 
         predicted_mols = {MolFromSmiles(smiles) for smiles in predicted_smiles}
