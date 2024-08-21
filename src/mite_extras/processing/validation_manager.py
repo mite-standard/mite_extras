@@ -28,6 +28,7 @@ from typing import (
     Self,
 )
 
+import re
 import requests
 from pydantic import BaseModel
 from rdkit.Chem import (
@@ -64,16 +65,28 @@ class ValidationManager(BaseModel):
         return False
 
     @staticmethod
-    def unescape_smiles(smiles: str) -> str:
-        """Remove superfluous backslashes from SMILES string
+    def unescape_string(string: str) -> str:
+        """Remove superfluous backslashes from string
 
         Args:
-            smiles: a user-submitted SMILES string
+            smiles: a user-submitted string
 
         Returns:
-            A cleaned-up SMILES string
+            A cleaned-up string
         """
-        return smiles.replace("\\\\", "\\")
+        return string.replace("\\", "")
+
+    @staticmethod
+    def remove_hs(string: str) -> str:
+        """Remove superfluous H's from string
+
+        Args:
+            string: a user-submitted string
+
+        Returns:
+            A cleaned-up string
+        """
+        return re.sub(r";h\d", "", string)
 
     @staticmethod
     def canonicalize_smiles(smiles: str) -> str:
@@ -148,10 +161,11 @@ class ValidationManager(BaseModel):
         Raises:
             ValueError: RDKit could not read SMARTS
         """
+        unhed = self.remove_hs(self.unescape_string(smarts))
         if self.has_cx_layer(smarts):
-            return smarts
+            return unhed
         else:
-            return self.canonicalize_smarts(smarts)
+            return self.canonicalize_smarts(unhed)
 
     def cleanup_smiles(self: Self, smiles: str) -> str:
         """Cleans up an input SMILES string
@@ -165,11 +179,11 @@ class ValidationManager(BaseModel):
         Raises:
             ValueError: RDKit could not read SMILES
         """
-        unescaped = self.unescape_smiles(smiles)
+        unhed = self.remove_hs(self.unescape_string(smiles))
         if self.has_cx_layer(smiles):
-            return unescaped
+            return unhed
         else:
-            return self.canonicalize_smiles(unescaped)
+            return self.canonicalize_smiles(unhed)
 
     def enumerate(self: Self, mol) -> list:
         if mol is not None:
@@ -289,7 +303,7 @@ class ValidationManager(BaseModel):
             raise ValueError("Some expected products are listed as forbidden products.")
 
         # Attempt to parse the reaction SMARTS
-        reaction = ReactionFromSmarts(reaction_smarts)
+        reaction = ReactionFromSmarts(self.remove_hs(self.unescape_string(reaction_smarts)))
         if reaction is None:
             raise ValueError(f"Invalid reaction SMARTS '{reaction_smarts}'")
 
