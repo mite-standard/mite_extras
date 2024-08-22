@@ -107,12 +107,28 @@ def test_validate_reaction_smarts_invalid_forbidden_product(validation_manager):
         )
 
 
-def test_validate_reaction_smarts_valid_composite(validation_manager):
+# def test_validate_reaction_smarts_valid_composite_fail(validation_manager):
+#     """Test when composite SMILES (Rhea)"""
+#     # TODO (AR 2024-08-15):Not handling this error for now, should be easy
+#     reaction_smarts = "[cH:9]1[cH:8][c:7]2[cH:6][cH:5][cH:4][cH:3][c:2]2[nH:1]1.[ClH:10]>>[Cl:10][c:9]1[cH:8][cH:7][cH:6][c:5]2[nH:4][cH:3][cH:2][c:1]12"
+#     substrate_smiles = "c1cc2ccccc2[nH]1"
+#     expected_products = ["Clc1cccc2[nH]ccc12","[H][H]"]
+#     forbidden_products = []
+#     result = validation_manager.validate_reaction_smarts(
+#         reaction_smarts, substrate_smiles, expected_products, forbidden_products
+#     )
+#     with pytest.raises(ValueError, match="ChemicalParserException: Number of reactants provided does not match number of reactant templates."):
+#         validation_manager.validate_reaction_smarts(
+#             reaction_smarts, substrate_smiles, expected_products, forbidden_products
+#         )
+
+
+def test_validate_reaction_smarts_valid_composite_pass(validation_manager):
     """Test when composite SMILES (Rhea)"""
     # TODO (AR 2024-08-15): @MMZ not sure the reaction gives two products on this one
-    reaction_smarts = "([cH:9]1[cH:8][c:7]2[cH:6][cH:5][cH:4][cH:3][c:2]2[nH:1]1.[ClH:10])>>[Cl:10][c:9]1[cH:8][cH:7][cH:6][c:5]2[nH:4][cH:3][cH:2][c:1]12.[H:11][H:12]"
+    reaction_smarts = "[cH:9]1[cH:8][c:7]2[cH:6][cH:5][cH:4][cH:3][c:2]2[nH:1]1.[ClH:10]>>[Cl:10][c:9]1[cH:8][cH:7][cH:6][c:5]2[nH:4][cH:3][cH:2][c:1]12"
     substrate_smiles = "c1cc2ccccc2[nH]1.Cl"
-    expected_products = ["Clc1cccc2[nH]ccc12","[H][H]"]
+    expected_products = ["Clc1cccc2[nH]ccc12"]
     forbidden_products = []
     result = validation_manager.validate_reaction_smarts(
         reaction_smarts, substrate_smiles, expected_products, forbidden_products

@@ -33,6 +33,8 @@ import requests
 from pydantic import BaseModel
 from rdkit.Chem import (
     CanonSmiles,
+    Descriptors,
+    GetMolFrags,
     MolFromSmarts,
     MolFromSmiles,
     MolToSmarts,
@@ -108,8 +110,7 @@ class ValidationManager(BaseModel):
             atom.SetAtomMapNum(0)
         return CanonSmiles(MolToSmiles(mol))
 
-    @staticmethod
-    def canonicalize_smarts(smarts: str) -> str:
+    def canonicalize_smarts(self: Self, smarts: str):
         """Canonicalizes a SMARTS
 
         Args:
@@ -149,6 +150,27 @@ class ValidationManager(BaseModel):
         except Exception as e:
             raise ValueError(f"Error parsing reaction SMARTS: {e!s}") from None
 
+    def cleanup_reaction_smarts(self: Self, reaction_smarts: str) -> str:
+        """Checks a reaction SMARTS
+
+        Args:
+            reaction_smarts: a reaction SMARTS string
+
+        Returns:
+            The same reaction SMARTS string if valid
+
+        Raises:
+            ValueError: RDKit could not read reaction SMARTS
+        """
+        try:
+            reaction_smarts_checked = self.remove_hs(self.unescape_string(reaction_smarts))
+            reaction = ReactionFromSmarts(reaction_smarts_checked)
+            if reaction is None:
+                raise ValueError(f"Invalid reaction SMARTS string '{reaction_smarts}'")
+            return reaction_smarts_checked
+        except Exception as e:
+            raise ValueError(f"Error parsing reaction SMARTS: {e!s}") from None
+
     def cleanup_smarts(self: Self, smarts: str) -> str:
         """Cleans up an input SMARTS string
 
@@ -185,12 +207,54 @@ class ValidationManager(BaseModel):
         else:
             return self.canonicalize_smiles(unhed)
 
-    def enumerate(self: Self, mol) -> list:
+    def enumerate(self: Self, mol) -> set:
+        mols = set()
         if mol is not None:
-            mols = list(rdMolEnumerator.Enumerate(mol))
-        else:
-            mols = list(None)
+            res = rdMolEnumerator.Enumerate(mol)
+            if len(res) != 0:
+                for m in rdMolEnumerator.Enumerate(mol):
+                    mols.add(m)
+            else:
+                mols.add(mol)
         return mols
+
+    def enumerate_reaction_smarts(self: Self, reaction_smarts: str) -> set:
+        """Enumerates a reaction SMARTS string
+
+        Args:
+            reaction_smarts: a reaction SMARTS string
+
+        Returns:
+            A list of reaction SMARTS
+
+        Raises:
+            ValueError: RDKit could not read reaction SMARTS
+        """
+        try:
+            reactants_smarts, products_smarts = reaction_smarts.split(">>")
+        except ValueError:
+            raise ValueError("Invalid reaction SMARTS format. Ensure it contains '>>' separating reactants and products.")
+        reactant = MolFromSmarts(reactants_smarts)
+        product = MolFromSmarts(products_smarts)
+
+        # Enumerate the reactants and products
+        reactants_enumerated = self.enumerate(reactant)
+        products_enumerated = self.enumerate(product)
+
+        # Generate all possible combinations of enumerated reactants and products
+        enumerated_reactions = set()
+        enumerated_reactants_smarts = set()
+        enumerated_products_smarts = set()
+        for r_mol in reactants_enumerated:
+            enumerated_reactants_smarts.add(MolToSmarts(r_mol))
+        print(enumerated_reactants_smarts)
+        for p_mol in products_enumerated:
+            enumerated_products_smarts.add(MolToSmarts(p_mol))
+        print(enumerated_products_smarts)
+        for r_smarts in enumerated_reactants_smarts:
+            for p_smarts in enumerated_products_smarts:
+                enumerated_reactions.add(f"{r_smarts}>>{p_smarts}")
+        return enumerated_reactions
 
     @staticmethod
     def cleanup_ids(
@@ -302,18 +366,17 @@ class ValidationManager(BaseModel):
         if forbidden_smiles_set.intersection(expected_smiles_set):
             raise ValueError("Some expected products are listed as forbidden products.")
 
-        # Attempt to parse the reaction SMARTS
-        reaction = ReactionFromSmarts(self.remove_hs(self.unescape_string(reaction_smarts)))
-        if reaction is None:
-            raise ValueError(f"Invalid reaction SMARTS '{reaction_smarts}'")
+        reactions = self.enumerate_reaction_smarts(self.cleanup_reaction_smarts(reaction_smarts))
 
         expected_mols = set()
         for smiles in expected_smiles_set:
-            expected_mols.update(self.enumerate(MolFromSmiles(self.cleanup_smiles(smiles))))
+            for m in self.enumerate(MolFromSmiles(self.cleanup_smiles(smiles))):
+                expected_mols.add(m)
 
         forbidden_mols = set()
         for smiles in forbidden_smiles_set:
-            forbidden_mols.update(self.enumerate(MolFromSmiles(self.cleanup_smiles(smiles))))
+            for m in self.enumerate(MolFromSmiles(self.cleanup_smiles(smiles))):
+                forbidden_mols.add(m)
 
         if None in expected_mols or None in forbidden_mols:
             raise ValueError(
@@ -321,17 +384,24 @@ class ValidationManager(BaseModel):
             )
 
         # Convert substrate to RDKit molecule object
-        substrate_mol = MolFromSmiles(self.cleanup_smiles(substrate_smiles))
-        if substrate_mol is None:
+        reactant_mol = MolFromSmiles(self.cleanup_smiles(substrate_smiles))
+
+        if reactant_mol is None:
             raise ValueError(f"Invalid substrate SMILES '{substrate_smiles}'")
+        reactants = GetMolFrags(reactant_mol, asMols=True)
+        # TODO Very important! Document it, else reaction fails (see tests)
+        reactants_sorted = sorted(reactants, key=lambda mol: Descriptors.MolWt((mol)), reverse = True)
 
         # Generate products from the reaction and substrate
-        predicted_products = reaction.RunReactants((substrate_mol,))
+        predicted_products = set()
+        for reaction in reactions:
+            predicted_products.add(ReactionFromSmarts(reaction).RunReactants(reactants_sorted))
 
         predicted_smiles_set = set()
         for products in predicted_products:
             for product in products:
-                predicted_smiles_set.add(self.cleanup_smiles(MolToSmiles(product)))
+                for p in product:
+                    predicted_smiles_set.add(self.cleanup_smiles(MolToSmiles(p)))
 
         predicted_mols = set()
         for smiles in predicted_smiles_set:
