@@ -146,11 +146,21 @@ def test_validate_reaction_smarts_valid_composite_pass(validation_manager):
 #     )
 #     assert result == None
 
-# TODO implement failing test with `Cl.N[C@@H](Cc1c[nH]c2ccccc12)C(O)=O` or change the logic in code
 def test_validate_reaction_smarts_frequency_variation(validation_manager):
     """Test when position variation"""
     reaction_smarts = "[NH2:1][C@@H:2]([CH2:3][c:4]1[cH:5][n:6][c:7]2[cH:8][cH:9][cH:10][cH:11][c:12]12)[C:13]([OH:14])=[O:15].[ClH:16]>>[NH2:1][C@@H:2]([CH2:3][c:4]1[cH:5][nH:6][c:7]2[cH:8][cH:9][cH:10][c:11]([Cl:12])[c:13]12)[C:14]([OH:15])=[O:16] |r,Sg:n:2:1-2:ht|"  # Example SMARTS with frequency variation
     substrate_smiles = "N[C@@H](Cc1c[nH]c2ccccc12)C(O)=O.Cl"
+    expected_products = ["N[C@@H](Cc1c[nH]c2cccc(Cl)c12)C(O)=O", "N[C@@H](CCc1c[nH]c2cccc(Cl)c12)C(O)=O"]
+    forbidden_products = []
+    result = validation_manager.validate_reaction_smarts(
+        reaction_smarts, substrate_smiles, expected_products, forbidden_products
+    )
+    assert result == None
+
+def test_validate_reaction_smarts_frequency_variation_unordered(validation_manager):
+    """Test when position variation"""
+    reaction_smarts = "[NH2:1][C@@H:2]([CH2:3][c:4]1[cH:5][n:6][c:7]2[cH:8][cH:9][cH:10][cH:11][c:12]12)[C:13]([OH:14])=[O:15].[ClH:16]>>[NH2:1][C@@H:2]([CH2:3][c:4]1[cH:5][nH:6][c:7]2[cH:8][cH:9][cH:10][c:11]([Cl:12])[c:13]12)[C:14]([OH:15])=[O:16] |r,Sg:n:2:1-2:ht|"  # Example SMARTS with frequency variation
+    substrate_smiles = "Cl.N[C@@H](Cc1c[nH]c2ccccc12)C(O)=O"
     expected_products = ["N[C@@H](Cc1c[nH]c2cccc(Cl)c12)C(O)=O", "N[C@@H](CCc1c[nH]c2cccc(Cl)c12)C(O)=O"]
     forbidden_products = []
     result = validation_manager.validate_reaction_smarts(

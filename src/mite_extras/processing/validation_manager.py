@@ -23,6 +23,7 @@ SOFTWARE.
 """
 
 import logging
+from itertools import permutations
 from typing import (
     Optional,
     Self,
@@ -389,15 +390,16 @@ class ValidationManager(BaseModel):
 
         predicted_products = set()
         for mol in reactant_mol_enumerated:
-            reactants = GetMolFrags(mol, asMols=True)
-            # TODO Very important! Document it, else reaction fails (see tests)
-            reactants_sorted = sorted(reactants, key=lambda m: Descriptors.MolWt(m), reverse=True)
-
+            reactants = GetMolFrags(mol, asMols=True)   
+            # Important to allow reactants to be in whatever order
+            reactants_permutations = list(permutations(reactants))
             for reaction in reactions:
-                products = ReactionFromSmarts(reaction).RunReactants(tuple(reactants_sorted))
-                for product_tuple in products:
-                    for product in product_tuple:
-                        predicted_products.add(product)
+                reaction_instance = ReactionFromSmarts(reaction)
+                for reactant_combination in reactants_permutations:
+                    products = reaction_instance.RunReactants(reactant_combination)
+                    for product_tuple in products:
+                        for product in product_tuple:
+                            predicted_products.add(product)
 
         predicted_smiles_set = set()
         for product in predicted_products:
