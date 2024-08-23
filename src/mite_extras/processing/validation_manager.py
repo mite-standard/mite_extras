@@ -42,7 +42,6 @@ from rdkit.Chem import (
     rdMolEnumerator
 )
 from rdkit.Chem.rdChemReactions import ReactionFromSmarts
-from rdkit.Chem.SimpleEnum import Enumerator
 
 
 logger = logging.getLogger("mite_extras")
@@ -247,10 +246,8 @@ class ValidationManager(BaseModel):
         enumerated_products_smarts = set()
         for r_mol in reactants_enumerated:
             enumerated_reactants_smarts.add(MolToSmarts(r_mol))
-        print(enumerated_reactants_smarts)
         for p_mol in products_enumerated:
             enumerated_products_smarts.add(MolToSmarts(p_mol))
-        print(enumerated_products_smarts)
         for r_smarts in enumerated_reactants_smarts:
             for p_smarts in enumerated_products_smarts:
                 enumerated_reactions.add(f"{r_smarts}>>{p_smarts}")
@@ -383,25 +380,28 @@ class ValidationManager(BaseModel):
                 "One or more expected/forbidden products could not be parsed."
             )
 
-        # Convert substrate to RDKit molecule object
         reactant_mol = MolFromSmiles(self.cleanup_smiles(substrate_smiles))
 
         if reactant_mol is None:
             raise ValueError(f"Invalid substrate SMILES '{substrate_smiles}'")
-        reactants = GetMolFrags(reactant_mol, asMols=True)
-        # TODO Very important! Document it, else reaction fails (see tests)
-        reactants_sorted = sorted(reactants, key=lambda mol: Descriptors.MolWt((mol)), reverse = True)
 
-        # Generate products from the reaction and substrate
+        reactant_mol_enumerated = self.enumerate(reactant_mol)
+
         predicted_products = set()
-        for reaction in reactions:
-            predicted_products.add(ReactionFromSmarts(reaction).RunReactants(reactants_sorted))
+        for mol in reactant_mol_enumerated:
+            reactants = GetMolFrags(mol, asMols=True)
+            # TODO Very important! Document it, else reaction fails (see tests)
+            reactants_sorted = sorted(reactants, key=lambda m: Descriptors.MolWt(m), reverse=True)
+
+            for reaction in reactions:
+                products = ReactionFromSmarts(reaction).RunReactants(tuple(reactants_sorted))
+                for product_tuple in products:
+                    for product in product_tuple:
+                        predicted_products.add(product)
 
         predicted_smiles_set = set()
-        for products in predicted_products:
-            for product in products:
-                for p in product:
-                    predicted_smiles_set.add(self.cleanup_smiles(MolToSmiles(p)))
+        for product in predicted_products:
+            predicted_smiles_set.add(self.cleanup_smiles(MolToSmiles(product)))
 
         predicted_mols = set()
         for smiles in predicted_smiles_set:
