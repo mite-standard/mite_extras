@@ -437,7 +437,7 @@ class ReactionSmarts(BaseModel):
 
     @model_validator(mode="after")
     def cleanup_smarts(self):
-        smarts = ValidationManager().check_reaction_smarts(self.reactionSMARTS)
+        smarts = ValidationManager().cleanup_reaction_smarts(self.reactionSMARTS)
         self.reactionSMARTS = smarts
         return self
 

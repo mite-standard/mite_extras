@@ -23,13 +23,13 @@ SOFTWARE.
 """
 
 import logging
+import re
 from itertools import permutations
 from typing import (
     Optional,
     Self,
 )
 
-import re
 import requests
 from pydantic import BaseModel
 from rdkit.Chem import (
@@ -40,10 +40,9 @@ from rdkit.Chem import (
     MolFromSmiles,
     MolToSmarts,
     MolToSmiles,
-    rdMolEnumerator
+    rdMolEnumerator,
 )
 from rdkit.Chem.rdChemReactions import ReactionFromSmarts
-
 
 logger = logging.getLogger("mite_extras")
 
@@ -128,27 +127,6 @@ class ValidationManager(BaseModel):
         for i, atom in enumerate(mol.GetAtoms()):
             atom.SetAtomMapNum(i)
         return MolToSmarts(MolFromSmiles(CanonSmiles(MolToSmiles(mol))))
-
-    @staticmethod
-    def check_reaction_smarts(reaction_smarts: str) -> str:
-        """Checks a reaction SMARTS
-
-        Args:
-            reaction_smarts: a reaction SMARTS string
-
-        Returns:
-            The same reaction SMARTS string if valid
-
-        Raises:
-            ValueError: RDKit could not read reaction SMARTS
-        """
-        try:
-            reaction = ReactionFromSmarts(reaction_smarts)
-            if reaction is None:
-                raise ValueError(f"Invalid reaction SMARTS string '{reaction_smarts}'")
-            return reaction_smarts
-        except Exception as e:
-            raise ValueError(f"Error parsing reaction SMARTS: {e!s}") from None
 
     def cleanup_reaction_smarts(self: Self, reaction_smarts: str) -> str:
         """Checks a reaction SMARTS
