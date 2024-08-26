@@ -75,7 +75,7 @@ class ValidationManager(BaseModel):
         Returns:
             A cleaned-up string
         """
-        return string.replace("\\", "")
+        return string.replace("\\\\", "\\")
 
     @staticmethod
     def remove_hs(string: str) -> str:
