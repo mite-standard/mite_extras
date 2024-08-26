@@ -393,6 +393,7 @@ class ValidationManager(BaseModel):
         # Check products meet expectations
         # TODO add tests
         # TODO @MMZ tell me if you want to externalize it
+        # See MITE0000095 for an example
         for expected_smiles in expected_smiles_set:
             expected_mol = MolFromSmiles(expected_smiles)
             if not any(MolFromSmiles(predicted_smiles).HasSubstructMatch(expected_mol)
