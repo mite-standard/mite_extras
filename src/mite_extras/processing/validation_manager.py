@@ -390,21 +390,20 @@ class ValidationManager(BaseModel):
         if None in predicted_mols:
             raise ValueError("One or more predicted products could not be parsed.")
 
-        # Check products meet expectations
-        # TODO add tests
-        # TODO @MMZ tell me if you want to externalize it
+        # COMMENT (AR): This could be less stringent such as
         # See MITE0000095 for an example
-        for expected_smiles in expected_smiles_set:
-            expected_mol = MolFromSmiles(expected_smiles)
-            if not any(MolFromSmiles(predicted_smiles).HasSubstructMatch(expected_mol)
-                       for predicted_smiles in predicted_smiles_set):
-                raise ValueError(
-                    f"Products '{predicted_smiles_set}' do not meet expectations '{expected_smiles_set}'."
-                )
-        # if not expected_smiles_set.issubset(predicted_smiles_set):
-        #     raise ValueError(
-        #         f"Products '{predicted_smiles_set}' do not meet expectations '{expected_smiles_set}'."
-        #     )
+        # for expected_smiles in expected_smiles_set:
+        #     expected_mol = MolFromSmiles(expected_smiles)
+        #     if not any(MolFromSmiles(predicted_smiles).HasSubstructMatch(expected_mol)
+        #                for predicted_smiles in predicted_smiles_set):
+        #         raise ValueError(
+        #             f"Products '{predicted_smiles_set}' do not meet expectations '{expected_smiles_set}'."
+        #         )
+        # Check products meet expectations
+        if not expected_smiles_set.issubset(predicted_smiles_set):
+            raise ValueError(
+                f"Products '{predicted_smiles_set}' do not meet expectations '{expected_smiles_set}'."
+            )
 
         # Check if any forbidden products are present in the predicted products
         if forbidden_smiles_set.intersection(predicted_smiles_set):
