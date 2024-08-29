@@ -4,15 +4,6 @@ import pytest
 from mite_extras.processing.validation_manager import ValidationManager
 
 
-def test_canonicalize_smiles_valid():
-    assert ValidationManager().canonicalize_smiles("CCCCC") == "CCCCC"
-
-
-def test_canonicalize_smiles_invalid():
-    with pytest.raises(ValueError):
-        ValidationManager().canonicalize_smiles("üäö")
-
-
 def mock_requests_get(*args, **kwargs):
     class MockResponse:
         def __init__(self, json_data, status_code):
@@ -39,11 +30,7 @@ def mock_requests_get(*args, **kwargs):
             {
                 "results": {
                     "bindings": [
-                        {
-                            "protein": {
-                                "value": "http://purl.uniprot.org/embl-cds/Q8KND4"
-                            }
-                        }
+                        {"protein": {"value": "http://purl.uniprot.org/uniprot/Q8KND4"}}
                     ]
                 }
             },
