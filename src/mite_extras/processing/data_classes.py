@@ -499,10 +499,11 @@ class ReactionEx(BaseModel):
             ValidationManager().cleanup_smiles(prod) for prod in self.products
         ]
         if self.forbidden_products is not None:
-            self.forbidden_products = [
-                ValidationManager().cleanup_smiles(prod)
-                for prod in self.forbidden_products
-            ]
+            self.forbidden_products = []
+            for prod in self.forbidden_products:
+                cleaned = ValidationManager().cleanup_smiles(prod)
+                split = ValidationManager().split_smiles(cleaned)
+                self.forbidden_products.extend(split)
 
         return self
 

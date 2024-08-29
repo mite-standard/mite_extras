@@ -185,6 +185,17 @@ class ValidationManager(BaseModel):
         else:
             return self.canonicalize_smiles(unhed)
 
+    def split_smiles(self: Self, smiles: str) -> list:
+        """Split composite SMILES into a list
+
+        Args:
+            smiles: a SMILES string
+
+        Returns:
+            A list where composite SMILES have been split
+        """
+        return smiles.split(".")
+
     def enumerate(self: Self, mol) -> set:
         mols = set()
         if mol is not None:
