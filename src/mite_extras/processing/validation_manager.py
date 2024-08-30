@@ -112,7 +112,8 @@ class ValidationManager(BaseModel):
     @staticmethod
     def generate_variants(smarts: str) -> list:
         """
-        Generates all possible variants of a SMARTS pattern based on comma-separated elements.
+        Generates all possible variants of a SMARTS pattern based on comma-separated elements,
+        excluding parts enclosed within '| |' (CX layer).
 
         Args:
             smarts (str): The original SMARTS pattern containing comma-separated elements.
@@ -120,7 +121,8 @@ class ValidationManager(BaseModel):
         Returns:
             list: A list of SMARTS patterns with each possible variant substituted.
         """
-        pattern = re.compile(r"\[([^\]:]+(?:,[^\]:]+)*)\:(\d+)\]")    
+        # Regular expression to find parts of the pattern not enclosed within '| |'
+        pattern = re.compile(r"(?<!\|)\[([^\]:]+(?:,[^\]:]+)*)\:(\d+)\](?!\|)")
         matches = list(pattern.finditer(smarts))
         
         if not matches:
@@ -139,6 +141,7 @@ class ValidationManager(BaseModel):
             for m, replacement in zip(matches, combination):
                 new_smarts = new_smarts.replace(m.group(0), replacement, 1)
             all_variants.append(new_smarts)
+        
         return all_variants
 
     def canonicalize_smarts(self: Self, smarts: str):
