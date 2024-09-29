@@ -24,7 +24,7 @@ SOFTWARE.
 
 import logging
 import re
-from itertools import permutations
+from itertools import permutations, product
 from typing import (
     Optional,
     Self,
@@ -108,6 +108,41 @@ class ValidationManager(BaseModel):
         for atom in mol.GetAtoms():
             atom.SetAtomMapNum(0)
         return CanonSmiles(MolToSmiles(mol))
+
+    @staticmethod
+    def generate_variants(smarts: str) -> list:
+        """
+        Generates all possible variants of a SMARTS pattern based on comma-separated elements,
+        excluding parts enclosed within '| |' (CX layer).
+
+        Args:
+            smarts (str): The original SMARTS pattern containing comma-separated elements.
+
+        Returns:
+            list: A list of SMARTS patterns with each possible variant substituted.
+        """
+        # Regular expression to find parts of the pattern not enclosed within '| |'
+        pattern = re.compile(r"(?<!\|)\[([^\]:]+(?:,[^\]:]+)*)\:(\d+)\](?!\|)")
+        matches = list(pattern.finditer(smarts))
+        
+        if not matches:
+            return [smarts]
+        
+        options = []
+        for m in matches:
+            options_list = [f"[{opt}:{m.group(2)}]" for opt in m.group(1).split(",")]
+            options.append(options_list)
+        
+        all_combinations = product(*options)
+        
+        all_variants = []
+        for combination in all_combinations:
+            new_smarts = smarts
+            for m, replacement in zip(matches, combination):
+                new_smarts = new_smarts.replace(m.group(0), replacement, 1)
+            all_variants.append(new_smarts)
+        
+        return all_variants
 
     def canonicalize_smarts(self: Self, smarts: str):
         """Canonicalizes a SMARTS
@@ -214,7 +249,7 @@ class ValidationManager(BaseModel):
             reaction_smarts: a reaction SMARTS string
 
         Returns:
-            A list of reaction SMARTS
+            A set of enumerated reaction SMARTS
 
         Raises:
             ValueError: RDKit could not read reaction SMARTS
@@ -223,24 +258,29 @@ class ValidationManager(BaseModel):
             reactants_smarts, products_smarts = reaction_smarts.split(">>")
         except ValueError:
             raise ValueError("Invalid reaction SMARTS format. Ensure it contains '>>' separating reactants and products.")
-        reactant = MolFromSmarts(reactants_smarts)
-        product = MolFromSmarts(products_smarts)
+        
+        # Generate all variants of reactants and products
+        reactants_variants = self.generate_variants(reactants_smarts)
+        products_variants = self.generate_variants(products_smarts)
+
+        # Set to hold all possible enumerated reaction SMARTS
+        enumerated_reactions = set()
 
         # Enumerate the reactants and products
-        reactants_enumerated = self.enumerate(reactant)
-        products_enumerated = self.enumerate(product)
+        for r_variant in reactants_variants:
+            reactant = MolFromSmarts(r_variant)
+            reactants_enumerated = self.enumerate(reactant)
+            enumerated_reactants_smarts = {MolToSmarts(r_mol) for r_mol in reactants_enumerated}
 
-        # Generate all possible combinations of enumerated reactants and products
-        enumerated_reactions = set()
-        enumerated_reactants_smarts = set()
-        enumerated_products_smarts = set()
-        for r_mol in reactants_enumerated:
-            enumerated_reactants_smarts.add(MolToSmarts(r_mol))
-        for p_mol in products_enumerated:
-            enumerated_products_smarts.add(MolToSmarts(p_mol))
-        for r_smarts in enumerated_reactants_smarts:
-            for p_smarts in enumerated_products_smarts:
-                enumerated_reactions.add(f"{r_smarts}>>{p_smarts}")
+            for p_variant in products_variants:
+                product = MolFromSmarts(p_variant)
+                products_enumerated = self.enumerate(product)
+                enumerated_products_smarts = {MolToSmarts(p_mol) for p_mol in products_enumerated}
+
+                # Combine all enumerated reactants and products
+                for r_smarts in enumerated_reactants_smarts:
+                    for p_smarts in enumerated_products_smarts:
+                        enumerated_reactions.add(f"{r_smarts}>>{p_smarts}")
         return enumerated_reactions
 
     @staticmethod

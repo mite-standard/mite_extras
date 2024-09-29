@@ -167,3 +167,14 @@ def test_validate_reaction_smarts_frequency_variation_unordered(validation_manag
         reaction_smarts, substrate_smiles, expected_products, forbidden_products
     )
     assert result == None
+
+def test_validate_reaction_smarts_halogenation(validation_manager):
+    """Test when multiple atoms allowed (halogenation)"""
+    reaction_smarts = "[#7:1]-[#6:2](-[#6:3]-[c:4]1[c:5][nH1:6][c:7]2[c:8][c:9][c:10][c:11][c:12]12)-[#6:13](-[#8:14])=[O:15]>>[#7:1]-[#6:2](-[#6:3]-[c:4]1[c:5][nH1:6][c:7]2[c:8][c:9](-[#17,#35:10])[c:11][c:12][c:13]12)-[#6:14](-[#8:15])=[O:16]"  # Example SMARTS with Cl OR Br
+    substrate_smiles = "NC(Cc1c[nH]c2ccccc12)C(=O)O"
+    expected_products = ["NC(Cc1c[nH]c2cc(Br)ccc12)C(=O)O", "NC(Cc1c[nH]c2cc(Cl)ccc12)C(=O)O"]
+    forbidden_products = []
+    result = validation_manager.validate_reaction_smarts(
+        reaction_smarts, substrate_smiles, expected_products, forbidden_products
+    )
+    assert result == None
