@@ -77,7 +77,7 @@ def test_get_evidence_valid(mite_json):
 def test_get_reactions_valid(mite_json):
     parser = MiteParser()
     log = parser.get_reactions(reactions=mite_json.get("reactions"))
-    assert len(log) == 2
+    assert len(log) == 3
     assert isinstance(log[0], Reaction)
 
 

@@ -150,6 +150,41 @@
                     ]
                 }
             ]
+        },
+        {
+            "tailoring": [
+                "Halogenation"
+            ],
+            "description": "An example using composite SMILES and a wildcard reaction template to accommodate them.",
+            "reactionSMARTS": {
+                "reactionSMARTS": "[NH2:1][C@@H:2]([CH2:3][c:4]1[cH:5][nH:6][c:7]2[cH:8][cH:9][cH:10][cH:11][c:12]12)[C:13]([OH:14])=[O:15].[*:99]>>[NH2:1][C@@H:2]([CH2:3][c:4]1[cH:5][nH:6][c:7]2[cH:8][c:9]([Cl:16])[cH:10][cH:11][c:12]12)[C:13]([OH:14])=[O:15].[*:99]",
+                "isIterative": false
+            },
+            "reactions": [
+                {
+                    "substrate": "OC([C@@H](N)Cc1c[nH]c2c1cccc2)=O.O",
+                    "products": [
+                        "N[C@H](C(O)=O)Cc1c2ccc(Cl)cc2[nH]c1",
+                        "O"
+                    ],
+                    "isBalanced": false,
+                    "isIntermediate": false,
+                    "description": "An example description of reaction 2",
+                    "forbidden_products": [
+                        "NCCCCO"
+                    ]
+                }
+            ],
+            "evidence": [
+                {
+                    "evidenceCode": [
+                        "Knock-out studies"
+                    ],
+                    "references": [
+                        "pubmed:15489167"
+                    ]
+                }
+            ]
         }
     ]
 }
