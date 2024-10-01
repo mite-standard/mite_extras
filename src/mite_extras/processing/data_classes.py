@@ -458,7 +458,11 @@ class ReactionSmarts(BaseModel):
             dopts = drawer.drawOptions()
             dopts.padding = 1e-5
             dopts.clearBackground = False
-            drawer.DrawReaction(rxn)
+            drawer.DrawReaction(
+                rxn,
+                highlightByReactant=True,
+                highlightColorsReactants=[(0.69, 0.863, 0.949)],
+            )
             drawer.FinishDrawing()
 
             svg = drawer.GetDrawingText()
