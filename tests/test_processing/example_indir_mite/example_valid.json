@@ -215,6 +215,67 @@
                     ]
                 }
             ]
+        },
+        {
+            "tailoring": [
+                "Halogenation"
+            ],
+            "description": "Example 1 from Supplementary Information of MITE publication.",
+            "reactionSMARTS": {
+                "reactionSMARTS": "[#6:1]1:[#6:5](-[#8:9]):[#6:6]:[#6:4](-[#8:8]):[#6:2]:[#6:3]:1-[#8:7]>>[#6:1]1:[#6:5](-[#8:9]):[#6:6]:[#6:4](-[#8:8]):[#6:2](-Cl):[#6:3]:1-[#8:7]",
+                "isIterative": false
+            },
+            "reactions": [
+                {
+                    "substrate": "c1c(O)cc(O)cc1O",
+                    "products": [
+                        "c1c(O)cc(O)c(Cl)c1O"
+                    ],
+                    "isBalanced": false,
+                    "isIntermediate": false
+                }
+            ],
+            "evidence": [
+                {
+                    "evidenceCode": [
+                        "Knock-out studies"
+                    ],
+                    "references": [
+                        "pubmed:15489167"
+                    ]
+                }
+            ]
+        },
+        {
+            "tailoring": [
+                "Halogenation"
+            ],
+            "description": "Example 2 from Supplementary Information of MITE publication - balanced.",
+            "reactionSMARTS": {
+                "reactionSMARTS": "[#6:1]1:[#6:5](-[#8:9]):[#6:6]:[#6:4](-[#8:8]):[#6:2]:[#6:3]:1-[#8:7].Cl>>[#6:1]1:[#6:5](-[#8:9]):[#6:6]:[#6:4](-[#8:8]):[#6:2](-Cl):[#6:3]:1-[#8:7].[H]",
+                "isIterative": false
+            },
+            "reactions": [
+                {
+                    "substrate": "c1c(O)cc(O)cc1O.Cl",
+                    "products": [
+                        "c1c(O)cc(O)c(Cl)c1O",
+                        "[HH]"
+                    ],
+                    "isBalanced": false,
+                    "isIntermediate": false
+                }
+            ],
+            "evidence": [
+                {
+                    "evidenceCode": [
+                        "Knock-out studies"
+                    ],
+                    "references": [
+                        "pubmed:15489167"
+                    ]
+                }
+            ]
         }
     ]
 }
