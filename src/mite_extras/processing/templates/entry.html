@@ -44,7 +44,7 @@
 					<li class="nav-item" role="presentation">
 						<button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true"><b>General Information</b></button>
 					</li>
-					{% if enzyme.auxiliaryEnzymes is not none %}
+					{% if enzyme.auxiliaryEnzymes is defined %}
 						<li class="nav-item" role="presentation">
 							<button class="nav-link" id="auxenz-tab" data-bs-toggle="tab" data-bs-target="#auxenz" type="button" role="tab" aria-controls="auxenz" aria-selected="false"><b>Auxiliary Enzymes</b></button>
 						</li>
@@ -114,7 +114,7 @@
 							</tbody>
 						</table>
 					</div>
-					{% if enzyme.auxiliaryEnzymes is not none %}
+					{% if enzyme.auxiliaryEnzymes is defined %}
 					<div class="tab-pane fade" id="auxenz" role="tabpanel" aria-labelledby="auxenz-tab" style="max-height: 40vh; overflow-y: auto">
 						{% for auxenzyme in enzyme.auxiliaryEnzymes %}
 						<div class="my-2">
@@ -204,7 +204,7 @@
 	<div class="container-fluid">
 		<div class="row d-flex align-items-start my-2 ">
 			<div class="col-auto">
-				<h4>Reactions:</h4>
+				<h4>Known Reactions: <b>{{ reactions|length }}</b></h4>
 			</div>
 			<div class="col-auto">
 				<div class="dropdown">
@@ -317,7 +317,7 @@
 						</div>
 						<div class="col-6">
 							{% for exp_react in reaction.reactions %}
-							<h6>Example {{ loop.index }}</h6>
+							<h5>Example {{ loop.index }}</h5>
 							<table class="table table-striped">
 								<tbody>
 									<tr>
