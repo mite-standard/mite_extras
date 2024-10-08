@@ -66,7 +66,6 @@
 									<td>
 										<ul class="list-unstyled mb-0">
 											<li>Status: {{ status }}</li>
-											<li>Quality: {{ quality }}</li>
 										</ul>
 									</td>
 								</tr>
@@ -288,10 +287,6 @@
 												</td>
 											</tr>
 											<tr>
-												<td width="20%"><b>Iterative reaction</b></td>
-												<td>{{ reaction.reactionSMARTS.isIterative }}</td>
-											</tr>
-											<tr>
 												<td width="20%"><b>Evidence</b></td>
 												<td>
 													<ul class="list-unstyled mb-0">
@@ -334,7 +329,6 @@
 												{% else %}
 												<li><b>Description:</b> No description available</li>
 												{% endif %}
-												<li><b>Balanced:</b> {{ exp_react.isBalanced }}</li>
 												<li><b>Intermediate:</b> {{ exp_react.isIntermediate }}</li>
 											</ul>
 										</td>
