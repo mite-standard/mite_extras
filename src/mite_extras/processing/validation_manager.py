@@ -51,6 +51,48 @@ class ValidationManager(BaseModel):
     """Pydantic-based class to manage validation functions"""
 
     @staticmethod
+    def remove_ketcher_flavor_smarts(string: str) -> str:
+        """
+        Remove error-inducing ketcher-originating features from (reaction) SMARTS.
+
+        Args:
+            string: A (reaction) SMARTS string.
+
+        Returns:
+            The modified (reaction) SMARTS string
+        """
+        # missing square brackets for halogens with indexing
+        string = re.sub(r"-Cl:(\d+)", r"-[Cl:\1]", string)
+        string = re.sub(r"-F:(\d+)", r"-[F:\1]", string)
+        string = re.sub(r"-Br:(\d+)", r"-[Br:\1]", string)
+        string = re.sub(r"-I:(\d+)", r"-[I:\1]", string)
+
+        # missing square brackets for halogens w/o indexing
+        string = re.sub(r"-Cl", r"-[Cl]", string)
+        string = re.sub(r"-F", r"-[F]", string)
+        string = re.sub(r"-Br", r"-[Br]", string)
+        string = re.sub(r"-I", r"-[I]", string)
+
+        # missing suare brackets for substituent halogens with indexing
+        string = re.sub(r"\(-Cl:(\d+)\)", r"(-[Cl\1])", string)
+        string = re.sub(r"\(-F:(\d+)\)", r"(-[F\1])", string)
+        string = re.sub(r"\(-Br:(\d+)\)", r"(-[Br\1])", string)
+        string = re.sub(r"\(-I:(\d+)\)", r"(-[I\1])", string)
+
+        # missing square brackets for substituent halogens w/o indexing
+        string = re.sub(r"\(-Cl\)", r"(-[Cl])", string)
+        string = re.sub(r"\(-F\)", r"(-[F])", string)
+        string = re.sub(r"\(-Br\)", r"(-[Br])", string)
+        string = re.sub(r"\(-I\)", r"(-[I])", string)
+
+        # erroneous specification of nitrogen hydrogens in heterocycles
+        string = re.sub(r"\[#7:(\d+);h(\d)+\]", r"[nH\2:\1]", string)
+        string = re.sub(r"\[#7;h(\d)+\]", r"[nH\1]", string)
+
+        return string
+
+
+    @staticmethod
     def has_cx_layer(string: str) -> bool:
         """
         Detects if a given SMILES string is a CXSMILES (Canonical Extended SMILES).
@@ -138,7 +180,7 @@ class ValidationManager(BaseModel):
         all_variants = []
         for combination in all_combinations:
             new_smarts = smarts
-            for m, replacement in zip(matches, combination):
+            for m, replacement in zip(matches, combination, strict=False):
                 new_smarts = new_smarts.replace(m.group(0), replacement, 1)
             all_variants.append(new_smarts)
         
@@ -176,6 +218,7 @@ class ValidationManager(BaseModel):
             ValueError: RDKit could not read reaction SMARTS
         """
         try:
+            reaction_smarts = self.remove_ketcher_flavor_smarts(reaction_smarts)
             reaction_smarts_checked = self.remove_hs(self.unescape_string(reaction_smarts))
             reaction = ReactionFromSmarts(reaction_smarts_checked)
             if reaction is None:

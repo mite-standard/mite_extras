@@ -248,7 +248,6 @@ class MiteParser(BaseModel):
                     substrate=reaction.get("substrate"),
                     products=reaction.get("products"),
                     forbidden_products=reaction.get("forbidden_products"),
-                    isBalanced=reaction.get("isBalanced"),
                     isIntermediate=reaction.get("isIntermediate"),
                     description=reaction.get("description"),
                 )
@@ -305,8 +304,7 @@ class MiteParser(BaseModel):
                     reactionSMARTS=ReactionSmarts(
                         reactionSMARTS=reaction.get("reactionSMARTS").get(
                             "reactionSMARTS"
-                        ),
-                        isIterative=reaction.get("reactionSMARTS").get("isIterative"),
+                        )
                     ),
                     reactions=self.get_reactionex(reactions=reaction.get("reactions")),
                     evidence=self.get_evidence(evidences=reaction.get("evidence")),
@@ -331,7 +329,6 @@ class MiteParser(BaseModel):
 
         self.entry = Entry(
             accession=data.get("accession"),
-            quality=data.get("quality"),
             status=data.get("status"),
             retirementReasons=data.get("retirementReasons"),
             changelog=self.get_changelog(

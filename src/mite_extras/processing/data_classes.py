@@ -70,7 +70,6 @@ class Entry(BaseModel):
 
     Attributes:
         accession: MITE accession number/identifier.
-        quality: quality of entry
         status: status of entry
         retirementReasons: a list of retirement reasons
         changelog:  a list of Changelog objects
@@ -81,7 +80,6 @@ class Entry(BaseModel):
     """
 
     accession: str | None = None
-    quality: str | None = None
     status: str | None = None
     retirementReasons: list[str] | None = None
     changelog: list[Any] | None = None
@@ -94,7 +92,6 @@ class Entry(BaseModel):
         json_dict = {}
         for attr in [
             "accession",
-            "quality",
             "status",
             "retirementReasons",
             "comment",
@@ -120,7 +117,6 @@ class Entry(BaseModel):
         html_dict = {}
         for attr in [
             "accession",
-            "quality",
             "status",
             "retirementReasons",
             "comment",
@@ -429,11 +425,9 @@ class ReactionSmarts(BaseModel):
 
     Attributes:
         reactionSMARTS: a reaction SMARTS
-        isIterative: flag indicating if reaction SMARTS is applied more than once
     """
 
     reactionSMARTS: str
-    isIterative: bool
 
     @model_validator(mode="after")
     def cleanup_smarts(self):
@@ -444,7 +438,7 @@ class ReactionSmarts(BaseModel):
     def to_json(self: Self) -> dict:
         json_dict = {}
 
-        for attr in ["reactionSMARTS", "isIterative"]:
+        for attr in ["reactionSMARTS"]:
             if (val := getattr(self, attr)) is not None:
                 json_dict[attr] = val
 
@@ -458,14 +452,17 @@ class ReactionSmarts(BaseModel):
             dopts = drawer.drawOptions()
             dopts.padding = 1e-5
             dopts.clearBackground = False
-            drawer.DrawReaction(rxn)
+            drawer.DrawReaction(
+                rxn,
+                highlightByReactant=True,
+                highlightColorsReactants=[(0.69, 0.863, 0.949)],
+            )
             drawer.FinishDrawing()
 
             svg = drawer.GetDrawingText()
             return base64.b64encode(svg.encode("utf-8")).decode("utf-8")
 
         return {
-            "isIterative": self.isIterative,
             "reactionSMARTS": (
                 self.reactionSMARTS,
                 _smarts_to_svg(self.reactionSMARTS),
@@ -480,7 +477,6 @@ class ReactionEx(BaseModel):
         substrate: SMILES string
         products: list of SMILES strings (result from substrate if reactionSMARTS appl)
         forbidden_products: list of SMILES string of forbidden products (must not result)
-        isBalanced: is reaction balanced
         isIntermediate: is the reaction an intermediate or a stable product
         description: an optional string
     """
@@ -488,7 +484,6 @@ class ReactionEx(BaseModel):
     substrate: str
     products: list
     forbidden_products: list | None = None
-    isBalanced: bool
     isIntermediate: bool
     description: str | None = None
 
@@ -514,7 +509,6 @@ class ReactionEx(BaseModel):
             "substrate",
             "products",
             "forbidden_products",
-            "isBalanced",
             "isIntermediate",
             "description",
         ]:
@@ -545,7 +539,6 @@ class ReactionEx(BaseModel):
         html_dict = {}
 
         for attr in [
-            "isBalanced",
             "isIntermediate",
             "description",
         ]:
