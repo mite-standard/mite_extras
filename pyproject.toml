@@ -2,12 +2,9 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[project.urls]
-"Repository" = "https://github.com/mite-standard/mite_extras"
-
 [project]
 name = "mite_extras"
-version = "1.0.0"
+version = "1.0.1"
 description = "Parsing, conversion, and validation functionality for Minimum Information about a Tailoring Enzyme (MITE) files."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -15,6 +12,18 @@ license-files = { paths = ["LICENSE"] }
 authors = [
     { name = "Mitja M. Zdouc", email = "zdoucmm@gmail.com" },
     { name = "Adriano Rutz", email = "adafede@gmail.com" }
+]
+keywords = [
+    "cheminformatics",
+    "genomics"
+]
+classifiers = [
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Development Status :: 4 - Beta",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry"
 ]
 dependencies = [
     "argparse~=1.4",
@@ -28,6 +37,10 @@ dependencies = [
     "requests~=2.32",
     "staticjinja~=5.0"
 ]
+
+[project.urls]
+Homepage = "https://github.com/mite-standard/mite_extras"
+Issues = "https://github.com/mite-standard/mite_extras/issues"
 
 [project.scripts]
 mite_extras = "mite_extras.main:main_cli"
@@ -43,6 +56,24 @@ dev = [
 features = [
     "dev"
 ]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.idea/",
+  "/.github/",
+  "/.git/",
+  "/.pytest_cache/",
+  "/.ruff_cache/",
+  "/.venv",
+  "/tests/",
+  "/.gitignore",
+  "/.pre-commit-config.yaml",
+  "/CODE_OF_CONDUCT.md",
+  "/CONTRIBUTING.md"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mite_extras"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
