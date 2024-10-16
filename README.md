@@ -1,9 +1,7 @@
 mite_extras
 ==========
 
-Helper functions for mite.
-
-Validation and conversion functionality for reaction SMARTS collected in the scope of MITE.
+Validation and auxiliary functionality for MITE entries.
 
 Attention: this program has only been tested with Ubuntu Linux.
 
@@ -19,20 +17,6 @@ Attention: this program has only been tested with Ubuntu Linux.
 ## Quick Start: Example
 
 ### Run with `hatch`:
-
-#### Input format: `raw` (MIBiG Submission Portal)
-
-First, pre-format the raw input files:
-
-- e.g. `hatch run python input_file_splitter.py <new000.json>`
-
-Move the generated file(s) into a different directory (e.g. 'input')
-
-- `hatch run mite_extras -i input/ -o output/ -fin raw -fout json`
-
-This will convert all files into json-files following the MITE schema.
-
-#### Input format: `mite` (MITE-formatted json)
 
 To validate MITE entries or update them to a new schema version
 
