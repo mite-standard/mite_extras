@@ -91,7 +91,6 @@ class ValidationManager(BaseModel):
 
         return string
 
-
     @staticmethod
     def has_cx_layer(string: str) -> bool:
         """
@@ -166,24 +165,24 @@ class ValidationManager(BaseModel):
         # Regular expression to find parts of the pattern not enclosed within '| |'
         pattern = re.compile(r"(?<!\|)\[([^\]:]+(?:,[^\]:]+)*)\:(\d+)\](?!\|)")
         matches = list(pattern.finditer(smarts))
-        
+
         if not matches:
             return [smarts]
-        
+
         options = []
         for m in matches:
             options_list = [f"[{opt}:{m.group(2)}]" for opt in m.group(1).split(",")]
             options.append(options_list)
-        
+
         all_combinations = product(*options)
-        
+
         all_variants = []
         for combination in all_combinations:
             new_smarts = smarts
             for m, replacement in zip(matches, combination, strict=False):
                 new_smarts = new_smarts.replace(m.group(0), replacement, 1)
             all_variants.append(new_smarts)
-        
+
         return all_variants
 
     def canonicalize_smarts(self: Self, smarts: str):
@@ -219,7 +218,9 @@ class ValidationManager(BaseModel):
         """
         try:
             reaction_smarts = self.remove_ketcher_flavor_smarts(reaction_smarts)
-            reaction_smarts_checked = self.remove_hs(self.unescape_string(reaction_smarts))
+            reaction_smarts_checked = self.remove_hs(
+                self.unescape_string(reaction_smarts)
+            )
             reaction = ReactionFromSmarts(reaction_smarts_checked)
             if reaction is None:
                 raise ValueError(f"Invalid reaction SMARTS string '{reaction_smarts}'")
@@ -299,9 +300,11 @@ class ValidationManager(BaseModel):
         """
         try:
             reactants_smarts, products_smarts = reaction_smarts.split(">>")
-        except ValueError:
-            raise ValueError("Invalid reaction SMARTS format. Ensure it contains '>>' separating reactants and products.")
-        
+        except ValueError as e:
+            raise ValueError(
+                "Invalid reaction SMARTS format. Ensure it contains '>>' separating reactants and products."
+            ) from e
+
         # Generate all variants of reactants and products
         reactants_variants = self.generate_variants(reactants_smarts)
         products_variants = self.generate_variants(products_smarts)
@@ -313,12 +316,16 @@ class ValidationManager(BaseModel):
         for r_variant in reactants_variants:
             reactant = MolFromSmarts(r_variant)
             reactants_enumerated = self.enumerate(reactant)
-            enumerated_reactants_smarts = {MolToSmarts(r_mol) for r_mol in reactants_enumerated}
+            enumerated_reactants_smarts = {
+                MolToSmarts(r_mol) for r_mol in reactants_enumerated
+            }
 
             for p_variant in products_variants:
                 product = MolFromSmarts(p_variant)
                 products_enumerated = self.enumerate(product)
-                enumerated_products_smarts = {MolToSmarts(p_mol) for p_mol in products_enumerated}
+                enumerated_products_smarts = {
+                    MolToSmarts(p_mol) for p_mol in products_enumerated
+                }
 
                 # Combine all enumerated reactants and products
                 for r_smarts in enumerated_reactants_smarts:
@@ -436,7 +443,9 @@ class ValidationManager(BaseModel):
         if forbidden_smiles_set.intersection(expected_smiles_set):
             raise ValueError("Some expected products are listed as forbidden products.")
 
-        reactions = self.enumerate_reaction_smarts(self.cleanup_reaction_smarts(reaction_smarts))
+        reactions = self.enumerate_reaction_smarts(
+            self.cleanup_reaction_smarts(reaction_smarts)
+        )
 
         expected_mols = set()
         for smiles in expected_smiles_set:
@@ -462,7 +471,7 @@ class ValidationManager(BaseModel):
 
         predicted_products = set()
         for mol in reactant_mol_enumerated:
-            reactants = GetMolFrags(mol, asMols=True)   
+            reactants = GetMolFrags(mol, asMols=True)
             # Important to allow reactants to be in whatever order
             reactants_permutations = list(permutations(reactants))
             for reaction in reactions:
@@ -479,21 +488,13 @@ class ValidationManager(BaseModel):
 
         predicted_mols = set()
         for smiles in predicted_smiles_set:
-            predicted_mols.update(self.enumerate(MolFromSmiles(self.cleanup_smiles(smiles))))
+            predicted_mols.update(
+                self.enumerate(MolFromSmiles(self.cleanup_smiles(smiles)))
+            )
 
         if None in predicted_mols:
             raise ValueError("One or more predicted products could not be parsed.")
 
-        # COMMENT (AR): This could be less stringent such as
-        # See MITE0000095 for an example
-        # for expected_smiles in expected_smiles_set:
-        #     expected_mol = MolFromSmiles(expected_smiles)
-        #     if not any(MolFromSmiles(predicted_smiles).HasSubstructMatch(expected_mol)
-        #                for predicted_smiles in predicted_smiles_set):
-        #         raise ValueError(
-        #             f"Products '{predicted_smiles_set}' do not meet expectations '{expected_smiles_set}'."
-        #         )
-        # Check products meet expectations
         if not expected_smiles_set.issubset(predicted_smiles_set):
             raise ValueError(
                 f"Products '{predicted_smiles_set}' do not meet expectations '{expected_smiles_set}'."

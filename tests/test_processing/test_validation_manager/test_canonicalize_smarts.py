@@ -20,7 +20,7 @@ def test_canonicalize_smarts_valid(validation_manager):
     canonical_smarts = validation_manager.canonicalize_smarts(smarts)
     mol = MolFromSmarts(smarts)
     for i, atom in enumerate(mol.GetAtoms()):
-            atom.SetAtomMapNum(i)
+        atom.SetAtomMapNum(i)
     expected_canonical_smarts = MolToSmarts(
         MolFromSmiles(CanonSmiles(MolToSmiles(mol)))
     )
@@ -34,7 +34,7 @@ def test_canonicalize_smarts_complex(validation_manager):
     canonical_smarts = validation_manager.canonicalize_smarts(smarts)
     mol = MolFromSmarts(smarts)
     for i, atom in enumerate(mol.GetAtoms()):
-            atom.SetAtomMapNum(i)
+        atom.SetAtomMapNum(i)
     expected_canonical_smarts = MolToSmarts(
         MolFromSmiles(CanonSmiles(MolToSmiles(mol)))
     )
@@ -47,7 +47,7 @@ def test_canonicalize_smarts_with_aromatic(validation_manager):
     canonical_smarts = validation_manager.canonicalize_smarts(smarts)
     mol = MolFromSmarts(smarts)
     for i, atom in enumerate(mol.GetAtoms()):
-            atom.SetAtomMapNum(i)
+        atom.SetAtomMapNum(i)
     expected_canonical_smarts = MolToSmarts(
         MolFromSmiles(CanonSmiles(MolToSmiles(mol)))
     )
