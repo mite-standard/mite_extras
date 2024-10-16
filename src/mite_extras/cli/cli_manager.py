@@ -72,18 +72,6 @@ class CliManager(BaseModel):
         )
 
         parser.add_argument(
-            "-fin",
-            type=str,
-            default="mite",
-            choices=["raw", "mite"],
-            required=False,
-            help=(
-                "Specifies the format of the files in the input directory "
-                "(default: 'raw' (MIBiG Submission Portal output))."
-            ),
-        )
-
-        parser.add_argument(
             "-fout",
             type=str,
             default="json",
