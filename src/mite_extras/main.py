@@ -65,9 +65,7 @@ def main_cli() -> None:
     file_manager.read_files_indir()
 
     for entry in file_manager.infiles:
-        logger.info(
-            f"CLI: started parsing of file '{entry.name}' in '{args.fin}' format."
-        )
+        logger.info(f"CLI: started parsing of file '{entry.name}'.")
 
         input_data = schema_manager.read_json(infile=entry)
 
@@ -89,9 +87,7 @@ def main_cli() -> None:
                 case _:
                     raise RuntimeError(f"Unsupported output format '{args.fout}'.")
 
-            logger.info(
-                f"CLI: completed parsing of file '{entry.name}' in '{args.fin}' format."
-            )
+            logger.info(f"CLI: completed parsing of file '{entry.name}'.")
         except Exception as e:
             logger.fatal(f"Could not process file '{entry.name}': {e!s}")
             continue
