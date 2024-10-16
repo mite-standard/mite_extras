@@ -1,6 +1,8 @@
 mite_extras
 ==========
 
+Helper functions for mite.
+
 Validation and conversion functionality for reaction SMARTS collected in the scope of MITE.
 
 Attention: this program has only been tested with Ubuntu Linux.
