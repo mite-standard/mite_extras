@@ -20,7 +20,7 @@ Attention: this program has only been tested with Ubuntu Linux.
 
 To validate MITE entries or update them to a new schema version
 
-- `hatch run mite_extras -i input/ -o output/ -fin mite -fout json`
+- `hatch run mite_extras -i input/ -o output/ -fout json`
 
 ## For devs
 

@@ -28,7 +28,7 @@ from importlib import metadata
 import coloredlogs
 from mite_schema import SchemaManager
 
-from mite_extras import CliManager, FileManager, MiteParser, RawParser
+from mite_extras import CliManager, FileManager, MiteParser
 
 
 def config_logger(verboseness: str) -> logging.Logger:
@@ -72,15 +72,8 @@ def main_cli() -> None:
         input_data = schema_manager.read_json(infile=entry)
 
         try:
-            match args.fin:
-                case "raw":
-                    parser = RawParser()
-                    parser.parse_raw_json(name=entry.stem, input_data=input_data)
-                case "mite":
-                    parser = MiteParser()
-                    parser.parse_mite_json(data=input_data)
-                case _:
-                    raise RuntimeError(f"Unsupported input format '{args.fin}'.")
+            parser = MiteParser()
+            parser.parse_mite_json(data=input_data)
 
             schema_manager.validate_mite(instance=parser.to_json())
 
