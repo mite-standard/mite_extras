@@ -1,11 +1,19 @@
 mite_extras
 ==========
 
+[![DOI](https://zenodo.org/badge/804997522.svg)](https://doi.org/10.5281/zenodo.13941745)
+
+[![PyPI version](https://badge.fury.io/py/mite-extras.svg)](https://badge.fury.io/py/mite-extras)
+
 Validation and auxiliary functionality for MITE entries.
 
-Attention: this program has only been tested with Ubuntu Linux.
+**Attention: this program has only been tested with Ubuntu Linux.**
 
 ## Installation
+
+### With `pip` from PyPI
+
+- Install with `pip install mite_extras`
 
 ### With `hatch` from GitHub
 
@@ -16,11 +24,23 @@ Attention: this program has only been tested with Ubuntu Linux.
 
 ## Quick Start: Example
 
+### Run from command line:
+
+To validate MITE entries or update them to a new schema version (requires `mite_extras` to be installed via `pip`).
+
+- `mite_extras -i input/ -o output/ -fout json`
+
 ### Run with `hatch`:
 
-To validate MITE entries or update them to a new schema version
+Validate MITE entries or update them to a new schema version
 
 - `hatch run mite_extras -i input/ -o output/ -fout json`
+
+## Advanced use:
+
+Create html files from MITE entries
+
+- `hatch run mite_extras -i input/ -o output/ -fout html`
 
 ## For devs
 
