@@ -29,7 +29,6 @@ def test_canonicalize_smiles_invalid(validation_manager):
         validation_manager.canonicalize_smiles(smiles)
 
 
-# TODO (AR 2024-08-09): @MMZ these are overly dumb but well...
 def test_canonicalize_smiles_complex(validation_manager):
     """Test canonicalizing a complex SMILES string"""
     smiles = "C1=CC=CC=C1"  # Benzene ring
