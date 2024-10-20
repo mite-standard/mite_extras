@@ -37,13 +37,13 @@ For more information, see the README of the [MITE-Standard organisation page](ht
 
 To validate MITE entries or update them to a new schema version (requires `mite_extras` to be installed via `pip`).
 
-- `mite_extras -i input/ -o output/ -fout json`
+- `mite_extras -i input/ -o output/`
 
 ### Run with `hatch`:
 
 Validate MITE entries or update them to a new schema version
 
-- `hatch run mite_extras -i input/ -o output/ -fout json`
+- `hatch run mite_extras -i input/ -o output/`
 
 ## For devs
 

@@ -72,18 +72,6 @@ class CliManager(BaseModel):
         )
 
         parser.add_argument(
-            "-fout",
-            type=str,
-            default="json",
-            choices=["json", "html"],
-            required=False,
-            help=(
-                "Specifies the output data format "
-                "(default: 'json' (MITE-formatted))."
-            ),
-        )
-
-        parser.add_argument(
             "-v",
             "--verboseness",
             type=str,

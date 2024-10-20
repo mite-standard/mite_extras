@@ -75,17 +75,7 @@ def main_cli() -> None:
 
             schema_manager.validate_mite(instance=parser.to_json())
 
-            match args.fout:
-                case "json":
-                    file_manager.write_json(
-                        outfile_name=entry.stem, payload=parser.to_json()
-                    )
-                case "html":
-                    file_manager.write_html(
-                        outfile_name=entry.stem, payload=parser.to_html()
-                    )
-                case _:
-                    raise RuntimeError(f"Unsupported output format '{args.fout}'.")
+            file_manager.write_json(outfile_name=entry.stem, payload=parser.to_json())
 
             logger.info(f"CLI: completed parsing of file '{entry.name}'.")
         except Exception as e:

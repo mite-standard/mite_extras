@@ -455,7 +455,7 @@ class ReactionSmarts(BaseModel):
             drawer.DrawReaction(
                 rxn,
                 highlightByReactant=True,
-                highlightColorsReactants=[(0.69, 0.863, 0.949)],
+                highlightColorsReactants=[(0.69, 0.863, 0.949)],  # RGB blue
             )
             drawer.FinishDrawing()
 
@@ -602,16 +602,16 @@ class ReactionDatabaseIds(BaseModel):
                 (
                     ec,
                     f"https://www.brenda-enzymes.org/enzyme.php?ecno={ec}",
+                    f"https://enzyme.expasy.org/EC/{ec}",
                 )
                 for ec in self.ec
             ]
 
-        # TODO(MMZ 08.08.2024): swap link for MITE-one once it is online
         if self.mite:
             html_dict["mite"] = [
                 (
                     mite,
-                    f"https://raw.githubusercontent.com/mite-standard/mite_data/main/data/{mite}.json",
+                    f"https://mite.bioinformatics.nl/repository/{mite}",
                 )
                 for mite in self.mite
             ]

@@ -11,7 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-- Renamed `to_html()` methods to `to_html_json()` to clarify their scope
+- `to_html()` methods: changed all tuples to dicts for more intuitive data querying
 - Updated README to clarify scope of package
 
 ### Removed
