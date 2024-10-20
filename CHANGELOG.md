@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [1.1.0] 21-10-2024
 
+### Added
+
+- Cross-link to Expansy Enzymes
+
 ### Changed
 
 - `to_html()` methods: changed all tuples to dicts for more intuitive data querying
