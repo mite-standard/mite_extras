@@ -1,15 +1,24 @@
 mite_extras
 ==========
 
-[![DOI](https://zenodo.org/badge/804997522.svg)](https://doi.org/10.5281/zenodo.13941745)
+[![DOI](https://zenodo.org/badge/804997522.svg)](https://doi.org/10.5281/zenodo.13941745) [![PyPI version](https://badge.fury.io/py/mite-extras.svg)](https://badge.fury.io/py/mite-extras)
 
-[![PyPI version](https://badge.fury.io/py/mite-extras.svg)](https://badge.fury.io/py/mite-extras)
+This package contains functionality to validate entries of the Minimum Information about a Tailoring Enzyme (MITE) repository.
 
-Validation and auxiliary functionality for MITE entries.
+This includes:
 
-**Attention: this program has only been tested with Ubuntu Linux.**
+- Validation of the MITE json format (does the entry follow the `mite_schema` format)
+- Validation of reaction SMARTS (does the reaction SMARTS lead to the expected product when applied to a specified substrate)
+- Sanitation of SMILES and reaction SMARTS
+- Fetching of NCBI GenPept/UniProtKB IDs
+
+When used as CLI, `mite_extras` can automatically update MITE entries (see below). However, it can also be used as a library (e.g. as done in `mite_data`).
+
+For more information, see the README of the [MITE-Standard organisation page](https://github.com/mite-standard).
 
 ## Installation
+
+**Attention: this program has only been tested with Ubuntu Linux.**
 
 ### With `pip` from PyPI
 
@@ -35,12 +44,6 @@ To validate MITE entries or update them to a new schema version (requires `mite_
 Validate MITE entries or update them to a new schema version
 
 - `hatch run mite_extras -i input/ -o output/ -fout json`
-
-## Advanced use:
-
-Create html files from MITE entries
-
-- `hatch run mite_extras -i input/ -o output/ -fout html`
 
 ## For devs
 
