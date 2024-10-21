@@ -7,14 +7,31 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+## [1.1.0] 21-10-2024
+
+### Added
+
+- Cross-link to Expansy Enzymes
+
+### Changed
+
+- Updated README to clarify scope of package
+
+### Removed
+
+- Removed id-mappings file: not needed anymore
+- Removed html-generation option from CLI
+- Removed html template generation
+- Removed dependencies related to generation of static html pages
+
 ## [1.0.1] 16-10-2024
 
 ### Added
 
-Fixes to metadata of project
+- Fixes to metadata of project
 
 ## [1.0.0] 16-10-2024
 
 ### Added
 
-Initial version of `mite_extras`
+- Initial version of `mite_extras`

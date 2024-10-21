@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mite_extras"
-version = "1.0.1"
+version = "1.1.0"
 description = "Parsing, conversion, and validation functionality for Minimum Information about a Tailoring Enzyme (MITE) files."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -30,12 +30,10 @@ dependencies = [
     "coloredlogs~=15.0",
     "jsonschema~=4.23",
     "mite-schema~=1.4",
-    "polars~=1.4",
     "pydantic~=2.8",
     "rdkit~=2024.3",
     "referencing~=0.35",
     "requests~=2.32",
-    "staticjinja~=5.0"
 ]
 
 [project.urls]
