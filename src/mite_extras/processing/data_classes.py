@@ -200,7 +200,12 @@ class Enzyme(BaseModel):
             ) != "":
                 json_dict[attr] = val
 
-        json_dict["databaseIds"] = self.databaseIds.to_json()
+        if self.databaseIds.to_json() == {}:
+            raise RuntimeError(
+                "Provide at least one Enzyme Database ID cross-reference."
+            )
+        else:
+            json_dict["databaseIds"] = self.databaseIds.to_json()
 
         if self.auxiliaryEnzymes is not None:
             json_dict["auxiliaryEnzymes"] = [
@@ -251,7 +256,8 @@ class EnzymeAux(BaseModel):
             ) != "":
                 json_dict[attr] = val
 
-        json_dict["databaseIds"] = self.databaseIds.to_json()
+        if self.databaseIds.to_json() != {}:
+            json_dict["databaseIds"] = self.databaseIds.to_json()
 
         return json_dict
 
@@ -383,7 +389,7 @@ class Reaction(BaseModel):
         json_dict["reactions"] = [entry.to_json() for entry in self.reactions]
         json_dict["evidence"] = self.evidence.to_json()
 
-        if self.databaseIds is not None:
+        if self.databaseIds is not None and self.databaseIds.to_json() != {}:
             json_dict["databaseIds"] = self.databaseIds.to_json()
 
         return json_dict
