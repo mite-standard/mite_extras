@@ -98,10 +98,9 @@ class MiteParser(BaseModel):
                 Changelog(
                     version=entry.get("version"),
                     date=entry.get("date"),
-                    # TODO MMZ 8.11.24: change this for the final release
-                    contributors=entry["entries"][0]["contributors"],
-                    reviewers=entry["entries"][0]["reviewers"],
-                    comment=entry["entries"][0]["comment"],
+                    contributors=entry["contributors"],
+                    reviewers=entry["reviewers"],
+                    comment=entry["comment"],
                 )
             )
 
@@ -223,12 +222,11 @@ class MiteParser(BaseModel):
                 Reaction(
                     tailoring=reaction.get("tailoring"),
                     description=reaction.get("description"),
-                    reactionSMARTS=reaction.get("reactionSMARTS").get("reactionSMARTS"),
+                    reactionSMARTS=reaction.get("reactionSMARTS"),
                     reactions=self.get_reactionex(reactions=reaction.get("reactions")),
-                    # TODO(MMZ 8.11.24): change for final release
                     evidence=Evidence(
-                        evidenceCode=reaction.get("evidence")[0].get("evidenceCode"),
-                        references=reaction.get("evidence")[0].get("references"),
+                        evidenceCode=reaction.get("evidence", {}).get("evidenceCode"),
+                        references=reaction.get("evidence", {}).get("references"),
                     ),
                     databaseIds=self.get_databaseids_reaction(
                         reaction.get("databaseIds")
@@ -253,20 +251,17 @@ class MiteParser(BaseModel):
             accession=data.get("accession"),
             status=data.get("status"),
             retirementReasons=data.get("retirementReasons"),
-            # TODO MMZ 8.11.24: change this for the final release: release does not exist anymore
-            changelog=self.get_changelog(
-                changelog=data.get("changelog").get("releases")
-            ),
+            changelog=self.get_changelog(changelog=data.get("changelog")),
             enzyme=Enzyme(
-                name=data.get("enzyme").get("name"),
-                description=data.get("enzyme").get("description"),
+                name=data.get("enzyme", {}).get("name"),
+                description=data.get("enzyme", {}).get("description"),
                 databaseIds=self.get_databaseids_enzyme(
-                    data=data.get("enzyme").get("databaseIds")
+                    data=data.get("enzyme", {}).get("databaseIds")
                 ),
                 auxiliaryEnzymes=self.get_auxenzymes(
-                    auxenzymes=data.get("enzyme").get("auxiliaryEnzymes")
+                    auxenzymes=data.get("enzyme", {}).get("auxiliaryEnzymes")
                 ),
-                references=data.get("enzyme").get("references"),
+                references=data.get("enzyme", {}).get("references"),
             ),
             reactions=self.get_reactions(reactions=data.get("reactions")),
             comment=data.get("comment"),

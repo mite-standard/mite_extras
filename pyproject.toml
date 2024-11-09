@@ -29,7 +29,7 @@ dependencies = [
     "argparse~=1.4",
     "coloredlogs~=15.0",
     "jsonschema~=4.23",
-    "mite-schema~=1.5",
+    "mite-schema==1.5.1",
     "pydantic~=2.8",
     "rdkit~=2024.3",
     "referencing~=0.35",

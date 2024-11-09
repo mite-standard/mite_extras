@@ -11,7 +11,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-- Updated to mite_schema version 1.5.0
+- Updated to mite_schema version 1.5.1
+
+### Removed
+
+- Removed backward compatibility to mite schema version <1.5.1
 
 ## [1.1.0] 21-10-2024
 
