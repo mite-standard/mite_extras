@@ -3,9 +3,7 @@ import json
 import pytest
 from mite_extras.processing.data_classes import (
     Changelog,
-    ChangelogEntry,
     EnzymeAux,
-    Evidence,
     Reaction,
     ReactionEx,
 )
@@ -19,19 +17,10 @@ def mite_json():
         return json.load(infile)
 
 
-def test_get_changelog_entries_valid(mite_json):
-    parser = MiteParser()
-    log = parser.get_changelog_entries(
-        entries=mite_json.get("changelog").get("releases")[0].get("entries")
-    )
-    assert len(log) == 2
-    assert isinstance(log[0], ChangelogEntry)
-
-
 def test_get_changelog_valid(mite_json):
     parser = MiteParser()
-    log = parser.get_changelog(releases=mite_json.get("changelog").get("releases"))
-    assert len(log) == 2
+    log = parser.get_changelog(changelog=mite_json.get("changelog"))
+    assert len(log) == 1
     assert isinstance(log[0], Changelog)
 
 
@@ -55,7 +44,7 @@ def test_get_databaseids_reaction_valid(mite_json):
     log = parser.get_databaseids_reaction(
         data=mite_json.get("reactions")[0].get("databaseIds")
     )
-    assert log.mite == ["MITE0000001"]
+    assert log.ec == "1.2.3.4"
 
 
 def test_get_reactionex_valid(mite_json):
@@ -67,17 +56,10 @@ def test_get_reactionex_valid(mite_json):
     assert isinstance(log[0], ReactionEx)
 
 
-def test_get_evidence_valid(mite_json):
-    parser = MiteParser()
-    log = parser.get_evidence(evidences=mite_json.get("reactions")[0].get("evidence"))
-    assert len(log) == 1
-    assert isinstance(log[0], Evidence)
-
-
 def test_get_reactions_valid(mite_json):
     parser = MiteParser()
     log = parser.get_reactions(reactions=mite_json.get("reactions"))
-    assert len(log) == 6
+    assert len(log) == 1
     assert isinstance(log[0], Reaction)
 
 
