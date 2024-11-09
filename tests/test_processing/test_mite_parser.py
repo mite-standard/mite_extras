@@ -3,7 +3,6 @@ import json
 import pytest
 from mite_extras.processing.data_classes import (
     Changelog,
-    ChangelogEntry,
     EnzymeAux,
     Evidence,
     Reaction,

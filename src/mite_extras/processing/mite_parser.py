@@ -28,7 +28,6 @@ from pydantic import BaseModel
 
 from mite_extras.processing.data_classes import (
     Changelog,
-    ChangelogEntry,
     Entry,
     EnyzmeDatabaseIds,
     Enzyme,
@@ -37,7 +36,6 @@ from mite_extras.processing.data_classes import (
     Reaction,
     ReactionDatabaseIds,
     ReactionEx,
-    ReactionSmarts,
 )
 
 logger = logging.getLogger("mite_extras")
@@ -82,38 +80,11 @@ class MiteParser(BaseModel):
             )
 
     @staticmethod
-    def get_changelog_entries(entries: list) -> list:
-        """Extract changlog entries and converts in internal data structure
-
-        Args:
-            entries: list of changlog entry data
-
-        Returns:
-            A list of ChangelogEntry objects
-        """
-        logger.debug("MiteParser: started creating ChangelogEntry object(s).")
-
-        log = []
-
-        for entry in entries:
-            log.append(
-                ChangelogEntry(
-                    contributors=entry.get("contributors"),
-                    reviewers=entry.get("reviewers"),
-                    date=entry.get("date"),
-                    comment=entry.get("comment"),
-                )
-            )
-
-        logger.debug("MiteParser: completed creating ChangelogEntry object(s).")
-
-        return log
-
-    def get_changelog(self: Self, releases: list) -> list:
+    def get_changelog(changelog: list) -> list:
         """Extract changelog and converts into internal data structure
 
         Args:
-            releases: a list of changelog data
+            changelog: a list of changelog data
 
         Returns:
             A list of Changelog objects
@@ -122,12 +93,15 @@ class MiteParser(BaseModel):
 
         log = []
 
-        for release in releases:
+        for entry in changelog:
             log.append(
                 Changelog(
-                    version=release.get("version"),
-                    date=release.get("date"),
-                    entries=self.get_changelog_entries(entries=release.get("entries")),
+                    version=entry.get("version"),
+                    date=entry.get("date"),
+                    # TODO MMZ 8.11.24: change this for the final release
+                    contributors=entry["entries"][0]["contributors"],
+                    reviewers=entry["entries"][0]["reviewers"],
+                    comment=entry["entries"][0]["comment"],
                 )
             )
 
@@ -136,28 +110,16 @@ class MiteParser(BaseModel):
         return log
 
     @staticmethod
-    def get_databaseids_enzyme(data: list | dict | None) -> EnyzmeDatabaseIds | None:
+    def get_databaseids_enzyme(data: dict | None) -> EnyzmeDatabaseIds | None:
         """Parse enzyme-related databaseids info
 
         Args:
-            data: a dict with database ids (list for MITE schema < 1.1)
+            data: a dict with database ids
 
         Returns:
             An EnyzmeDatabaseIds object
         """
-        if isinstance(data, list):
-            data_dict = {}
-            for entry in data:
-                if entry.startswith("genpept:"):
-                    data_dict["genpept"] = entry.split(":")[1]
-                elif entry.startswith("uniprot:"):
-                    data_dict["uniprot"] = entry.split(":")[1]
-                elif entry.startswith("mibig:"):
-                    data_dict["mibig"] = entry.split(":")[1]
-                else:
-                    continue
-            return EnyzmeDatabaseIds(**data_dict)
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             return EnyzmeDatabaseIds(
                 mibig=data.get("mibig"),
                 uniprot=data.get("uniprot"),
@@ -199,32 +161,18 @@ class MiteParser(BaseModel):
 
     @staticmethod
     def get_databaseids_reaction(
-        data: list | dict | None,
+        data: dict | None,
     ) -> ReactionDatabaseIds | None:
         """Parse reaction-related databaseids info
 
         Args:
-            data: a dict with database IDs (list for MITE schema < 1.1)
+            data: a dict with database IDs
 
         Returns:
             An ReactionDatabaseIds object
         """
-        if isinstance(data, list):
-            data_dict = {"rhea": [], "ec": [], "mite": []}
-            for entry in data:
-                if entry.startswith("rhea:"):
-                    data_dict["rhea"].append(entry.split(":")[1])
-                elif entry.startswith("EC"):
-                    data_dict["ec"].append(entry)
-                elif entry.startswith("MITE"):
-                    data_dict["mite"].append(entry)
-                else:
-                    continue
-            return ReactionDatabaseIds(**data_dict)
-        elif isinstance(data, dict):
-            return ReactionDatabaseIds(
-                rhea=data.get("rhea"), ec=data.get("ec"), mite=data.get("mite")
-            )
+        if isinstance(data, dict):
+            return ReactionDatabaseIds(rhea=data.get("rhea"), ec=data.get("ec"))
         else:
             return None
 
@@ -257,32 +205,6 @@ class MiteParser(BaseModel):
 
         return log
 
-    @staticmethod
-    def get_evidence(evidences: list) -> list:
-        """Extract evidence information, convert into internal data structure
-
-        Args:
-            evidences: a list with evidence information
-
-        Returns:
-            A list of Evidence objects
-        """
-        logger.debug("MiteParser: started creating Evidence object(s).")
-
-        log = []
-
-        for evidence in evidences:
-            log.append(
-                Evidence(
-                    evidenceCode=evidence.get("evidenceCode"),
-                    references=evidence.get("references"),
-                )
-            )
-
-        logger.debug("MiteParser: started creating Evidence object(s).")
-
-        return log
-
     def get_reactions(self: Self, reactions: list) -> list:
         """Extract reactions infor and converts into internal data structure
 
@@ -301,13 +223,13 @@ class MiteParser(BaseModel):
                 Reaction(
                     tailoring=reaction.get("tailoring"),
                     description=reaction.get("description"),
-                    reactionSMARTS=ReactionSmarts(
-                        reactionSMARTS=reaction.get("reactionSMARTS").get(
-                            "reactionSMARTS"
-                        )
-                    ),
+                    reactionSMARTS=reaction.get("reactionSMARTS").get("reactionSMARTS"),
                     reactions=self.get_reactionex(reactions=reaction.get("reactions")),
-                    evidence=self.get_evidence(evidences=reaction.get("evidence")),
+                    # TODO(MMZ 8.11.24): change for final release
+                    evidence=Evidence(
+                        evidenceCode=reaction.get("evidence")[0].get("evidenceCode"),
+                        references=reaction.get("evidence")[0].get("references"),
+                    ),
                     databaseIds=self.get_databaseids_reaction(
                         reaction.get("databaseIds")
                     ),
@@ -331,8 +253,9 @@ class MiteParser(BaseModel):
             accession=data.get("accession"),
             status=data.get("status"),
             retirementReasons=data.get("retirementReasons"),
+            # TODO MMZ 8.11.24: change this for the final release: release does not exist anymore
             changelog=self.get_changelog(
-                releases=data.get("changelog").get("releases")
+                changelog=data.get("changelog").get("releases")
             ),
             enzyme=Enzyme(
                 name=data.get("enzyme").get("name"),

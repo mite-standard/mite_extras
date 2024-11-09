@@ -1,7 +1,6 @@
 import pytest
 from mite_extras.processing.data_classes import (
     Changelog,
-    ChangelogEntry,
     Entry,
     EnyzmeDatabaseIds,
     Enzyme,
@@ -10,7 +9,6 @@ from mite_extras.processing.data_classes import (
     Reaction,
     ReactionDatabaseIds,
     ReactionEx,
-    ReactionSmarts,
 )
 
 
@@ -24,7 +22,7 @@ def evidence():
 
 @pytest.fixture
 def reaction_databaseid():
-    return ReactionDatabaseIds(ec=["EC 1.2.3.4"], mite=["MITE0000000"], rhea=["32647"])
+    return ReactionDatabaseIds(ec="1.2.3.4", rhea="32647")
 
 
 @pytest.fixture
@@ -33,35 +31,26 @@ def reactionex():
         substrate="CCC",
         products=["CCCO"],
         forbidden_products=["CCC"],
-        isBalanced=False,
         isIntermediate=True,
         description="Nonexistent reaction",
     )
 
 
 @pytest.fixture
-def reactionsmarts():
-    return ReactionSmarts(
-        reactionSMARTS="[#6]-[#6]-[#6]>>[#6]-[#6]-[#6]-[#8]",
-        isIterative=False,
-    )
-
-
-@pytest.fixture
-def reaction(reactionsmarts, reactionex, evidence, reaction_databaseid):
+def reaction(reactionex, evidence, reaction_databaseid):
     return Reaction(
         tailoring=["Hydrolysis"],
         description="A nonexistent reaction",
-        reactionSMARTS=reactionsmarts,
+        reactionSMARTS="[#6]-[#6]-[#6]>>[#6]-[#6]-[#6]-[#8]",
         reactions=[reactionex],
-        evidence=[evidence],
+        evidence=evidence,
         databaseIds=reaction_databaseid,
     )
 
 
 @pytest.fixture
 def enzyme_databaseids():
-    return EnyzmeDatabaseIds(genpept="AAM70353.1", mibig="BGC0000581")
+    return EnyzmeDatabaseIds(genpept="AAM70353.1", mibig="BGC0000581", uniprot="Q8KND5")
 
 
 @pytest.fixture
@@ -85,25 +74,20 @@ def enzyme(enyzmeaux, enzyme_databaseids):
 
 
 @pytest.fixture
-def changelogentry():
-    return ChangelogEntry(
+def changelog():
+    return Changelog(
+        version="1",
+        date="0000-00-00",
         contributors=["AAAAAAAAAAAAAAAAAAAAAAAA"],
         reviewers=["AAAAAAAAAAAAAAAAAAAAAAAA"],
-        date="0000-00-00",
         comment="An example comment",
     )
-
-
-@pytest.fixture
-def changelog(changelogentry):
-    return Changelog(version="next", date="0000-00-00", entries=[changelogentry])
 
 
 @pytest.fixture
 def entry(changelog, enzyme, reaction):
     return Entry(
         accession="MITE0000000",
-        quality="high",
         status="pending",
         retirementReasons=["Example reason"],
         changelog=[changelog],
@@ -126,12 +110,12 @@ def test_evidence_to_html_valid(evidence):
 
 def test_reaction_databaseid_to_json_valid(reaction_databaseid):
     json_dict = reaction_databaseid.to_json()
-    assert json_dict["mite"] == ["MITE0000000"]
+    assert json_dict["rhea"] == "32647"
 
 
 def test_reaction_databaseid_to_html_valid(reaction_databaseid):
     html_dict = reaction_databaseid.to_html()
-    assert html_dict["mite"][0][0] == "MITE0000000"
+    assert html_dict["rhea"][0] == "32647"
 
 
 def test_reactionex_to_json_valid(reactionex):
@@ -142,16 +126,6 @@ def test_reactionex_to_json_valid(reactionex):
 def test_reactionex_to_html_valid(reactionex):
     html_dict = reactionex.to_html()
     assert html_dict["substrate"][0] == "CCC"
-
-
-def test_reactionsmarts_to_json_valid(reactionsmarts):
-    json_dict = reactionsmarts.to_json()
-    assert json_dict["reactionSMARTS"] == "[#6]-[#6]-[#6]>>[#6]-[#6]-[#6]-[#8]"
-
-
-def test_reactionsmarts_to_html_valid(reactionsmarts):
-    html_dict = reactionsmarts.to_html()
-    assert html_dict["reactionSMARTS"][0] == "[#6]-[#6]-[#6]>>[#6]-[#6]-[#6]-[#8]"
 
 
 def test_reaction_to_json_valid(reaction):
@@ -194,24 +168,16 @@ def test_enzyme_to_html_valid(enzyme):
     assert html_dict["name"] == "BcdE"
 
 
-def test_changelogentry_to_json_valid(changelogentry):
-    json_dict = changelogentry.to_json()
-    assert json_dict["contributors"] == ["AAAAAAAAAAAAAAAAAAAAAAAA"]
-
-
-def test_changelogentry_to_html_valid(changelogentry):
-    html_dict = changelogentry.to_html()
-    assert html_dict["contributors"] == ["AAAAAAAAAAAAAAAAAAAAAAAA"]
-
-
 def test_changelog_to_json_valid(changelog):
     json_dict = changelog.to_json()
-    assert json_dict["version"] == "next"
+    assert json_dict["version"] == "1"
+    assert json_dict["contributors"] == ["AAAAAAAAAAAAAAAAAAAAAAAA"]
 
 
 def test_changelog_to_html_valid(changelog):
     html_dict = changelog.to_html()
-    assert html_dict["version"] == "next"
+    assert html_dict["version"] == "1"
+    assert html_dict["contributors"] == ["AAAAAAAAAAAAAAAAAAAAAAAA"]
 
 
 def test_entry_to_json_valid(entry):

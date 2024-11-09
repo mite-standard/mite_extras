@@ -357,6 +357,7 @@ class ValidationManager(BaseModel):
                 "https://sparql.uniprot.org/sparql",
                 params={"query": query, "format": "srj"},
                 headers={"Accept": "application/sparql-results+json"},
+                timeout=1,
             )
             if not response.ok:
                 raise ValueError("Failed to fetch data from UniProt SPARQL endpoint")
@@ -385,7 +386,7 @@ class ValidationManager(BaseModel):
             WHERE {{
                 VALUES ?prefix {{<http://purl.uniprot.org/database/EMBL>}}
                 <http://purl.uniprot.org/uniprot/{uniprot}> rdfs:seeAlso ?protein .
-                ?protein up:database ?prefix .
+                ?protein up:database ?prefix .            logger.critical("passed response")
             }}
             """
 
