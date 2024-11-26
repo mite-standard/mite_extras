@@ -7,9 +7,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [1.3.0] Unreleased
 
-### Changed
+### Bugfix
 
 - Fixed UniProt SPARQL fetching
+- Fixed MIBiG URL formatting
 
 ## [1.2.1] 09-11-2024
 

@@ -334,7 +334,7 @@ class EnyzmeDatabaseIds(BaseModel):
         if self.mibig and self.mibig != "":
             html_dict["mibig"] = (
                 self.mibig,
-                f"https://mibig.secondarymetabolites.org/repository/{self.mibig}",
+                f"https://mibig.secondarymetabolites.org/go/{self.mibig}",
             )
 
         return html_dict
