@@ -26,33 +26,13 @@ import logging
 from typing import Any, Self
 
 from pydantic import BaseModel, ValidationError, model_validator
-from rdkit.Chem import AllChem, MolFromSmiles
+from rdkit.Chem import MolFromSmiles
 from rdkit.Chem.Draw import rdMolDraw2D
+from rdkit.Chem.rdChemReactions import ReactionFromSmarts
 
 from mite_extras.processing.validation_manager import ValidationManager
 
 logger = logging.getLogger("mite_extras")
-
-
-class Helper(BaseModel):
-    """Pydantic-based class with static helper functions"""
-
-    @staticmethod
-    def resolve_references_html(references: list) -> list:
-        """Resolves references to links
-
-        Args:
-            references: a list of references
-
-        Returns:
-            A list of tuples, each with (reference string, reference url string)
-        """
-        new_refs = []
-        for ref in references:
-            if ref.startswith("doi"):
-                new_refs.append((ref, f'https://www.doi.org/{ref.split(":", 1)[1]}'))
-
-        return new_refs
 
 
 class Entry(BaseModel):
@@ -230,7 +210,7 @@ class Enzyme(BaseModel):
             ]
 
         if self.references is not None:
-            html_dict["references"] = Helper().resolve_references_html(self.references)
+            html_dict["references"] = self.references
 
         return html_dict
 
@@ -320,22 +300,12 @@ class EnyzmeDatabaseIds(BaseModel):
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-
         if self.uniprot and self.uniprot != "":
-            html_dict["uniprot"] = (
-                self.uniprot,
-                f"https://bioregistry.io/uniprot:{self.uniprot}",
-            )
+            html_dict["uniprot"] = self.uniprot
         if self.genpept and self.genpept != "":
-            html_dict["genpept"] = (
-                self.genpept,
-                f"https://bioregistry.io/ncbiprotein:{self.genpept}",
-            )
+            html_dict["genpept"] = self.genpept
         if self.mibig and self.mibig != "":
-            html_dict["mibig"] = (
-                self.mibig,
-                f"https://mibig.secondarymetabolites.org/go/{self.mibig}",
-            )
+            html_dict["mibig"] = self.mibig
 
         return html_dict
 
@@ -397,7 +367,7 @@ class Reaction(BaseModel):
     def to_html(self: Self) -> dict:
         def _smarts_to_svg(smarts: str) -> str:
             """Generates a base64 encoded SVG string of the reaction SMARTS"""
-            rxn = AllChem.ReactionFromSmarts(smarts)
+            rxn = ReactionFromSmarts(smarts)
             drawer = rdMolDraw2D.MolDraw2DSVG(-1, -1)
             dopts = drawer.drawOptions()
             dopts.padding = 1e-5
@@ -551,14 +521,10 @@ class ReactionDatabaseIds(BaseModel):
         html_dict = {}
 
         if self.rhea and self.rhea != "":
-            html_dict["rhea"] = (self.rhea, f"https://www.rhea-db.org/rhea/{self.rhea}")
+            html_dict["rhea"] = self.rhea
 
         if self.ec and self.ec != "":
-            html_dict["ec"] = (
-                self.ec,
-                f"https://www.brenda-enzymes.org/enzyme.php?ecno={self.ec}",
-                f"https://enzyme.expasy.org/EC/{self.ec}",
-            )
+            html_dict["ec"] = self.ec
 
         return html_dict
 
@@ -578,7 +544,4 @@ class Evidence(BaseModel):
         return {"evidenceCode": self.evidenceCode, "references": self.references}
 
     def to_html(self: Self) -> dict:
-        return {
-            "evidenceCode": self.evidenceCode,
-            "references": Helper().resolve_references_html(self.references),
-        }
+        return {"evidenceCode": self.evidenceCode, "references": self.references}

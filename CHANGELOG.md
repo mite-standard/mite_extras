@@ -9,7 +9,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-- Bumped versions of dependencies
+- Updated version of `mite_schema` to `1.6.0`
+- Moved generation of databaseId hyperlinks from html_json() to `mite_web`
 
 ### Bugfix
 
