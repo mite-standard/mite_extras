@@ -357,7 +357,7 @@ class ValidationManager(BaseModel):
                 "https://sparql.uniprot.org/sparql",
                 params={"query": query, "format": "srj"},
                 headers={"Accept": "application/sparql-results+json"},
-                timeout=1,
+                timeout=2,
             )
             if not response.ok:
                 raise ValueError("Failed to fetch data from UniProt SPARQL endpoint")

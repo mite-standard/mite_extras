@@ -115,7 +115,7 @@ def test_reaction_databaseid_to_json_valid(reaction_databaseid):
 
 def test_reaction_databaseid_to_html_valid(reaction_databaseid):
     html_dict = reaction_databaseid.to_html()
-    assert html_dict["rhea"][0] == "32647"
+    assert html_dict["rhea"] == "32647"
 
 
 def test_reactionex_to_json_valid(reactionex):
@@ -145,7 +145,7 @@ def test_enzymedatabaseids_to_json_valid(enzyme_databaseids):
 
 def test_enzymedatabaseids_to_html_valid(enzyme_databaseids):
     html_dict = enzyme_databaseids.to_html()
-    assert html_dict["mibig"][0] == "BGC0000581"
+    assert html_dict["mibig"] == "BGC0000581"
 
 
 def test_enyzmeaux_to_json_valid(enyzmeaux):
