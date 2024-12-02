@@ -360,7 +360,7 @@ class ValidationManager(BaseModel):
                 timeout=10,
             )
             if not response.ok:
-                raise ValueError(f"HTTP Error: {response.status_code} - {response.reason}")
+                raise ValueError(f"HTTP Error: {response.status_code}")
             response_json = response.json()
             bindings = response_json.get("results", {}).get("bindings", [])
             if not bindings:
