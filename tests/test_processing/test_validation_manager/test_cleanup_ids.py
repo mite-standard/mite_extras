@@ -119,6 +119,6 @@ def test_cleanup_ids_none(mock_get):
 @patch("requests.get", side_effect=mock_requests_get)
 def test_cleanup_ids_invalid(mock_get):
     with pytest.raises(
-        ValueError, match="Failed to fetch data from UniProt SPARQL endpoint"
+        ValueError, match="HTTP Error: 404"
     ):
         ValidationManager().cleanup_ids(genpept="invalidID")

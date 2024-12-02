@@ -25,10 +25,8 @@ SOFTWARE.
 import logging
 import re
 from itertools import permutations, product
-from typing import (
-    Optional,
-    Self,
-)
+from math import pi
+from typing import Self
 
 import requests
 from pydantic import BaseModel
@@ -357,14 +355,20 @@ class ValidationManager(BaseModel):
                 "https://sparql.uniprot.org/sparql",
                 params={"query": query, "format": "srj"},
                 headers={"Accept": "application/sparql-results+json"},
-                timeout=2,
+                timeout=pi,
             )
             if not response.ok:
-                raise ValueError("Failed to fetch data from UniProt SPARQL endpoint")
-            results = response.json().get("results", {}).get("bindings", [])
-            if not results:
-                raise ValueError("No matching results found")
-            return results[0]["protein"]["value"].rsplit("/", 1)[-1]
+                raise ValueError(f"HTTP Error: {response.status_code}")
+            response_json = response.json()
+            bindings = response_json.get("results", {}).get("bindings", [])
+            if not bindings:
+                raise ValueError("No results found in the response")
+            protein_data = bindings[0].get("protein")
+            if not protein_data or "value" not in protein_data:
+                raise ValueError("'protein' key or its 'value' is missing in the response")
+
+            protein_uri = protein_data["value"]
+            return protein_uri.rsplit("/", 1)[-1]
 
         def build_genpept_query(genpept: str) -> str:
             return f"""
@@ -386,7 +390,7 @@ class ValidationManager(BaseModel):
             WHERE {{
                 VALUES ?prefix {{<http://purl.uniprot.org/database/EMBL>}}
                 <http://purl.uniprot.org/uniprot/{uniprot}> rdfs:seeAlso ?protein .
-                ?protein up:database ?prefix .            logger.critical("passed response")
+                ?protein up:database ?prefix .
             }}
             """
 
