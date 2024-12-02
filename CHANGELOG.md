@@ -15,8 +15,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Fixed UniProt fetching
 
-###
-
 ## [1.3.0] 30-11-2024
 
 ### Changed
