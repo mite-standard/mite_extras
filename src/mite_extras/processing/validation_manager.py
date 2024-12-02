@@ -71,7 +71,7 @@ class ValidationManager(BaseModel):
         string = re.sub(r"-Br", r"-[Br]", string)
         string = re.sub(r"-I", r"-[I]", string)
 
-        # missing suare brackets for substituent halogens with indexing
+        # missing square brackets for substituent halogens with indexing
         string = re.sub(r"\(-Cl:(\d+)\)", r"(-[Cl\1])", string)
         string = re.sub(r"\(-F:(\d+)\)", r"(-[F\1])", string)
         string = re.sub(r"\(-Br:(\d+)\)", r"(-[Br\1])", string)
@@ -86,6 +86,9 @@ class ValidationManager(BaseModel):
         # erroneous specification of nitrogen hydrogens in heterocycles
         string = re.sub(r"\[#7:(\d+);h(\d)+\]", r"[nH\2:\1]", string)
         string = re.sub(r"\[#7;h(\d)+\]", r"[nH\1]", string)
+
+        # erroneous specification of charges in indexed atoms
+        string = re.sub(r"\[(#\d+):(\d+);([+-])\]", r"[\1;\3:\2]", string)
 
         return string
 
@@ -365,7 +368,9 @@ class ValidationManager(BaseModel):
                 raise ValueError("No results found in the response")
             protein_data = bindings[0].get("protein")
             if not protein_data or "value" not in protein_data:
-                raise ValueError("'protein' key or its 'value' is missing in the response")
+                raise ValueError(
+                    "'protein' key or its 'value' is missing in the response"
+                )
 
             protein_uri = protein_data["value"]
             return protein_uri.rsplit("/", 1)[-1]

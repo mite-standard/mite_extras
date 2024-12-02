@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] 02-12-2024
+
+### Added
+
+- Fixed formatting of Ketcher-flavored charges in reaction SMARTS
+
+### Bugfix
+
+- Fixed UniProt
+
+###
+
 ## [1.3.0] 30-11-2024
 
 ### Changed
