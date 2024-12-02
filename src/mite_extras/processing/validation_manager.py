@@ -25,10 +25,8 @@ SOFTWARE.
 import logging
 import re
 from itertools import permutations, product
-from typing import (
-    Optional,
-    Self,
-)
+from math import pi
+from typing import Self
 
 import requests
 from pydantic import BaseModel
@@ -357,7 +355,7 @@ class ValidationManager(BaseModel):
                 "https://sparql.uniprot.org/sparql",
                 params={"query": query, "format": "srj"},
                 headers={"Accept": "application/sparql-results+json"},
-                timeout=10,
+                timeout=pi,
             )
             if not response.ok:
                 raise ValueError(f"HTTP Error: {response.status_code}")
