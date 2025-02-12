@@ -223,6 +223,7 @@ class MiteParser(BaseModel):
                     tailoring=reaction.get("tailoring"),
                     description=reaction.get("description"),
                     reactionSMARTS=reaction.get("reactionSMARTS"),
+                    isIntramolecular=reaction.get("isIntramolecular"),
                     reactions=self.get_reactionex(reactions=reaction.get("reactions")),
                     evidence=Evidence(
                         evidenceCode=reaction.get("evidence", {}).get("evidenceCode"),

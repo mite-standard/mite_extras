@@ -50,7 +50,6 @@ class Entry(BaseModel):
         enzyme: an Enzyme object
         reactions: a list of Reaction objects
         comment: additional information
-        attachments: a dict for further information
     """
 
     accession: str | None = None
@@ -60,17 +59,10 @@ class Entry(BaseModel):
     enzyme: Any | None = None
     reactions: list[Any] | None = None
     comment: str | None = None
-    attachments: dict | None = None
 
     def to_json(self: Self) -> dict:
         json_dict = {}
-        for attr in [
-            "accession",
-            "status",
-            "retirementReasons",
-            "comment",
-            "attachments",
-        ]:
+        for attr in ["accession", "status", "retirementReasons", "comment"]:
             if (val := getattr(self, attr)) is not None and (
                 val := getattr(self, attr)
             ) != "":
@@ -91,13 +83,7 @@ class Entry(BaseModel):
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-        for attr in [
-            "accession",
-            "status",
-            "retirementReasons",
-            "comment",
-            "attachments",
-        ]:
+        for attr in ["accession", "status", "retirementReasons", "comment"]:
             if (val := getattr(self, attr)) is not None and (
                 val := getattr(self, attr)
             ) != "":
@@ -261,6 +247,8 @@ class EnzymeAux(BaseModel):
 class EnyzmeDatabaseIds(BaseModel):
     """Pydantic-based class to represent enzyme-related database ids
 
+    Class-level instance of IdValidator avoids repeated instantiation
+
     Attributes:
         uniprot: a UniProt ID
         genpept: an NCBI GenPept ID
@@ -271,27 +259,27 @@ class EnyzmeDatabaseIds(BaseModel):
     genpept: str | None = None
     mibig: str | None = None
 
-    # Create validator instance at class level
     _id_validator = IdValidator()
 
     @model_validator(mode="after")
     def populate_ids(self):
-        """Cross-reference and populate database IDs using IdValidator."""
+        """Cross-reference and populate database IDs using IdValidator.
+
+        Checks if genpept and uniprot IDs correspond
+        If only one ID is provided, fetches the other
+        """
         if not (self.uniprot or self.genpept):
             return self
 
         try:
             if self.uniprot and self.genpept:
-                # Verify that the IDs match
                 self._id_validator.cleanup_ids(
                     genpept=self.genpept, uniprot=self.uniprot
                 )
             elif self.uniprot:
-                # Get corresponding GenPept ID
                 data = self._id_validator.cleanup_ids(uniprot=self.uniprot)
                 self.genpept = data["genpept"]
             elif self.genpept:
-                # Get corresponding UniProt ID
                 data = self._id_validator.cleanup_ids(genpept=self.genpept)
                 self.uniprot = data["uniprot"]
 
@@ -324,10 +312,13 @@ class EnyzmeDatabaseIds(BaseModel):
 class Reaction(BaseModel):
     """Pydantic-based class to represent reactions
 
+    Class-level instance of ReactionValidator avoids repeated instantiation
+
     Attributes:
         tailoring: a list of tailoring reaction terms
         description: an optional human-readable description
         reactionSMARTS: a ReactionSmarts str
+        isIntramolecular: a bool indicating type of reaction SMARTS (regular or intramolecular)
         reactions: a list of ReactionEx objects
         evidence: an evidence object
         databaseIds: a ReactionDatabaseIds object
@@ -336,18 +327,21 @@ class Reaction(BaseModel):
     tailoring: list
     description: str | None = None
     reactionSMARTS: str
+    isIntramolecular: bool
     reactions: list
     evidence: Any
     databaseIds: Any | None = None
 
-    # Create validator instances at class level to avoid recreating them
     _reaction_validator = ReactionValidator()
 
     @model_validator(mode="after")
     def cleanup_smarts(self):
-        """Clean up reaction SMARTS using the new ReactionCleaner"""
+        """Clean up reaction SMARTS using the new ReactionCleaner
+
+        Raises:
+            ValueError: reaction SMARTS could not be read by RDKit -> invalid
+        """
         try:
-            # Create clean SMARTS using new reaction cleaner
             cleaned_smarts = (
                 self._reaction_validator.reaction_cleaner.clean_ketcher_format(
                     self._reaction_validator.molecule_validator._clean_string(
@@ -356,7 +350,6 @@ class Reaction(BaseModel):
                 )
             )
 
-            # Verify it can be parsed as a valid reaction
             if ReactionFromSmarts(cleaned_smarts) is None:
                 raise ValueError(f"Invalid reaction SMARTS: {self.reactionSMARTS}")
 
@@ -368,16 +361,19 @@ class Reaction(BaseModel):
 
     @model_validator(mode="after")
     def validate_reactions(self):
-        """Validate all reactions using the new ReactionValidator"""
+        """Validate all reactions using the new ReactionValidator
+
+        Raises:
+            ValueError: Reaction validation failed
+        """
         for reaction in self.reactions:
             try:
-                # Use new reaction validator
                 self._reaction_validator.validate_reaction(
                     reaction_smarts=self.reactionSMARTS,
                     substrate_smiles=reaction.substrate,
                     expected_products=reaction.products,
                     forbidden_products=reaction.forbidden_products,
-                    intramolecular=False,  # Default to intermolecular reactions
+                    intramolecular=self.isIntramolecular,
                 )
             except Exception as e:
                 raise ValueError(
@@ -388,7 +384,7 @@ class Reaction(BaseModel):
     def to_json(self: Self) -> dict:
         json_dict = {}
 
-        for attr in ["tailoring", "description"]:
+        for attr in ["tailoring", "description", "isIntramolecular"]:
             if (val := getattr(self, attr)) is not None and (
                 val := getattr(self, attr)
             ) != "":
@@ -423,7 +419,7 @@ class Reaction(BaseModel):
 
         html_dict = {}
 
-        for attr in ["tailoring", "description"]:
+        for attr in ["tailoring", "description", "isIntramolecular"]:
             if (val := getattr(self, attr)) is not None and (
                 val := getattr(self, attr)
             ) != "":
