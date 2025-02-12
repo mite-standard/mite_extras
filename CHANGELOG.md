@@ -11,7 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Bumped `mite_schema` version to `1.7.0`
 - Reworked `ValidationManager`
-- Implemented option for intramolecular reactions (by default: off)
+- Implemented option for intramolecular reactions (recognized from reaction SMARTS)
 
 ## [1.3.1] 02-12-2024
 

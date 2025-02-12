@@ -23,6 +23,7 @@ SOFTWARE.
 
 import base64
 import logging
+import re
 from typing import Any, Self
 
 from pydantic import BaseModel, ValidationError, model_validator
@@ -318,7 +319,6 @@ class Reaction(BaseModel):
         tailoring: a list of tailoring reaction terms
         description: an optional human-readable description
         reactionSMARTS: a ReactionSmarts str
-        isIntramolecular: a bool indicating type of reaction SMARTS (regular or intramolecular)
         reactions: a list of ReactionEx objects
         evidence: an evidence object
         databaseIds: a ReactionDatabaseIds object
@@ -327,7 +327,6 @@ class Reaction(BaseModel):
     tailoring: list
     description: str | None = None
     reactionSMARTS: str
-    isIntramolecular: bool
     reactions: list
     evidence: Any
     databaseIds: Any | None = None
@@ -367,13 +366,17 @@ class Reaction(BaseModel):
             ValueError: Reaction validation failed
         """
         for reaction in self.reactions:
+            intramolecular = False
+            if re.match(r"^\(.+\)>>|>>\(.+\)$", self.reactionSMARTS):
+                intramolecular = True
+
             try:
                 self._reaction_validator.validate_reaction(
                     reaction_smarts=self.reactionSMARTS,
                     substrate_smiles=reaction.substrate,
                     expected_products=reaction.products,
                     forbidden_products=reaction.forbidden_products,
-                    intramolecular=self.isIntramolecular,
+                    intramolecular=intramolecular,
                 )
             except Exception as e:
                 raise ValueError(
@@ -384,7 +387,7 @@ class Reaction(BaseModel):
     def to_json(self: Self) -> dict:
         json_dict = {}
 
-        for attr in ["tailoring", "description", "isIntramolecular"]:
+        for attr in ["tailoring", "description"]:
             if (val := getattr(self, attr)) is not None and (
                 val := getattr(self, attr)
             ) != "":
@@ -419,7 +422,7 @@ class Reaction(BaseModel):
 
         html_dict = {}
 
-        for attr in ["tailoring", "description", "isIntramolecular"]:
+        for attr in ["tailoring", "description"]:
             if (val := getattr(self, attr)) is not None and (
                 val := getattr(self, attr)
             ) != "":
