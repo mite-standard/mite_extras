@@ -1,6 +1,5 @@
 import pytest
 from mite_extras.processing.validation_manager import (
-    ReactionEnumerator,
     ReactionValidator,
 )
 
@@ -8,11 +7,6 @@ from mite_extras.processing.validation_manager import (
 @pytest.fixture
 def _reaction_validator():
     return ReactionValidator()
-
-
-@pytest.fixture
-def _reaction_enumerator():
-    return ReactionEnumerator()
 
 
 def test_validate_reaction_valid(_reaction_validator):
