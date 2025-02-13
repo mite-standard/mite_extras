@@ -365,7 +365,7 @@ class Reaction(BaseModel):
         Raises:
             ValueError: Reaction validation failed
         """
-        for reaction in self.reactions:
+        for reaction_id, reaction in enumerate(self.reactions, start=1):
             intramolecular = False
             if re.match(r"^\(.+\)>>|>>\(.+\)$", self.reactionSMARTS):
                 intramolecular = True
@@ -380,7 +380,7 @@ class Reaction(BaseModel):
                 )
             except Exception as e:
                 raise ValueError(
-                    f"Reaction validation failed for substrate {reaction.substrate}: {e!s}"
+                    f"Reaction '{reaction_id}': Validation failed for substrate {reaction.substrate}: {e!s}"
                 ) from e
         return self
 
