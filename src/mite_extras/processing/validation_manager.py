@@ -185,6 +185,8 @@ class ReactionCleaner(BaseModel):
             # Nitrogen hydrogens in heterocycles
             r"\[#7:(\d+);h(\d+)\]": r"[nH\2:\1]",
             r"\[#7;h(\d+)\]": r"[nH\1]",
+            # erroneous specification of charges in indexed atoms
+            r"\[(#\d+):(\d+);([+-])\]": r"[\1;\3:\2]",
         }
 
         for pattern, replacement in replacements.items():
@@ -203,6 +205,17 @@ class ReactionEnumerator(BaseModel):
         return set(results) if results else {mol}
 
     def enumerate_smarts(self, smarts: str) -> set[str]:
+        """Enumerate SMARTS or skip if intramolecular reaction
+
+        Args:
+            smarts: a SMARTS string
+
+        Returns:
+            A set of SMARTS strings
+        """
+        if re.match(r"^\(.+\)|\(.+\)$", smarts):
+            return {smarts}
+
         mol = MolFromSmarts(smarts)
         if mol is None:
             raise ValueError(f"Invalid SMARTS string: {smarts}")
@@ -256,15 +269,16 @@ class ReactionValidator(BaseModel):
             expected_products: List of expected product SMILES
             forbidden_products: Optional list of forbidden product SMILES
             intramolecular: Whether the reaction is intramolecular
+
+        Raises:
+            ValueError: missing products or overlap expected & forbidden products or not all expected products generated
         """
         if not expected_products:
             raise ValueError("Expected products list cannot be empty")
 
-        # Clean and validate inputs
         reaction_smarts = self.reaction_cleaner.clean_ketcher_format(reaction_smarts)
         substrate_smiles = self.molecule_validator._clean_string(substrate_smiles)
 
-        # Process expected and forbidden products
         expected_smiles = {
             self.molecule_validator.canonicalize_smiles(p) for p in expected_products
         }

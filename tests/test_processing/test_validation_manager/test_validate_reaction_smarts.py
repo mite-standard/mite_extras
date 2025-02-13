@@ -1,7 +1,7 @@
 import pytest
-from mite_extras.processing.validation_manager import ReactionValidator
-from rdkit.Chem import CanonSmiles, MolFromSmiles, MolToSmiles
-from rdkit.Chem.rdChemReactions import ReactionFromSmarts
+from mite_extras.processing.validation_manager import (
+    ReactionValidator,
+)
 
 
 @pytest.fixture
@@ -155,5 +155,24 @@ def test_validate_reaction_halogenation(_reaction_validator):
     forbidden_products = []
     result = _reaction_validator.validate_reaction(
         reaction_smarts, substrate_smiles, expected_products, forbidden_products
+    )
+    assert result == None
+
+
+def test_validate_intramolecular_macrolactam(_reaction_validator):
+    reaction_smarts = "([#7&H2:1]-[#6&H2:2]-[#6:3](-[#7&H1:5])=[#8:4].[#7&H1:6]-[#6:7](-[#6:13](-[#7&H1:15])=[#8:14])-[#6:8]-[#6:9]-[#6:10](-[#8&H1:12])=[#8:11])>>[#7:1](-[#8:12]-[#6:10](=[#8:11])-[#6:9]-[#6:8]-[#6:7](-[#6:13](-[#7:15])=[#8:14])-[#7:6])-[#6:2]-[#6:3](-[#7:5])=[#8:4]"
+    substrate_smiles = (
+        "C[C@H](NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](C)NC(=O)[C@H](C)NC(=O)CN)C(=O)O"
+    )
+    expected_products = [
+        "C[C@H](NC(=O)[C@@H]1CCC(=O)ONCC(=O)N[C@@H](C)C(=O)N[C@@H](C)C(=O)N1)C(=O)O"
+    ]
+    forbidden_products = []
+    result = _reaction_validator.validate_reaction(
+        reaction_smarts,
+        substrate_smiles,
+        expected_products,
+        forbidden_products,
+        intramolecular=True,
     )
     assert result == None
