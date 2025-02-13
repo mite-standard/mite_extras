@@ -23,6 +23,7 @@ SOFTWARE.
 
 import base64
 import logging
+import re
 from typing import Any, Self
 
 from pydantic import BaseModel, ValidationError, model_validator
@@ -30,7 +31,11 @@ from rdkit.Chem import MolFromSmiles
 from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem.rdChemReactions import ReactionFromSmarts
 
-from mite_extras.processing.validation_manager import ValidationManager
+from mite_extras.processing.validation_manager import (
+    IdValidator,
+    MoleculeValidator,
+    ReactionValidator,
+)
 
 logger = logging.getLogger("mite_extras")
 
@@ -46,7 +51,6 @@ class Entry(BaseModel):
         enzyme: an Enzyme object
         reactions: a list of Reaction objects
         comment: additional information
-        attachments: a dict for further information
     """
 
     accession: str | None = None
@@ -56,17 +60,10 @@ class Entry(BaseModel):
     enzyme: Any | None = None
     reactions: list[Any] | None = None
     comment: str | None = None
-    attachments: dict | None = None
 
     def to_json(self: Self) -> dict:
         json_dict = {}
-        for attr in [
-            "accession",
-            "status",
-            "retirementReasons",
-            "comment",
-            "attachments",
-        ]:
+        for attr in ["accession", "status", "retirementReasons", "comment"]:
             if (val := getattr(self, attr)) is not None and (
                 val := getattr(self, attr)
             ) != "":
@@ -87,13 +84,7 @@ class Entry(BaseModel):
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-        for attr in [
-            "accession",
-            "status",
-            "retirementReasons",
-            "comment",
-            "attachments",
-        ]:
+        for attr in ["accession", "status", "retirementReasons", "comment"]:
             if (val := getattr(self, attr)) is not None and (
                 val := getattr(self, attr)
             ) != "":
@@ -257,8 +248,10 @@ class EnzymeAux(BaseModel):
 class EnyzmeDatabaseIds(BaseModel):
     """Pydantic-based class to represent enzyme-related database ids
 
+    Class-level instance of IdValidator avoids repeated instantiation
+
     Attributes:
-        uniprot: an uniprot ID
+        uniprot: a UniProt ID
         genpept: an NCBI GenPept ID
         mibig: a MIBiG ID
     """
@@ -267,27 +260,34 @@ class EnyzmeDatabaseIds(BaseModel):
     genpept: str | None = None
     mibig: str | None = None
 
+    _id_validator = IdValidator()
+
     @model_validator(mode="after")
     def populate_ids(self):
+        """Cross-reference and populate database IDs using IdValidator.
+
+        Checks if genpept and uniprot IDs correspond
+        If only one ID is provided, fetches the other
+        """
+        if not (self.uniprot or self.genpept):
+            return self
+
         try:
             if self.uniprot and self.genpept:
-                ValidationManager().cleanup_ids(
+                self._id_validator.cleanup_ids(
                     genpept=self.genpept, uniprot=self.uniprot
                 )
-                return self
+            elif self.uniprot:
+                data = self._id_validator.cleanup_ids(uniprot=self.uniprot)
+                self.genpept = data["genpept"]
+            elif self.genpept:
+                data = self._id_validator.cleanup_ids(genpept=self.genpept)
+                self.uniprot = data["uniprot"]
 
-            if self.uniprot:
-                data = ValidationManager().cleanup_ids(uniprot=self.uniprot)
-                self.genpept = data.get("genpept")
-                return self
-
-            if self.genpept:
-                data = ValidationManager().cleanup_ids(genpept=self.genpept)
-                self.uniprot = data.get("uniprot")
-                return self
         except Exception as e:
             logger.warning(f"EnyzmeDatabaseIds: error during ID validation: {e!s}")
-            return self
+
+        return self
 
     def to_json(self: Self) -> dict:
         json_dict = {}
@@ -313,6 +313,8 @@ class EnyzmeDatabaseIds(BaseModel):
 class Reaction(BaseModel):
     """Pydantic-based class to represent reactions
 
+    Class-level instance of ReactionValidator avoids repeated instantiation
+
     Attributes:
         tailoring: a list of tailoring reaction terms
         description: an optional human-readable description
@@ -329,21 +331,57 @@ class Reaction(BaseModel):
     evidence: Any
     databaseIds: Any | None = None
 
+    _reaction_validator = ReactionValidator()
+
     @model_validator(mode="after")
     def cleanup_smarts(self):
-        smarts = ValidationManager().cleanup_reaction_smarts(self.reactionSMARTS)
-        self.reactionSMARTS = smarts
-        return self
+        """Clean up reaction SMARTS using the new ReactionCleaner
+
+        Raises:
+            ValueError: reaction SMARTS could not be read by RDKit -> invalid
+        """
+        try:
+            cleaned_smarts = (
+                self._reaction_validator.reaction_cleaner.clean_ketcher_format(
+                    self._reaction_validator.molecule_validator._clean_string(
+                        self.reactionSMARTS
+                    )
+                )
+            )
+
+            if ReactionFromSmarts(cleaned_smarts) is None:
+                raise ValueError(f"Invalid reaction SMARTS: {self.reactionSMARTS}")
+
+            self.reactionSMARTS = cleaned_smarts
+            return self
+
+        except Exception as e:
+            raise ValueError(f"Error cleaning reaction SMARTS: {e!s}") from e
 
     @model_validator(mode="after")
     def validate_reactions(self):
+        """Validate all reactions using the new ReactionValidator
+
+        Raises:
+            ValueError: Reaction validation failed
+        """
         for reaction in self.reactions:
-            ValidationManager().validate_reaction_smarts(
-                reaction_smarts=self.reactionSMARTS,
-                substrate_smiles=reaction.substrate,
-                expected_products=reaction.products,
-                forbidden_products=reaction.forbidden_products,
-            )
+            intramolecular = False
+            if re.match(r"^\(.+\)>>|>>\(.+\)$", self.reactionSMARTS):
+                intramolecular = True
+
+            try:
+                self._reaction_validator.validate_reaction(
+                    reaction_smarts=self.reactionSMARTS,
+                    substrate_smiles=reaction.substrate,
+                    expected_products=reaction.products,
+                    forbidden_products=reaction.forbidden_products,
+                    intramolecular=intramolecular,
+                )
+            except Exception as e:
+                raise ValueError(
+                    f"Reaction validation failed for substrate {reaction.substrate}: {e!s}"
+                ) from e
         return self
 
     def to_json(self: Self) -> dict:
@@ -423,20 +461,41 @@ class ReactionEx(BaseModel):
     isIntermediate: bool
     description: str | None = None
 
+    # Create validator instance at class level
+    _molecule_validator = MoleculeValidator()
+
     @model_validator(mode="after")
     def validate_smiles(self):
-        self.substrate = ValidationManager().cleanup_smiles(self.substrate)
-        self.products = [
-            ValidationManager().cleanup_smiles(prod) for prod in self.products
-        ]
-        if self.forbidden_products is not None:
-            self.forbidden_products = []
-            for prod in self.forbidden_products:
-                cleaned = ValidationManager().cleanup_smiles(prod)
-                split = ValidationManager().split_smiles(cleaned)
-                self.forbidden_products.extend(split)
+        """Validate and clean SMILES using the new MoleculeValidator"""
+        try:
+            # Clean substrate SMILES
+            self.substrate = self._molecule_validator.canonicalize_smiles(
+                self._molecule_validator._clean_string(self.substrate)
+            )
 
-        return self
+            # Clean product SMILES
+            self.products = [
+                self._molecule_validator.canonicalize_smiles(
+                    self._molecule_validator._clean_string(prod)
+                )
+                for prod in self.products
+            ]
+
+            # Clean forbidden product SMILES if present
+            if self.forbidden_products:
+                cleaned_forbidden = []
+                for prod in self.forbidden_products:
+                    cleaned = self._molecule_validator.canonicalize_smiles(
+                        self._molecule_validator._clean_string(prod)
+                    )
+                    # Split composite SMILES into individual molecules
+                    cleaned_forbidden.extend(cleaned.split("."))
+                self.forbidden_products = cleaned_forbidden
+
+            return self
+
+        except Exception as e:
+            raise ValueError(f"SMILES validation failed: {e!s}") from e
 
     def to_json(self: Self) -> dict:
         json_dict = {}

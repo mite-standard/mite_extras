@@ -1,5 +1,5 @@
 import pytest
-from mite_extras.processing.validation_manager import ValidationManager
+from mite_extras.processing.validation_manager import MoleculeValidator
 from rdkit.Chem import (
     CanonSmiles,
     MolFromSmarts,
@@ -10,36 +10,36 @@ from rdkit.Chem import (
 
 
 @pytest.fixture
-def validation_manager():
-    return ValidationManager()
+def _molecule_validator():
+    return MoleculeValidator()
 
 
-def test_canonicalize_smiles_valid(validation_manager):
+def test_canonicalize_smiles_valid(_molecule_validator):
     """Test canonicalizing a valid SMILES string"""
     smiles = "CCO"  # Ethanol
-    canonical_smiles = validation_manager.canonicalize_smiles(smiles)
+    canonical_smiles = _molecule_validator.canonicalize_smiles(smiles)
     expected_canonical_smiles = CanonSmiles(MolToSmiles(MolFromSmiles(smiles)))
     assert canonical_smiles == expected_canonical_smiles
 
 
-def test_canonicalize_smiles_invalid(validation_manager):
+def test_canonicalize_smiles_invalid(_molecule_validator):
     """Test canonicalizing an invalid SMILES string"""
     smiles = "CCO@"  # Invalid SMILES (unexpected character '@')
-    with pytest.raises(ValueError, match=f"Could not read SMILES string '{smiles}'"):
-        validation_manager.canonicalize_smiles(smiles)
+    with pytest.raises(ValueError, match=f"Invalid SMILES string: '{smiles}'"):
+        _molecule_validator.canonicalize_smiles(smiles)
 
 
-def test_canonicalize_smiles_complex(validation_manager):
+def test_canonicalize_smiles_complex(_molecule_validator):
     """Test canonicalizing a complex SMILES string"""
     smiles = "C1=CC=CC=C1"  # Benzene ring
-    canonical_smiles = validation_manager.canonicalize_smiles(smiles)
+    canonical_smiles = _molecule_validator.canonicalize_smiles(smiles)
     expected_canonical_smiles = CanonSmiles(MolToSmiles(MolFromSmiles(smiles)))
     assert canonical_smiles == expected_canonical_smiles
 
 
-def test_canonicalize_smiles_with_aromatic(validation_manager):
+def test_canonicalize_smiles_with_aromatic(_molecule_validator):
     """Test canonicalizing a SMILES string with aromatic atoms"""
     smiles = "c1ccccc1"  # Benzene ring in aromatic form
-    canonical_smiles = validation_manager.canonicalize_smiles(smiles)
+    canonical_smiles = _molecule_validator.canonicalize_smiles(smiles)
     expected_canonical_smiles = CanonSmiles(MolToSmiles(MolFromSmiles(smiles)))
     assert canonical_smiles == expected_canonical_smiles

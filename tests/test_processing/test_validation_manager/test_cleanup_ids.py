@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from mite_extras.processing.validation_manager import ValidationManager
+from mite_extras.processing.validation_manager import IdValidator
 
 
 def mock_requests_get(*args, **kwargs):
@@ -74,19 +74,19 @@ def mock_requests_get(*args, **kwargs):
 
 @patch("requests.get", side_effect=mock_requests_get)
 def test_cleanup_ids_genpept(mock_get):
-    result = ValidationManager().cleanup_ids(genpept="AAM70353.1")
+    result = IdValidator().cleanup_ids(genpept="AAM70353.1")
     assert result == {"genpept": "AAM70353.1", "uniprot": "Q8KND5"}
 
 
 @patch("requests.get", side_effect=mock_requests_get)
 def test_cleanup_ids_uniprot(mock_get):
-    result = ValidationManager().cleanup_ids(uniprot="Q8KND5")
+    result = IdValidator().cleanup_ids(uniprot="Q8KND5")
     assert result == {"genpept": "AAM70353.1", "uniprot": "Q8KND5"}
 
 
 @patch("requests.get", side_effect=mock_requests_get)
 def test_cleanup_ids_both_ok(mock_get):
-    result = ValidationManager().cleanup_ids(genpept="AAM70353.1", uniprot="Q8KND5")
+    result = IdValidator().cleanup_ids(genpept="AAM70353.1", uniprot="Q8KND5")
     assert result == {"genpept": "AAM70353.1", "uniprot": "Q8KND5"}
 
 
@@ -96,7 +96,7 @@ def test_cleanup_ids_both_fail_1(mock_get):
         ValueError,
         match="The provided genpept ID 'CAA71118.1' and uniprot ID 'Q8KND5' do not match",
     ):
-        ValidationManager().cleanup_ids(genpept="CAA71118.1", uniprot="Q8KND5")
+        IdValidator().cleanup_ids(genpept="CAA71118.1", uniprot="Q8KND5")
 
 
 @patch("requests.get", side_effect=mock_requests_get)
@@ -105,7 +105,7 @@ def test_cleanup_ids_both_fail_2(mock_get):
         ValueError,
         match="The provided genpept ID 'AAM70353.1' and uniprot ID 'Q8KND4' do not match",
     ):
-        ValidationManager().cleanup_ids(genpept="AAM70353.1", uniprot="Q8KND4")
+        IdValidator().cleanup_ids(genpept="AAM70353.1", uniprot="Q8KND4")
 
 
 @patch("requests.get", side_effect=mock_requests_get)
@@ -113,12 +113,10 @@ def test_cleanup_ids_none(mock_get):
     with pytest.raises(
         ValueError, match="Please provide one of 'genpept' or 'uniprot'"
     ):
-        ValidationManager().cleanup_ids()
+        IdValidator().cleanup_ids()
 
 
 @patch("requests.get", side_effect=mock_requests_get)
 def test_cleanup_ids_invalid(mock_get):
-    with pytest.raises(
-        ValueError, match="HTTP Error: 404"
-    ):
-        ValidationManager().cleanup_ids(genpept="invalidID")
+    with pytest.raises(ValueError, match="HTTP Error: 404"):
+        IdValidator().cleanup_ids(genpept="invalidID")
