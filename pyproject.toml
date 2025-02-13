@@ -31,7 +31,7 @@ dependencies = [
     "jsonschema~=4.23",
     "mite-schema==1.7.0",
     "pydantic~=2.8",
-    "rdkit~=2024.3",
+    "rdkit==2024.3.6",
     "requests~=2.32",
 ]
 
