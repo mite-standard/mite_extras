@@ -176,3 +176,43 @@ def test_validate_intramolecular_macrolactam(_reaction_validator):
         intramolecular=True,
     )
     assert result == None
+
+
+def test_validate_cheatoglobosin_1(_reaction_validator):
+    r_smarts = "[#6:1]1(:[#6:36]:[#7:35;h1]:[#6:30]2:[#6:31]:[#6:32]:[#6:33]:[#6:34]:[#6:29]:1:2)-[#6:2]\\[#6@:3]1-[#6@:13]2-[#6@@:7]3(-[#6:27](=[#8:28])-[#6:26]=[#6:25]-[#6:24]-[#6:23]-[#6:21](-[#6:22])=[#6:20]-[#6@@:18](/[#6:19])-[#6:17]-[#6:16]=[#6:15]/[#6@:8]-3-[#6:9]=[#6:10](-[#6:14])-[#6@:11]/2/[#6:12])/[#6:5](=[#8:6])-[#7:4]-1>>[#6:1]1(:[#6:36]:[#7:35;h1]:[#6:30]2:[#6:31]:[#6:32]:[#6:33]:[#6:34]:[#6:29]:1:2)-[#6:2]\\[#6@:3]1-[#6@:13]2-[#6@@:7]3(-[#6:27](=[#8:28])-[#6:26]=[#6:25]-[#6:24]-[#6:23]-[#6:21](-[#6:22])=[#6:20]-[#6@@:18](/[#6:19])-[#6:17]-[#6:16]=[#6:15]/[#6@:8]-3-[#6@@:9]3\\[#8]-[#6@:10]-3(/[#6:14])-[#6@:11]/2/[#6:12])/[#6:5](=[#8:6])-[#7:4]-1"
+    substr = "c1(C[C@@H]2NC(=O)[C@@]34[C@H](C=C([C@@H](C)C23)C)C=CC[C@H](C)C=C(C)CCC=CC4=O)c2c(cccc2)[nH]c1 |c:21,t:16,26|"
+    prods = [
+        "c1(C[C@H]2C3[C@H](C)[C@]4(C)[C@@H](O4)[C@H]4[C@@]3(C(N2)=O)C(C=CCCC(C)=C[C@H](CC=C4)C)=O)c2c(cccc2)[nH]c1"
+    ]
+    result = _reaction_validator.validate_reaction(
+        r_smarts,
+        substr,
+        prods,
+        [],
+        intramolecular=False,
+    )
+    assert result == None
+    substr = "c1(C[C@@H]2NC(=O)[C@@]34[C@H](C=C([C@@H](C)C23)C)C=CC[C@H](C)C=C(C)[C@@H](O)[C@@H](O)C=CC4=O)c2c(cccc2)[nH]c1 |c:21,t:16,28|"
+    prods = [
+        "c1(C[C@@H]2NC(=O)[C@@]34[C@H]([C@H]5[C@]([C@@H](C)C23)(C)O5)C=CC[C@H](C)C=C(C)[C@@H](O)[C@@H](O)C=CC4=O)c2c(cccc2)[nH]c1"
+    ]
+    result = _reaction_validator.validate_reaction(
+        r_smarts,
+        substr,
+        prods,
+        [],
+        intramolecular=False,
+    )
+    assert result == None
+    substr = "c1(C[C@@H]2NC(=O)[C@@]34[C@H](C=C([C@@H](C)C23)C)C=CC[C@H](C)C=C(C)[C@@H](O)C(=O)C=CC4=O)c2c(cccc2)[nH]c1 |c:21,t:16,28|"
+    prods = [
+        "c1(C[C@@H]2NC(=O)[C@@]34[C@H]([C@H]5[C@]([C@@H](C)C23)(C)O5)C=CC[C@H](C)C=C(C)[C@@H](O)C(=O)C=CC4=O)c2c(cccc2)[nH]c1"
+    ]
+    result = _reaction_validator.validate_reaction(
+        r_smarts,
+        substr,
+        prods,
+        [],
+        intramolecular=False,
+    )
+    assert result == None
