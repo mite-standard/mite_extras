@@ -36,7 +36,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mite-standard/mite_extras"
+Homepage = "https://mite.bioinformatics.nl/"
+Github = "https://github.com/mite-standard/mite_extras"
 Issues = "https://github.com/mite-standard/mite_extras/issues"
 
 [project.scripts]
