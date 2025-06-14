@@ -255,20 +255,23 @@ class EnyzmeDatabaseIds(BaseModel):
         uniprot: a UniProt ID
         genpept: an NCBI GenPept ID
         mibig: a MIBiG ID
+        wikidata: a wikidata qid reference
     """
 
     uniprot: str | None = None
     genpept: str | None = None
     mibig: str | None = None
+    wikidata: str | None = None
 
     _id_validator = IdValidator()
 
     @model_validator(mode="after")
-    def populate_ids(self):
+    def validate_ids(self):
         """Cross-reference and populate database IDs using IdValidator.
 
         Checks if genpept and uniprot IDs correspond
         If only one ID is provided, fetches the other
+        Checks if wikidata QID exists
         """
         if not (self.uniprot or self.genpept):
             return self
@@ -284,15 +287,21 @@ class EnyzmeDatabaseIds(BaseModel):
             elif self.genpept:
                 data = self._id_validator.cleanup_ids(genpept=self.genpept)
                 self.uniprot = data["uniprot"]
-
         except Exception as e:
             logger.warning(f"EnyzmeDatabaseIds: error during ID validation: {e!s}")
+
+        try:
+            if self.wikidata:
+                self._id_validator.validate_wikidata_qid(self.wikidata)
+        except Exception as e:
+            logger.error(f"EnyzmeDatabaseIds: error during ID validation: {e!s}")
+            raise e from Exception
 
         return self
 
     def to_json(self: Self) -> dict:
         json_dict = {}
-        for attr in ["uniprot", "genpept", "mibig"]:
+        for attr in ["uniprot", "genpept", "mibig", "wikidata"]:
             val = getattr(self, attr)
             if val not in (None, ""):
                 json_dict[attr] = val

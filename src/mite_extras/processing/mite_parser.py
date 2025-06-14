@@ -28,6 +28,7 @@ from pydantic import BaseModel
 
 from mite_extras.processing.data_classes import (
     Changelog,
+    Cofactors,
     Entry,
     EnyzmeDatabaseIds,
     Enzyme,
@@ -123,6 +124,24 @@ class MiteParser(BaseModel):
                 mibig=data.get("mibig"),
                 uniprot=data.get("uniprot"),
                 genpept=data.get("genpept"),
+                wikidata=data.get("wikidata"),
+            )
+        else:
+            return None
+
+    @staticmethod
+    def get_cofactors(cofactors: dict | None) -> Cofactors | None:
+        """Parse enzyme-related cofactors info
+
+        Args:
+            cofactors: a dict with cofactor info
+
+        Returns:
+            An Cofactors object or None
+        """
+        if isinstance(cofactors, dict):
+            return Cofactors(
+                inorganic=cofactors.get("inorganic"), organic=cofactors.get("organic")
             )
         else:
             return None
@@ -134,7 +153,7 @@ class MiteParser(BaseModel):
             auxenzymes: a list of auxiliary enzyme dicts
 
         Returns:
-            A list of EnzymeAux objects
+            A list of EnzymeAux objects or None
         """
         if auxenzymes is None:
             return None
@@ -262,6 +281,9 @@ class MiteParser(BaseModel):
                     auxenzymes=data.get("enzyme", {}).get("auxiliaryEnzymes")
                 ),
                 references=data.get("enzyme", {}).get("references"),
+                cofactors=self.get_cofactors(
+                    cofactors=data.get("enzyme", {}).get("cofactors")
+                ),
             ),
             reactions=self.get_reactions(reactions=data.get("reactions")),
             comment=data.get("comment"),

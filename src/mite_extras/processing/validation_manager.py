@@ -138,6 +138,43 @@ class IdValidator(BaseModel):
         except Exception as e:
             raise ValueError(f"Error during ID validation: {e!s}") from e
 
+    @staticmethod
+    def validate_wikidata_qid(qid: str) -> None:
+        """Checks if Wikidata QID exists
+
+        Args:
+            qid: a valid Wikidata QID
+
+        Raises:
+            ValueError: Wikidata QUI does not exist
+        """
+
+        def build_query(qid: str) -> str:
+            return f"""
+            ASK {{
+                wd:{qid} ?p ?o
+            }}
+            """
+
+        def fetch_result(query: str) -> str:
+            response = requests.get(
+                "https://query.wikidata.org/sparql",
+                params={"query": query},
+                headers={"Accept": "application/sparql-results+json"},
+                timeout=pi,
+            )
+            if not response.ok:
+                raise ValueError(
+                    f"HttpError while querying Wikidata: {response.status_code}"
+                )
+            data = response.json()
+            return data.get("boolean")
+
+        if not fetch_result(query=build_query(qid=qid)):
+            raise ValueError(
+                f"Wikidata QID '{qid}' does not exist or has no statements."
+            )
+
 
 class MoleculeValidator(BaseModel):
     """Handles basic molecule validation and canonicalization."""
