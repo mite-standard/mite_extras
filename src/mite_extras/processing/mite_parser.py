@@ -266,28 +266,32 @@ class MiteParser(BaseModel):
 
         logger.debug("MiteParser: started creating Entry object.")
 
-        self.entry = Entry(
-            accession=data.get("accession"),
-            status=data.get("status"),
-            retirementReasons=data.get("retirementReasons"),
-            changelog=self.get_changelog(changelog=data.get("changelog")),
-            enzyme=Enzyme(
-                name=data.get("enzyme", {}).get("name"),
-                description=data.get("enzyme", {}).get("description"),
-                databaseIds=self.get_databaseids_enzyme(
-                    data=data.get("enzyme", {}).get("databaseIds")
+        try:
+            self.entry = Entry(
+                accession=data.get("accession"),
+                status=data.get("status"),
+                retirementReasons=data.get("retirementReasons"),
+                changelog=self.get_changelog(changelog=data.get("changelog")),
+                enzyme=Enzyme(
+                    name=data.get("enzyme", {}).get("name"),
+                    description=data.get("enzyme", {}).get("description"),
+                    databaseIds=self.get_databaseids_enzyme(
+                        data=data.get("enzyme", {}).get("databaseIds")
+                    ),
+                    auxiliaryEnzymes=self.get_auxenzymes(
+                        auxenzymes=data.get("enzyme", {}).get("auxiliaryEnzymes")
+                    ),
+                    references=data.get("enzyme", {}).get("references"),
+                    cofactors=self.get_cofactors(
+                        cofactors=data.get("enzyme", {}).get("cofactors")
+                    ),
                 ),
-                auxiliaryEnzymes=self.get_auxenzymes(
-                    auxenzymes=data.get("enzyme", {}).get("auxiliaryEnzymes")
-                ),
-                references=data.get("enzyme", {}).get("references"),
-                cofactors=self.get_cofactors(
-                    cofactors=data.get("enzyme", {}).get("cofactors")
-                ),
-            ),
-            reactions=self.get_reactions(reactions=data.get("reactions")),
-            comment=data.get("comment"),
-            attachments=data.get("attachments"),
-        )
+                reactions=self.get_reactions(reactions=data.get("reactions")),
+                comment=data.get("comment"),
+                attachments=data.get("attachments"),
+            )
+        except Exception as e:
+            msg = str(e).split("For further information visit")[0].rstrip()
+            raise ValueError(msg) from e
 
         logger.debug("MiteParser: completed creating Entry object.")
