@@ -244,9 +244,12 @@ class EnyzmeDatabaseIds(BaseModel):
         Checks if genpept and uniprot IDs correspond
         If only one ID is provided, fetches the other
         Checks if wikidata QID exists
+
+        Raises:
+            ValueError: did not provide one of uniprot or genpept IDs
         """
-        if not (self.uniprot or self.genpept):
-            return self
+        if not self.genpept and not self.uniprot:
+            raise ValueError("Neither 'UniProt' not 'GenPept' IDs provided.")
 
         try:
             if self.uniprot and self.genpept:
@@ -467,7 +470,7 @@ class ReactionEx(BaseModel):
             return self
 
         except Exception as e:
-            raise ValueError(f"SMILES validation failed: {e!s}") from e
+            raise ValueError(f"Error cleaning SMILES: {e!s}") from e
 
     def to_json(self: Self) -> dict:
         json_dict = {}

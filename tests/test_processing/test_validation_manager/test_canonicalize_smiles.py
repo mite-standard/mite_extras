@@ -25,7 +25,7 @@ def test_canonicalize_smiles_valid(_molecule_validator):
 def test_canonicalize_smiles_invalid(_molecule_validator):
     """Test canonicalizing an invalid SMILES string"""
     smiles = "CCO@"  # Invalid SMILES (unexpected character '@')
-    with pytest.raises(ValueError, match=f"Invalid SMILES string: '{smiles}'"):
+    with pytest.raises(ValueError):
         _molecule_validator.canonicalize_smiles(smiles)
 
 

@@ -94,7 +94,7 @@ def test_cleanup_ids_both_ok(mock_get):
 def test_cleanup_ids_both_fail_1(mock_get):
     with pytest.raises(
         ValueError,
-        match="The provided genpept ID 'CAA71118.1' and uniprot ID 'Q8KND5' do not match",
+        match="The provided Genpept ID 'CAA71118.1' and Uniprot ID 'Q8KND5' do not correspond to each other!",
     ):
         IdValidator().cleanup_ids(genpept="CAA71118.1", uniprot="Q8KND5")
 
@@ -103,7 +103,7 @@ def test_cleanup_ids_both_fail_1(mock_get):
 def test_cleanup_ids_both_fail_2(mock_get):
     with pytest.raises(
         ValueError,
-        match="The provided genpept ID 'AAM70353.1' and uniprot ID 'Q8KND4' do not match",
+        match="The provided Genpept ID 'AAM70353.1' and Uniprot ID 'Q8KND4' do not correspond to each other!",
     ):
         IdValidator().cleanup_ids(genpept="AAM70353.1", uniprot="Q8KND4")
 
@@ -111,14 +111,14 @@ def test_cleanup_ids_both_fail_2(mock_get):
 @patch("requests.get", side_effect=mock_requests_get)
 def test_cleanup_ids_none(mock_get):
     with pytest.raises(
-        ValueError, match="Please provide one of 'genpept' or 'uniprot'"
+        ValueError, match="Please provide one of NCBI Genpept or Uniprot IDs."
     ):
         IdValidator().cleanup_ids()
 
 
 @patch("requests.get", side_effect=mock_requests_get)
 def test_cleanup_ids_invalid(mock_get):
-    with pytest.raises(ValueError, match="HTTP Error: 404"):
+    with pytest.raises(ValueError, match="HTTP Error while querying Uniprot: 404"):
         IdValidator().cleanup_ids(genpept="invalidID")
 
 

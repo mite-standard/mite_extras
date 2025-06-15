@@ -65,7 +65,7 @@ class IdValidator(BaseModel):
             ValueError: If neither genpept nor uniprot is provided, or if the IDs do not match.
         """
         if not genpept and not uniprot:
-            raise ValueError("Please provide one of 'genpept' or 'uniprot'.")
+            raise ValueError("Please provide one of NCBI Genpept or Uniprot IDs.")
 
         def fetch_result(query: str) -> str:
             response = requests.get(
@@ -75,18 +75,20 @@ class IdValidator(BaseModel):
                 timeout=pi,
             )
             if not response.ok:
-                raise ValueError(f"HTTP Error: {response.status_code}")
+                raise ValueError(
+                    f"HTTP Error while querying Uniprot: {response.status_code}"
+                )
 
             response_json = response.json()
             bindings = response_json.get("results", {}).get("bindings", [])
 
             if not bindings:
-                raise ValueError("No results found in the response")
+                raise ValueError("No results found in Uniprot response")
 
             protein_data = bindings[0].get("protein")
             if not protein_data or "value" not in protein_data:
                 raise ValueError(
-                    "'protein' key or its 'value' is missing in the response"
+                    "'protein' key or its 'value' is missing in the Uniprot response"
                 )
 
             protein_uri = protein_data["value"]
@@ -127,7 +129,7 @@ class IdValidator(BaseModel):
 
             if genpept and uniprot and genpept_result != uniprot:
                 raise ValueError(
-                    f"The provided genpept ID '{genpept}' and uniprot ID '{uniprot}' do not match"
+                    f"The provided Genpept ID '{genpept}' and Uniprot ID '{uniprot}' do not correspond to each other!"
                 )
 
             return {
@@ -136,7 +138,7 @@ class IdValidator(BaseModel):
             }
 
         except Exception as e:
-            raise ValueError(f"Error during ID validation: {e!s}") from e
+            raise ValueError(f"Error during enzyme ID validation: {e!s}") from e
 
     @staticmethod
     def validate_wikidata_qid(qid: str) -> None:
@@ -165,7 +167,7 @@ class IdValidator(BaseModel):
             )
             if not response.ok:
                 raise ValueError(
-                    f"HttpError while querying Wikidata: {response.status_code}"
+                    f"HTTP Error while querying Wikidata: {response.status_code}"
                 )
             data = response.json()
             return data.get("boolean")
@@ -183,13 +185,16 @@ class MoleculeValidator(BaseModel):
     def _clean_string(string: str) -> str:
         """Remove superfluous backslashes and H's from string."""
         string = string.replace("\\\\", "\\")
-        return re.sub(r";h\d", "", string)
+        string = re.sub(r";h\d", "", string)
+        return string
 
     def canonicalize_smiles(self, smiles: str) -> str:
         """Canonicalize a SMILES string."""
         mol = MolFromSmiles(self._clean_string(smiles))
         if mol is None:
-            raise ValueError(f"Invalid SMILES string: '{smiles}'")
+            raise ValueError(
+                f"RDKit rejected SMILES string - is it a valid SMILES?\n" f"{smiles}"
+            )
         for atom in mol.GetAtoms():
             atom.SetAtomMapNum(0)
         return CanonSmiles(MolToSmiles(mol))
@@ -198,7 +203,9 @@ class MoleculeValidator(BaseModel):
         """Canonicalize a SMARTS pattern."""
         mol = MolFromSmarts(self._clean_string(smarts))
         if mol is None:
-            raise ValueError(f"Invalid SMARTS pattern: '{smarts}'")
+            raise ValueError(
+                f"RDKit rejected SMARTS string - is it a valid pattern?\n" f"{smarts}"
+            )
         for i, atom in enumerate(mol.GetAtoms()):
             atom.SetAtomMapNum(i)
         return MolToSmarts(MolFromSmiles(CanonSmiles(MolToSmiles(mol))))
@@ -255,7 +262,9 @@ class ReactionEnumerator(BaseModel):
 
         mol = MolFromSmarts(smarts)
         if mol is None:
-            raise ValueError(f"Invalid SMARTS string: {smarts}")
+            raise ValueError(
+                f"RDKit rejected SMARTS string - is it a valid pattern?\n" f"{smarts}"
+            )
         enumerated_mols = self.enumerate_molecule(mol)
         return {MolToSmarts(m) for m in enumerated_mols if m is not None}
 
@@ -311,7 +320,7 @@ class ReactionValidator(BaseModel):
             ValueError: missing products or overlap expected & forbidden products or not all expected products generated
         """
         if not expected_products:
-            raise ValueError("Expected products list cannot be empty")
+            raise ValueError("At least one product must be specified")
 
         reaction_smarts = self.reaction_cleaner.clean_ketcher_format(reaction_smarts)
         substrate_smiles = self.molecule_validator._clean_string(substrate_smiles)
@@ -324,8 +333,11 @@ class ReactionValidator(BaseModel):
             for p in (forbidden_products or [])
         }
 
-        if forbidden_smiles & expected_smiles:
-            raise ValueError("Some expected products are listed as forbidden")
+        if overlap := forbidden_smiles & expected_smiles:
+            raise ValueError(
+                f"Overlap between expected and forbidden products:\n"
+                f"{'\n'.join(overlap)}"
+            )
 
         # Generate reaction variants and validate
         reactions = self._get_reaction_variants(reaction_smarts)
@@ -342,11 +354,18 @@ class ReactionValidator(BaseModel):
 
         if not expected_smiles.issubset(predicted_smiles):
             raise ValueError(
-                f"Products {predicted_smiles} do not include all expected products {expected_smiles}"
+                f"Reaction did not lead to all expected products.\n"
+                f"Expected products:\n"
+                f"{'\n'.join(expected_smiles)}\n"
+                f"Generated products:\n"
+                f"{'\n'.join(predicted_smiles)}"
             )
 
-        if forbidden_smiles & predicted_smiles:
-            raise ValueError("Forbidden products were found in reaction output")
+        if overlap := forbidden_smiles & predicted_smiles:
+            raise ValueError(
+                f"Reaction product(s) belong(s) to the specified forbidden product(s):\n"
+                f"{'\n'.join(overlap)}"
+            )
 
         logger.debug("Successfully validated reaction SMARTS")
 
@@ -389,7 +408,10 @@ class ReactionValidator(BaseModel):
         """Run all reaction variants on the substrate."""
         substrate = MolFromSmiles(substrate_smiles)
         if substrate is None:
-            raise ValueError(f"Invalid substrate SMILES: {substrate_smiles}")
+            raise ValueError(
+                f"RDKit rejected SMILES string - is it a valid SMILES?\n"
+                f"{substrate_smiles}"
+            )
 
         substrate_variants = self.enumerator.enumerate_molecule(substrate)
         products = set()
@@ -411,7 +433,7 @@ class ReactionValidator(BaseModel):
                         for product_set in reaction_products:
                             products.update(product_set)
                     except Exception as e:
-                        logger.debug(f"Reaction failed: {e}")
+                        logger.debug(f"Error during running of reaction: {e}")
                         continue
 
         return {p for p in products if p is not None}
