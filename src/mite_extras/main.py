@@ -26,6 +26,7 @@ import sys
 from importlib import metadata
 
 import coloredlogs
+import json_repair
 from mite_schema import SchemaManager
 
 from mite_extras import CliManager, FileManager, MiteParser
@@ -67,7 +68,8 @@ def main_cli() -> None:
     for entry in file_manager.infiles:
         logger.info(f"CLI: started parsing of file '{entry.name}'.")
 
-        input_data = schema_manager.read_json(infile=entry)
+        with open(entry) as infile:
+            input_data = json_repair.load(infile)
 
         try:
             parser = MiteParser()

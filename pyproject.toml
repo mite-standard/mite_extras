@@ -24,6 +24,7 @@ classifiers = [
 dependencies = [
     "argparse~=1.4",
     "coloredlogs~=15.0",
+    "json-repair~=0.46",
     "jsonschema~=4.23",
     "mite-schema==1.7.1",
     "pydantic~=2.8",
