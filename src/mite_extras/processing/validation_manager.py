@@ -237,6 +237,38 @@ class ReactionCleaner(BaseModel):
             smarts = re.sub(pattern, replacement, smarts)
         return smarts
 
+    @staticmethod
+    def detect_undesired_smarts(smarts: str):
+        """Check for undesired pattern in reaction SMARTS
+
+        positive checks for presence (must detect), negative for absence (must not detect)
+
+        Args:
+            smarts: reaction SMARTS string
+
+        Raises:
+            ValueError: lack of positive pattern/presence of negative pattern
+        """
+        positive = {
+            # atom mapping
+            r"\[.+:\d+\]": "No atom mapping in reaction SMARTS detected (e.g. '[#6:1]>>[#6:1]-[#8]').\n Please add it and try again.\n"
+        }
+
+        negative = {
+            # explicit hydrogens
+            r"\[H\]": "Explicit hydrogen atoms detected in reaction SMARTS (e.g. '[H]'), which is not allowed.\n Depicting chirality? Please specify the stereochemistry using one of the heavy (non-hydrogen) atoms connected to the stereocenter.\n",
+            # CXSMARTS
+            r"\|": "Reaction SMARTS with CXSMARTS (Chemaxon SMARTS) elements detected, which are not supported by MITE.\nCXSMARTS (aka 'Extended SMARTS') can be recognized with a suffix starting with a pipe character ('|').\n Please export as a Daylight SMARTS or remove the CXSMARTS suffix manually and try again.\n",
+        }
+
+        for key, val in positive.items():
+            if not re.search(key, smarts):
+                raise ValueError(f"{val}")
+
+        for key, val in negative.items():
+            if re.search(key, smarts):
+                raise ValueError(f"{val}")
+
 
 class ReactionEnumerator(BaseModel):
     """Handles enumeration of reactions and molecules."""
@@ -322,7 +354,10 @@ class ReactionValidator(BaseModel):
         if not expected_products:
             raise ValueError("At least one product must be specified")
 
+        self.reaction_cleaner.detect_undesired_smarts(reaction_smarts)
+
         reaction_smarts = self.reaction_cleaner.clean_ketcher_format(reaction_smarts)
+
         substrate_smiles = self.molecule_validator._clean_string(substrate_smiles)
 
         expected_smiles = {
@@ -336,7 +371,7 @@ class ReactionValidator(BaseModel):
         if overlap := forbidden_smiles & expected_smiles:
             raise ValueError(
                 f"Overlap between expected and forbidden products:\n"
-                f"{'\n'.join(overlap)}"
+                f"{'\n'.join(overlap)}\n"
             )
 
         # Generate reaction variants and validate
@@ -358,13 +393,13 @@ class ReactionValidator(BaseModel):
                 f"Expected products:\n"
                 f"{'\n'.join(expected_smiles)}\n"
                 f"Generated products:\n"
-                f"{'\n'.join(predicted_smiles)}"
+                f"{'\n'.join(predicted_smiles)}\n"
             )
 
         if overlap := forbidden_smiles & predicted_smiles:
             raise ValueError(
                 f"Reaction product(s) belong(s) to the specified forbidden product(s):\n"
-                f"{'\n'.join(overlap)}"
+                f"{'\n'.join(overlap)}\n"
             )
 
         logger.debug("Successfully validated reaction SMARTS")

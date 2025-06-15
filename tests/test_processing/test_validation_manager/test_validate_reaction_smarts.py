@@ -107,36 +107,6 @@ def test_validate_reaction_valid_composite_pass(_reaction_validator):
     assert result == None
 
 
-def test_validate_reaction_frequency_variation(_reaction_validator):
-    """Test when position variation"""
-    reaction_smarts = "[NH2:1][C@@H:2]([CH2:3][c:4]1[cH:5][n:6][c:7]2[cH:8][cH:9][cH:10][cH:11][c:12]12)[C:13]([OH:14])=[O:15].[ClH:16]>>[NH2:1][C@@H:2]([CH2:3][c:4]1[cH:5][nH:6][c:7]2[cH:8][cH:9][cH:10][c:11]([Cl:12])[c:13]12)[C:14]([OH:15])=[O:16] |r,Sg:n:2:1-2:ht|"  # Example SMARTS with frequency variation
-    substrate_smiles = "N[C@@H](Cc1c[nH]c2ccccc12)C(O)=O.Cl"
-    expected_products = [
-        "N[C@@H](Cc1c[nH]c2cccc(Cl)c12)C(O)=O",
-        "N[C@@H](CCc1c[nH]c2cccc(Cl)c12)C(O)=O",
-    ]
-    forbidden_products = []
-    result = _reaction_validator.validate_reaction(
-        reaction_smarts, substrate_smiles, expected_products, forbidden_products
-    )
-    assert result == None
-
-
-def test_validate_reaction_frequency_variation_unordered(_reaction_validator):
-    """Test when position variation"""
-    reaction_smarts = "[NH2:1][C@@H:2]([CH2:3][c:4]1[cH:5][n:6][c:7]2[cH:8][cH:9][cH:10][cH:11][c:12]12)[C:13]([OH:14])=[O:15].[ClH:16]>>[NH2:1][C@@H:2]([CH2:3][c:4]1[cH:5][nH:6][c:7]2[cH:8][cH:9][cH:10][c:11]([Cl:12])[c:13]12)[C:14]([OH:15])=[O:16] |r,Sg:n:2:1-2:ht|"  # Example SMARTS with frequency variation
-    substrate_smiles = "Cl.N[C@@H](Cc1c[nH]c2ccccc12)C(O)=O"
-    expected_products = [
-        "N[C@@H](Cc1c[nH]c2cccc(Cl)c12)C(O)=O",
-        "N[C@@H](CCc1c[nH]c2cccc(Cl)c12)C(O)=O",
-    ]
-    forbidden_products = []
-    result = _reaction_validator.validate_reaction(
-        reaction_smarts, substrate_smiles, expected_products, forbidden_products
-    )
-    assert result == None
-
-
 def test_validate_reaction_halogenation(_reaction_validator):
     """Test when multiple atoms allowed (halogenation)"""
     reaction_smarts = "[#7:1]-[#6:2](-[#6:3]-[c:4]1[c:5][nH1:6][c:7]2[c:8][c:9][c:10][c:11][c:12]12)-[#6:13](-[#8:14])=[O:15]>>[#7:1]-[#6:2](-[#6:3]-[c:4]1[c:5][nH1:6][c:7]2[c:8][c:9](-[#17,#35:10])[c:11][c:12][c:13]12)-[#6:14](-[#8:15])=[O:16]"  # Example SMARTS with Cl OR Br

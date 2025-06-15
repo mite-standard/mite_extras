@@ -47,7 +47,7 @@ def reaction(reactionex, evidence, reaction_databaseid):
     return Reaction(
         tailoring=["Hydrolysis"],
         description="A nonexistent reaction",
-        reactionSMARTS="[#6]-[#6]-[#6]>>[#6]-[#6]-[#6]-[#8]",
+        reactionSMARTS="[#6:1]-[#6:2]-[#6:3]>>[#6:1]-[#6:2]-[#6:3]-[#8]",
         reactions=[reactionex],
         evidence=evidence,
         databaseIds=reaction_databaseid,
