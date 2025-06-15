@@ -64,9 +64,8 @@ class Entry(BaseModel):
     def to_json(self: Self) -> dict:
         json_dict = {}
         for attr in ["accession", "status", "retirementReasons", "comment"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 json_dict[attr] = val
 
         if self.changelog is not None:
@@ -83,25 +82,7 @@ class Entry(BaseModel):
         return json_dict
 
     def to_html(self: Self) -> dict:
-        html_dict = {}
-        for attr in ["accession", "status", "retirementReasons", "comment"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
-                html_dict[attr] = val
-
-        if self.changelog is not None:
-            html_dict["changelog"] = [
-                changelog.to_json() for changelog in self.changelog
-            ]
-
-        if self.enzyme is not None:
-            html_dict["enzyme"] = self.enzyme.to_html()
-
-        if self.reactions is not None:
-            html_dict["reactions"] = [reaction.to_html() for reaction in self.reactions]
-
-        return html_dict
+        return self.to_json()
 
 
 class Changelog(BaseModel):
@@ -129,21 +110,12 @@ class Changelog(BaseModel):
 
     def to_json(self: Self) -> dict:
         return {
-            "version": self.version,
-            "date": self.date,
-            "contributors": self.contributors,
-            "reviewers": self.reviewers,
-            "comment": self.comment,
+            attr: getattr(self, attr)
+            for attr in ["version", "date", "contributors", "reviewers", "comment"]
         }
 
     def to_html(self: Self) -> dict:
-        return {
-            "version": self.version,
-            "date": self.date,
-            "contributors": self.contributors,
-            "reviewers": self.reviewers,
-            "comment": self.comment,
-        }
+        return self.to_json()
 
 
 class Enzyme(BaseModel):
@@ -179,7 +151,7 @@ class Enzyme(BaseModel):
 
         if self.databaseIds.to_json() == {}:
             raise RuntimeError(
-                "Provide at least one Enzyme Database ID cross-reference."
+                "At least one of 'uniprot' and 'genpept' IDs must be provided."
             )
         else:
             json_dict["databaseIds"] = self.databaseIds.to_json()
@@ -538,9 +510,8 @@ class ReactionEx(BaseModel):
             "isIntermediate",
             "description",
         ]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 html_dict[attr] = val
 
         html_dict["substrate"] = (self.substrate, _smiles_to_svg(self.substrate))
