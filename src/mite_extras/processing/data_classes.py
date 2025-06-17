@@ -68,21 +68,38 @@ class Entry(BaseModel):
             if val not in (None, ""):
                 json_dict[attr] = val
 
-        if self.changelog is not None:
+        if self.changelog:
             json_dict["changelog"] = [
                 changelog.to_json() for changelog in self.changelog
             ]
 
-        if self.enzyme is not None:
+        if self.enzyme:
             json_dict["enzyme"] = self.enzyme.to_json()
 
-        if self.reactions is not None:
+        if self.reactions:
             json_dict["reactions"] = [reaction.to_json() for reaction in self.reactions]
 
         return json_dict
 
     def to_html(self: Self) -> dict:
-        return self.to_json()
+        html_dict = {}
+        for attr in ["accession", "status", "retirementReasons", "comment"]:
+            val = getattr(self, attr)
+            if val not in (None, ""):
+                html_dict[attr] = val
+
+        if self.changelog:
+            html_dict["changelog"] = [
+                changelog.to_html() for changelog in self.changelog
+            ]
+
+        if self.enzyme:
+            html_dict["enzyme"] = self.enzyme.to_html()
+
+        if self.reactions:
+            html_dict["reactions"] = [reaction.to_html() for reaction in self.reactions]
+
+        return html_dict
 
 
 class Changelog(BaseModel):
@@ -144,7 +161,7 @@ class Enzyme(BaseModel):
             if val not in (None, ""):
                 json_dict[attr] = val
 
-        if self.auxiliaryEnzymes is not None:
+        if self.auxiliaryEnzymes:
             json_dict["auxiliaryEnzymes"] = [
                 entry.to_json() for entry in self.auxiliaryEnzymes
             ]
@@ -168,7 +185,7 @@ class Enzyme(BaseModel):
             if val not in (None, ""):
                 html_dict[attr] = val
 
-        if self.auxiliaryEnzymes is not None:
+        if self.auxiliaryEnzymes:
             html_dict["auxiliaryEnzymes"] = [
                 entry.to_html() for entry in self.auxiliaryEnzymes
             ]
@@ -372,7 +389,7 @@ class Reaction(BaseModel):
         json_dict["reactions"] = [entry.to_json() for entry in self.reactions]
         json_dict["evidence"] = self.evidence.to_json()
 
-        if self.databaseIds is not None and self.databaseIds.to_json() != {}:
+        if self.databaseIds and self.databaseIds.to_json() != {}:
             json_dict["databaseIds"] = self.databaseIds.to_json()
 
         return json_dict
@@ -398,9 +415,8 @@ class Reaction(BaseModel):
         html_dict = {}
 
         for attr in ["tailoring", "description"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 html_dict[attr] = val
 
         html_dict["reactionSMARTS"] = (
@@ -413,7 +429,7 @@ class Reaction(BaseModel):
         html_dict["evidenceCode"] = evidences["evidenceCode"]
         html_dict["references"] = evidences["references"]
 
-        if self.databaseIds is not None:
+        if self.databaseIds:
             html_dict["databaseIds"] = self.databaseIds.to_html()
 
         return html_dict
@@ -470,7 +486,7 @@ class ReactionEx(BaseModel):
             return self
 
         except Exception as e:
-            raise ValueError(f"Error cleaning SMILES: {e!s}") from e
+            raise ValueError(f"Error during SMILES cleanup: {e!s}") from e
 
     def to_json(self: Self) -> dict:
         json_dict = {}

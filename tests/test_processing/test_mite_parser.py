@@ -1,12 +1,7 @@
 import json
 
 import pytest
-from mite_extras.processing.data_classes import (
-    Changelog,
-    EnzymeAux,
-    Reaction,
-    ReactionEx,
-)
+from mite_extras.processing.data_classes import Cofactors, EnzymeAux, Reaction
 from mite_extras.processing.mite_parser import MiteParser
 from mite_schema import SchemaManager
 
@@ -15,6 +10,13 @@ from mite_schema import SchemaManager
 def mite_json():
     with open("tests/test_processing/example_indir_mite/example_valid.json") as infile:
         return json.load(infile)
+
+
+def test_get_cofactors(mite_json):
+    parser = MiteParser()
+    log = parser.get_cofactors(mite_json.get("enzyme").get("cofactors"))
+    assert isinstance(log, Cofactors)
+    assert log.inorganic == ["Fe"]
 
 
 def test_get_auxenzymes_valid(mite_json):
