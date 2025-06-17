@@ -29,12 +29,16 @@
             "genpept": "AAK83186.1",
             "mibig": "BGC0000026"
         },
+        "cofactors": {
+            "inorganic": ["Fe"]
+        },
         "auxiliaryEnzymes": [
             {
                 "name": "AbcD",
                 "description": "A nonexisting enzyme",
                 "databaseIds": {
-                    "uniprot": "Q93KV9"
+                    "uniprot": "Q93KV9",
+                    "wikidata": "Q1339"
                 }
             }
         ]
