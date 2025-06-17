@@ -10,8 +10,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 - Compatibility with `mite_schema` version `1.8.0`
-- Automated escaping of JSON backticks
-- Validation check for non-atom mapped reaction SMARTS
+- Higher tolerance to malformed JSON files with `json-repair`
+- Validation check for desired/undesired SMARTS patterns
+
+### Changed
+
+- Code cleanup
 
 ## [1.4.1] 13-02-2025
 
