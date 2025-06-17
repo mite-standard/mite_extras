@@ -1,4 +1,6 @@
 # PROJECT CUSTOM
+ain/
+aout/
 .idea/
 .ruff_cache/
 input/
