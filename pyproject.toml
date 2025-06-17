@@ -1,10 +1,6 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "mite_extras"
-version = "1.4.1"
+version = "1.5.0"
 description = "Parsing, conversion, and validation functionality for Minimum Information about a Tailoring Enzyme (MITE) files."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -28,19 +24,34 @@ classifiers = [
 dependencies = [
     "argparse~=1.4",
     "coloredlogs~=15.0",
+    "json-repair~=0.46",
     "jsonschema~=4.23",
-    "mite-schema==1.7.1",
+    "mite-schema==1.8.0",
     "pydantic~=2.8",
     "rdkit==2024.3.6",
     "requests~=2.32",
 ]
 
 [project.urls]
-Homepage = "https://github.com/mite-standard/mite_extras"
+Homepage = "https://mite.bioinformatics.nl/"
+Github = "https://github.com/mite-standard/mite_extras"
 Issues = "https://github.com/mite-standard/mite_extras/issues"
 
 [project.scripts]
 mite_extras = "mite_extras.main:main_cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.envs.default]
+installer = "uv"
+
+[tool.hatch.envs.dev]
+installer = "uv"
+features = [
+    "dev"
+]
 
 [project.optional-dependencies]
 dev = [
@@ -49,10 +60,6 @@ dev = [
     "ruff~=0.5"
 ]
 
-[tool.hatch.envs.dev]
-features = [
-    "dev"
-]
 
 [tool.hatch.build.targets.sdist]
 exclude = [

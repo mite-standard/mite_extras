@@ -28,6 +28,7 @@ from pydantic import BaseModel
 
 from mite_extras.processing.data_classes import (
     Changelog,
+    Cofactors,
     Entry,
     EnyzmeDatabaseIds,
     Enzyme,
@@ -61,10 +62,6 @@ class MiteParser(BaseModel):
         """
         if self.entry:
             return self.entry.to_json()
-        else:
-            raise RuntimeError(
-                "'MiteParser': function 'to_json()' called out of order."
-            )
 
     def to_html(self: Self) -> dict:
         """Prepare for export to html
@@ -74,89 +71,41 @@ class MiteParser(BaseModel):
         """
         if self.entry:
             return self.entry.to_html()
-        else:
-            raise RuntimeError(
-                "'MiteParser': function 'to_html()' called out of order."
-            )
 
     @staticmethod
-    def get_changelog(changelog: list) -> list:
-        """Extract changelog and converts into internal data structure
+    def get_cofactors(cofactors: dict | None) -> Cofactors | None:
+        """Parse enzyme-related cofactors info
 
         Args:
-            changelog: a list of changelog data
+            cofactors: a dict with cofactor info
 
         Returns:
-            A list of Changelog objects
+            An Cofactors object or None
         """
-        logger.debug("MiteParser: started creating Changelog object(s).")
-
-        log = []
-
-        for entry in changelog:
-            log.append(
-                Changelog(
-                    version=entry.get("version"),
-                    date=entry.get("date"),
-                    contributors=entry["contributors"],
-                    reviewers=entry["reviewers"],
-                    comment=entry["comment"],
-                )
-            )
-
-        logger.debug("MiteParser: completed creating Changelog object(s).")
-
-        return log
+        if isinstance(cofactors, dict):
+            return Cofactors(**cofactors)
 
     @staticmethod
-    def get_databaseids_enzyme(data: dict | None) -> EnyzmeDatabaseIds | None:
-        """Parse enzyme-related databaseids info
-
-        Args:
-            data: a dict with database ids
-
-        Returns:
-            An EnyzmeDatabaseIds object
-        """
-        if isinstance(data, dict):
-            return EnyzmeDatabaseIds(
-                mibig=data.get("mibig"),
-                uniprot=data.get("uniprot"),
-                genpept=data.get("genpept"),
-            )
-        else:
-            return None
-
-    def get_auxenzymes(self: Self, auxenzymes: list | None) -> list | None:
+    def get_auxenzymes(auxenzymes: list | None) -> list | None:
         """Extract auxiliary enzyme info and converts into internal data structure
 
         Args:
             auxenzymes: a list of auxiliary enzyme dicts
 
         Returns:
-            A list of EnzymeAux objects
+            A list of EnzymeAux objects or None
         """
-        if auxenzymes is None:
-            return None
+        if not auxenzymes:
+            return
 
-        logger.debug("MiteParser: started creating EnzymeAux object(s).")
-
-        log = []
-
-        for auxenz in auxenzymes:
-            log.append(
-                EnzymeAux(
-                    name=auxenz.get("name"),
-                    description=auxenz.get("description"),
-                    databaseIds=self.get_databaseids_enzyme(
-                        data=auxenz.get("databaseIds")
-                    ),
-                )
+        return [
+            EnzymeAux(
+                name=a.get("name"),
+                description=a.get("description"),
+                databaseIds=EnyzmeDatabaseIds(**a.get("databaseIds")),
             )
-
-        logger.debug("MiteParser: complete creating EnzymeAux object(s).")
-
-        return log
+            for a in auxenzymes
+        ]
 
     @staticmethod
     def get_databaseids_reaction(
@@ -171,38 +120,7 @@ class MiteParser(BaseModel):
             An ReactionDatabaseIds object
         """
         if isinstance(data, dict):
-            return ReactionDatabaseIds(rhea=data.get("rhea"), ec=data.get("ec"))
-        else:
-            return None
-
-    @staticmethod
-    def get_reactionex(reactions: list) -> list:
-        """Extract experimental reaction info, converts to internal data structure
-
-        Args:
-            reactions: a list of experimental reaction data
-
-        Returns:
-            A list of ReactionEx objects
-        """
-        logger.debug("MiteParser: started creating ReactionEx object(s).")
-
-        log = []
-
-        for reaction in reactions:
-            log.append(
-                ReactionEx(
-                    substrate=reaction.get("substrate"),
-                    products=reaction.get("products"),
-                    forbidden_products=reaction.get("forbidden_products"),
-                    isIntermediate=reaction.get("isIntermediate"),
-                    description=reaction.get("description"),
-                )
-            )
-
-        logger.debug("MiteParser: completed creating ReactionEx object(s).")
-
-        return log
+            return ReactionDatabaseIds(**data)
 
     def get_reactions(self: Self, reactions: list) -> list:
         """Extract reactions infor and converts into internal data structure
@@ -213,30 +131,20 @@ class MiteParser(BaseModel):
         Returns:
             A list of Reaction objects
         """
-        logger.debug("MiteParser: started creating Reaction object(s).")
-
-        log = []
-
-        for reaction in reactions:
-            log.append(
-                Reaction(
-                    tailoring=reaction.get("tailoring"),
-                    description=reaction.get("description"),
-                    reactionSMARTS=reaction.get("reactionSMARTS"),
-                    reactions=self.get_reactionex(reactions=reaction.get("reactions")),
-                    evidence=Evidence(
-                        evidenceCode=reaction.get("evidence", {}).get("evidenceCode"),
-                        references=reaction.get("evidence", {}).get("references"),
-                    ),
-                    databaseIds=self.get_databaseids_reaction(
-                        reaction.get("databaseIds")
-                    ),
-                )
+        return [
+            Reaction(
+                tailoring=rxn.get("tailoring"),
+                description=rxn.get("description"),
+                reactionSMARTS=rxn.get("reactionSMARTS"),
+                reactions=[ReactionEx(**r) for r in rxn.get("reactions")],
+                evidence=Evidence(
+                    evidenceCode=rxn.get("evidence", {}).get("evidenceCode"),
+                    references=rxn.get("evidence", {}).get("references"),
+                ),
+                databaseIds=self.get_databaseids_reaction(rxn.get("databaseIds")),
             )
-
-        logger.debug("MiteParser: completed creating Reaction object(s).")
-
-        return log
+            for rxn in reactions
+        ]
 
     def parse_mite_json(self: Self, data: dict):
         """Parse data from mite-formatted json dict
@@ -247,25 +155,29 @@ class MiteParser(BaseModel):
 
         logger.debug("MiteParser: started creating Entry object.")
 
-        self.entry = Entry(
-            accession=data.get("accession"),
-            status=data.get("status"),
-            retirementReasons=data.get("retirementReasons"),
-            changelog=self.get_changelog(changelog=data.get("changelog")),
-            enzyme=Enzyme(
-                name=data.get("enzyme", {}).get("name"),
-                description=data.get("enzyme", {}).get("description"),
-                databaseIds=self.get_databaseids_enzyme(
-                    data=data.get("enzyme", {}).get("databaseIds")
+        try:
+            self.entry = Entry(
+                accession=data.get("accession"),
+                status=data.get("status"),
+                retirementReasons=data.get("retirementReasons"),
+                changelog=[Changelog(**val) for val in data["changelog"]],
+                enzyme=Enzyme(
+                    name=data["enzyme"]["name"],
+                    description=data.get("enzyme", {}).get("description"),
+                    databaseIds=EnyzmeDatabaseIds(**data["enzyme"]["databaseIds"]),
+                    auxiliaryEnzymes=self.get_auxenzymes(
+                        auxenzymes=data.get("enzyme", {}).get("auxiliaryEnzymes")
+                    ),
+                    references=data.get("enzyme", {}).get("references"),
+                    cofactors=self.get_cofactors(
+                        cofactors=data.get("enzyme", {}).get("cofactors")
+                    ),
                 ),
-                auxiliaryEnzymes=self.get_auxenzymes(
-                    auxenzymes=data.get("enzyme", {}).get("auxiliaryEnzymes")
-                ),
-                references=data.get("enzyme", {}).get("references"),
-            ),
-            reactions=self.get_reactions(reactions=data.get("reactions")),
-            comment=data.get("comment"),
-            attachments=data.get("attachments"),
-        )
+                reactions=self.get_reactions(reactions=data.get("reactions")),
+                comment=data.get("comment"),
+            )
+        except Exception as e:
+            msg = str(e).split("For further information visit")[0].rstrip()
+            raise ValueError(msg) from e
 
         logger.debug("MiteParser: completed creating Entry object.")

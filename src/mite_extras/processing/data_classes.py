@@ -64,20 +64,19 @@ class Entry(BaseModel):
     def to_json(self: Self) -> dict:
         json_dict = {}
         for attr in ["accession", "status", "retirementReasons", "comment"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 json_dict[attr] = val
 
-        if self.changelog is not None:
+        if self.changelog:
             json_dict["changelog"] = [
                 changelog.to_json() for changelog in self.changelog
             ]
 
-        if self.enzyme is not None:
+        if self.enzyme:
             json_dict["enzyme"] = self.enzyme.to_json()
 
-        if self.reactions is not None:
+        if self.reactions:
             json_dict["reactions"] = [reaction.to_json() for reaction in self.reactions]
 
         return json_dict
@@ -85,20 +84,19 @@ class Entry(BaseModel):
     def to_html(self: Self) -> dict:
         html_dict = {}
         for attr in ["accession", "status", "retirementReasons", "comment"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 html_dict[attr] = val
 
-        if self.changelog is not None:
+        if self.changelog:
             html_dict["changelog"] = [
-                changelog.to_json() for changelog in self.changelog
+                changelog.to_html() for changelog in self.changelog
             ]
 
-        if self.enzyme is not None:
+        if self.enzyme:
             html_dict["enzyme"] = self.enzyme.to_html()
 
-        if self.reactions is not None:
+        if self.reactions:
             html_dict["reactions"] = [reaction.to_html() for reaction in self.reactions]
 
         return html_dict
@@ -129,21 +127,12 @@ class Changelog(BaseModel):
 
     def to_json(self: Self) -> dict:
         return {
-            "version": self.version,
-            "date": self.date,
-            "contributors": self.contributors,
-            "reviewers": self.reviewers,
-            "comment": self.comment,
+            attr: getattr(self, attr)
+            for attr in ["version", "date", "contributors", "reviewers", "comment"]
         }
 
     def to_html(self: Self) -> dict:
-        return {
-            "version": self.version,
-            "date": self.date,
-            "contributors": self.contributors,
-            "reviewers": self.reviewers,
-            "comment": self.comment,
-        }
+        return self.to_json()
 
 
 class Enzyme(BaseModel):
@@ -155,6 +144,7 @@ class Enzyme(BaseModel):
         databaseIds: an EnzymeDatabaseIds object
         auxiliaryEnzymes: a list of EnzymeAux objects
         references: a list of references
+        cofactors: optional object containing cofactor lists
     """
 
     name: str
@@ -162,46 +152,48 @@ class Enzyme(BaseModel):
     databaseIds: Any
     auxiliaryEnzymes: list | None = None
     references: list
+    cofactors: Any | None = None
 
     def to_json(self: Self) -> dict:
         json_dict = {}
         for attr in ["name", "description", "references"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 json_dict[attr] = val
+
+        if self.auxiliaryEnzymes:
+            json_dict["auxiliaryEnzymes"] = [
+                entry.to_json() for entry in self.auxiliaryEnzymes
+            ]
 
         if self.databaseIds.to_json() == {}:
             raise RuntimeError(
-                "Provide at least one Enzyme Database ID cross-reference."
+                "At least one of 'uniprot' and 'genpept' IDs must be provided."
             )
         else:
             json_dict["databaseIds"] = self.databaseIds.to_json()
 
-        if self.auxiliaryEnzymes is not None:
-            json_dict["auxiliaryEnzymes"] = [
-                entry.to_json() for entry in self.auxiliaryEnzymes
-            ]
+        if self.cofactors and self.cofactors.to_json():
+            json_dict["cofactors"] = self.cofactors.to_json()
 
         return json_dict
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-        for attr in ["name", "description"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+        for attr in ["name", "description", "references"]:
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 html_dict[attr] = val
 
-        html_dict["databaseIds"] = self.databaseIds.to_html()
-
-        if self.auxiliaryEnzymes is not None:
+        if self.auxiliaryEnzymes:
             html_dict["auxiliaryEnzymes"] = [
                 entry.to_html() for entry in self.auxiliaryEnzymes
             ]
 
-        if self.references is not None:
-            html_dict["references"] = self.references
+        html_dict["databaseIds"] = self.databaseIds.to_html()
+
+        if self.cofactors and self.cofactors.to_html():
+            html_dict["cofactors"] = self.cofactors.to_html()
 
         return html_dict
 
@@ -222,9 +214,8 @@ class EnzymeAux(BaseModel):
     def to_json(self: Self) -> dict:
         json_dict = {}
         for attr in ["name", "description"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 json_dict[attr] = val
 
         if self.databaseIds.to_json() != {}:
@@ -235,9 +226,8 @@ class EnzymeAux(BaseModel):
     def to_html(self: Self) -> dict:
         html_dict = {}
         for attr in ["name", "description"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 html_dict[attr] = val
 
         html_dict["databaseIds"] = self.databaseIds.to_html()
@@ -254,23 +244,29 @@ class EnyzmeDatabaseIds(BaseModel):
         uniprot: a UniProt ID
         genpept: an NCBI GenPept ID
         mibig: a MIBiG ID
+        wikidata: a wikidata qid reference
     """
 
     uniprot: str | None = None
     genpept: str | None = None
     mibig: str | None = None
+    wikidata: str | None = None
 
     _id_validator = IdValidator()
 
     @model_validator(mode="after")
-    def populate_ids(self):
+    def validate_ids(self):
         """Cross-reference and populate database IDs using IdValidator.
 
         Checks if genpept and uniprot IDs correspond
         If only one ID is provided, fetches the other
+        Checks if wikidata QID exists
+
+        Raises:
+            ValueError: did not provide one of uniprot or genpept IDs
         """
-        if not (self.uniprot or self.genpept):
-            return self
+        if not self.genpept and not self.uniprot:
+            raise ValueError("Neither 'UniProt' not 'GenPept' IDs provided.")
 
         try:
             if self.uniprot and self.genpept:
@@ -283,31 +279,28 @@ class EnyzmeDatabaseIds(BaseModel):
             elif self.genpept:
                 data = self._id_validator.cleanup_ids(genpept=self.genpept)
                 self.uniprot = data["uniprot"]
-
         except Exception as e:
             logger.warning(f"EnyzmeDatabaseIds: error during ID validation: {e!s}")
+
+        try:
+            if self.wikidata:
+                self._id_validator.validate_wikidata_qid(self.wikidata)
+        except Exception as e:
+            logger.error(f"EnyzmeDatabaseIds: error during ID validation: {e!s}")
+            raise e from Exception
 
         return self
 
     def to_json(self: Self) -> dict:
         json_dict = {}
-        for attr in ["uniprot", "genpept", "mibig"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+        for attr in ["uniprot", "genpept", "mibig", "wikidata"]:
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 json_dict[attr] = val
         return json_dict
 
     def to_html(self: Self) -> dict:
-        html_dict = {}
-        if self.uniprot and self.uniprot != "":
-            html_dict["uniprot"] = self.uniprot
-        if self.genpept and self.genpept != "":
-            html_dict["genpept"] = self.genpept
-        if self.mibig and self.mibig != "":
-            html_dict["mibig"] = self.mibig
-
-        return html_dict
+        return self.to_json()
 
 
 class Reaction(BaseModel):
@@ -388,16 +381,15 @@ class Reaction(BaseModel):
         json_dict = {}
 
         for attr in ["tailoring", "description"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 json_dict[attr] = val
 
         json_dict["reactionSMARTS"] = self.reactionSMARTS
         json_dict["reactions"] = [entry.to_json() for entry in self.reactions]
         json_dict["evidence"] = self.evidence.to_json()
 
-        if self.databaseIds is not None and self.databaseIds.to_json() != {}:
+        if self.databaseIds and self.databaseIds.to_json() != {}:
             json_dict["databaseIds"] = self.databaseIds.to_json()
 
         return json_dict
@@ -423,9 +415,8 @@ class Reaction(BaseModel):
         html_dict = {}
 
         for attr in ["tailoring", "description"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 html_dict[attr] = val
 
         html_dict["reactionSMARTS"] = (
@@ -438,7 +429,7 @@ class Reaction(BaseModel):
         html_dict["evidenceCode"] = evidences["evidenceCode"]
         html_dict["references"] = evidences["references"]
 
-        if self.databaseIds is not None:
+        if self.databaseIds:
             html_dict["databaseIds"] = self.databaseIds.to_html()
 
         return html_dict
@@ -495,7 +486,7 @@ class ReactionEx(BaseModel):
             return self
 
         except Exception as e:
-            raise ValueError(f"SMILES validation failed: {e!s}") from e
+            raise ValueError(f"Error during SMILES cleanup: {e!s}") from e
 
     def to_json(self: Self) -> dict:
         json_dict = {}
@@ -507,9 +498,8 @@ class ReactionEx(BaseModel):
             "isIntermediate",
             "description",
         ]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 json_dict[attr] = val
 
         return json_dict
@@ -539,9 +529,8 @@ class ReactionEx(BaseModel):
             "isIntermediate",
             "description",
         ]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 html_dict[attr] = val
 
         html_dict["substrate"] = (self.substrate, _smiles_to_svg(self.substrate))
@@ -570,22 +559,13 @@ class ReactionDatabaseIds(BaseModel):
     def to_json(self: Self) -> dict:
         json_dict = {}
         for attr in ["rhea", "ec"]:
-            if (val := getattr(self, attr)) is not None and (
-                val := getattr(self, attr)
-            ) != "":
+            val = getattr(self, attr)
+            if val not in (None, ""):
                 json_dict[attr] = val
         return json_dict
 
     def to_html(self: Self) -> dict:
-        html_dict = {}
-
-        if self.rhea and self.rhea != "":
-            html_dict["rhea"] = self.rhea
-
-        if self.ec and self.ec != "":
-            html_dict["ec"] = self.ec
-
-        return html_dict
+        return self.to_json()
 
 
 class Evidence(BaseModel):
@@ -603,4 +583,27 @@ class Evidence(BaseModel):
         return {"evidenceCode": self.evidenceCode, "references": self.references}
 
     def to_html(self: Self) -> dict:
-        return {"evidenceCode": self.evidenceCode, "references": self.references}
+        return self.to_json()
+
+
+class Cofactors(BaseModel):
+    """Pydantic-based class representing cofactor information
+
+    Attributes:
+        organic: a list of organic cofactors
+        inorganic: a list of inorganic cofactors
+    """
+
+    organic: list | None = None
+    inorganic: list | None = None
+
+    def to_json(self: Self) -> dict:
+        json_dict = {}
+        for attr in ["organic", "inorganic"]:
+            val = getattr(self, attr)
+            if val not in (None, []):
+                json_dict[attr] = val
+        return json_dict
+
+    def to_html(self: Self) -> dict:
+        return self.to_json()
