@@ -241,7 +241,7 @@ class ReactionCleaner(BaseModel):
     def detect_undesired_smarts(smarts: str):
         """Check for undesired pattern in reaction SMARTS
 
-        positive checks for presence (must detect), negative for absence (must not detect)
+        negative for absence (must not detect)
 
         Args:
             smarts: reaction SMARTS string
@@ -249,10 +249,6 @@ class ReactionCleaner(BaseModel):
         Raises:
             ValueError: lack of positive pattern/presence of negative pattern
         """
-        positive = {
-            # atom mapping
-            r"\[.+:\d+\]": "No atom mapping in reaction SMARTS detected (e.g. '[#6:1]>>[#6:1]-[#8]').\n Please add it and try again.\n"
-        }
 
         negative = {
             # explicit hydrogens
@@ -260,10 +256,6 @@ class ReactionCleaner(BaseModel):
             # CXSMARTS
             r"\|": "Reaction SMARTS with CXSMARTS (Chemaxon SMARTS) elements detected, which are not supported by MITE.\nCXSMARTS (aka 'Extended SMARTS') can be recognized with a suffix starting with a pipe character ('|').\n Please export as a Daylight SMARTS or remove the CXSMARTS suffix manually and try again.\n",
         }
-
-        for key, val in positive.items():
-            if not re.search(key, smarts):
-                raise ValueError(f"{val}")
 
         for key, val in negative.items():
             if re.search(key, smarts):
