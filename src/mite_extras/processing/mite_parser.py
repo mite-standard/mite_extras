@@ -178,6 +178,7 @@ class MiteParser(BaseModel):
             )
         except Exception as e:
             msg = str(e).split("For further information visit")[0].rstrip()
+            msg = f"Error in parsing entry {data.get("accession")}: {msg}"
             raise ValueError(msg) from e
 
         logger.debug("MiteParser: completed creating Entry object.")

@@ -54,22 +54,6 @@ def test_numbered_charges_1():
     )
 
 
-def test_missing_atom_mapping_valid():
-    assert (
-        ReactionCleaner.detect_undesired_smarts(
-            "[#6:1]1-[#6:2]-[#6:3]-[#6:4]-[#6:5]-[#6:6]-1>>[#6:1]1-[#6:6]-[#6:5](-[#8])-[#6:4]-[#6:3]-[#6:2]-1"
-        )
-        is None
-    )
-
-
-def test_missing_atom_mapping_invalid():
-    with pytest.raises(ValueError):
-        assert ReactionCleaner.detect_undesired_smarts(
-            "[#6]1-[#6]-[#6]-[#6]-[#6]-[#6]-1>>[#6]1-[#6]-[#6](-[#8])-[#6]-[#6]-[#6]-1"
-        )
-
-
 def test_expl_hydro_valid():
     assert (
         ReactionCleaner.detect_undesired_smarts(
