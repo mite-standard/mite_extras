@@ -132,7 +132,7 @@ def test_reactionex_to_json_valid(reactionex):
 
 def test_reactionex_to_html_valid(reactionex):
     html_dict = reactionex.to_html()
-    assert html_dict["substrate"][0] == "CCC"
+    assert html_dict["substrate"][0][0] == "CCC"
 
 
 def test_cofactor_to_json_valid(cofactors):

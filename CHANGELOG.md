@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] 28-08-2025
+
+### Changed
+
+- In html_json generation, changed substrate from tuple to list of tuples to visualize substrates separately
+- Changed Wikidata QID checking from raise errror to log warning (frequent 403 errors)
+
 ## [1.5.1] 26-07-2025
 
 ### Fixed
