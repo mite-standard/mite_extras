@@ -533,7 +533,15 @@ class ReactionEx(BaseModel):
             if val not in (None, ""):
                 html_dict[attr] = val
 
-        html_dict["substrate"] = (self.substrate, _smiles_to_svg(self.substrate))
+        try:
+            html_dict["substrate"] = [
+                (mol, _smiles_to_svg(mol)) for mol in self.substrate.split(".")
+            ]
+        except Exception as e:
+            logger.warning(
+                f"Error during splitting substrate SMILES for rendering: {e!s}"
+            )
+            html_dict["substrate"] = [(self.substrate, _smiles_to_svg(self.substrate))]
 
         html_dict["products"] = [(mol, _smiles_to_svg(mol)) for mol in self.products]
 

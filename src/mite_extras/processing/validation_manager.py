@@ -146,9 +146,6 @@ class IdValidator(BaseModel):
 
         Args:
             qid: a valid Wikidata QID
-
-        Raises:
-            ValueError: Wikidata QUI does not exist
         """
 
         def build_query(qid: str) -> str:
@@ -158,7 +155,7 @@ class IdValidator(BaseModel):
             }}
             """
 
-        def fetch_result(query: str) -> str:
+        def fetch_result(query: str) -> str | bool:
             response = requests.get(
                 "https://query.wikidata.org/sparql",
                 params={"query": query},
@@ -166,16 +163,16 @@ class IdValidator(BaseModel):
                 timeout=pi,
             )
             if not response.ok:
-                raise ValueError(
+                logger.warning(
                     f"HTTP Error while querying Wikidata: {response.status_code}"
                 )
+                return False
+
             data = response.json()
             return data.get("boolean")
 
         if not fetch_result(query=build_query(qid=qid)):
-            raise ValueError(
-                f"Wikidata QID '{qid}' does not exist or has no statements."
-            )
+            logger.warning(f"Wikidata QID '{qid}' does not exist or has no statements.")
 
 
 class MoleculeValidator(BaseModel):

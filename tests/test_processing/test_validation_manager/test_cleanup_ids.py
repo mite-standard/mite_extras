@@ -123,9 +123,4 @@ def test_cleanup_ids_invalid(mock_get):
 
 
 def test_validate_wikidata_qid_valid():
-    assert IdValidator().validate_wikidata_qid(qid="Q35610") is None
-
-
-def test_validate_wikidata_qid_invalid():
-    with pytest.raises(ValueError):
-        IdValidator().validate_wikidata_qid(qid="asdfg")
+    assert IdValidator().validate_wikidata_qid(qid="Q1339") is None
