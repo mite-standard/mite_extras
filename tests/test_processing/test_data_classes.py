@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 from mite_extras.processing.data_classes import (
     Changelog,
@@ -220,3 +222,12 @@ def test_entry_to_json_valid(entry):
 def test_entry_to_html_valid(entry):
     html_dict = entry.to_html()
     assert html_dict["status"] == "pending"
+
+
+def test_empty_changelog_valid(entry):
+    empty_changelog = deepcopy(entry)
+    empty_changelog.changelog = []
+    json_dict = empty_changelog.to_json()
+    html_dict = empty_changelog.to_html()
+    assert json_dict["changelog"] == []
+    assert html_dict["changelog"] == []

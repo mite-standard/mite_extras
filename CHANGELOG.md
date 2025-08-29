@@ -5,11 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.2] 29-08-2025
+
+### Changed
+
+- `to_json()` and `to_html()` return changelog even if it is an empty list (compatibility with mite_web data submission)
+
 ## [1.6.1] 29-08-2025
 
 ### Changed
 
-- Unpinned version of dependency of `mite_schema` to facilitate maintenance (should always pull newest release)
+- Unpinned version of dependency of `mite_schema` to facilitate maintenance (should always pull the newest release)
 
 ## [1.6.0] 28-08-2025
 

@@ -56,7 +56,7 @@ class Entry(BaseModel):
     accession: str | None = None
     status: str | None = None
     retirementReasons: list[str] | None = None
-    changelog: list[Any] | None = None
+    changelog: list | None = None
     enzyme: Any | None = None
     reactions: list[Any] | None = None
     comment: str | None = None
@@ -68,7 +68,7 @@ class Entry(BaseModel):
             if val not in (None, ""):
                 json_dict[attr] = val
 
-        if self.changelog:
+        if self.changelog is not None:
             json_dict["changelog"] = [
                 changelog.to_json() for changelog in self.changelog
             ]
@@ -88,7 +88,7 @@ class Entry(BaseModel):
             if val not in (None, ""):
                 html_dict[attr] = val
 
-        if self.changelog:
+        if self.changelog is not None:
             html_dict["changelog"] = [
                 changelog.to_html() for changelog in self.changelog
             ]
