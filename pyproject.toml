@@ -1,6 +1,6 @@
 [project]
 name = "mite_extras"
-version = "1.6.0"
+version = "1.6.1"
 description = "Parsing, conversion, and validation functionality for Minimum Information about a Tailoring Enzyme (MITE) files."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -26,7 +26,7 @@ dependencies = [
     "coloredlogs~=15.0",
     "json-repair~=0.46",
     "jsonschema~=4.23",
-    "mite-schema==1.8.0",
+    "mite-schema",
     "pydantic~=2.8",
     "rdkit==2024.3.6",
     "requests~=2.32",
