@@ -24,11 +24,11 @@ classifiers = [
 dependencies = [
     "argparse~=1.4",
     "coloredlogs~=15.0",
-    "json-repair~=0.46",
-    "jsonschema~=4.23",
+    "json-repair~=0.51",
+    "jsonschema~=4.25",
     "mite-schema",
-    "pydantic~=2.8",
-    "rdkit==2024.3.6",
+    "pydantic~=2.11",
+    "rdkit==2025.3.6",
     "requests~=2.32",
 ]
 
@@ -55,9 +55,9 @@ features = [
 
 [project.optional-dependencies]
 dev = [
-    "pre-commit~=3.4",
-    "pytest~=7.4",
-    "ruff~=0.5"
+    "pre-commit~=4.3",
+    "pytest~=8.4",
+    "ruff~=0.13"
 ]
 
 
