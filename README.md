@@ -24,12 +24,12 @@ For more information, see the README of the [MITE-Standard organisation page](ht
 
 - Install with `pip install mite_extras`
 
-### With `hatch` from GitHub
+### With `uv` from GitHub
 
 - Install `python 3.12.x`
-- Install hatch (e.g. with `pipx install hatch`)
+- Install uv (e.g. with `curl -LsSf https://astral.sh/uv/install.sh | sh`)
 - Download or clone the [repository](https://github.com/mmzdouc/mite_extras)
-- Run `hatch -v env create`
+- Run `uv sync`
 
 ## Quick Start: Example
 
@@ -39,16 +39,15 @@ To validate MITE entries or update them to a new schema version (requires `mite_
 
 - `mite_extras -i <input/> -o <output/>`
 
-### Run with `hatch`:
+### Run with `uv`:
 
 Validate MITE entries or update them to a new schema version
 
-- `hatch run mite_extras -i input/ -o output/`
+- `uv run mite_extras -i input/ -o output/`
 
 ## For devs
 
-- Install developer dependencies with `hatch -v env create dev`
-- Initialize `pre-commit` with `hatch run dev:pre-commit install`
-- Run tests with `hatch run dev:pytest`
-- Run CLI with `hatch run dev:mite_extras` and the appropriate options
-- If necessary, remove the environment again with `hatch env remove dev`
+- Install developer dependencies with `uv sync --extra dev`
+- Initialize `pre-commit` with `uv run pre-commit install`
+- Run tests with `uv run pytest`
+- Run CLI with `uv run mite_extras` and the appropriate options
