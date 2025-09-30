@@ -373,7 +373,7 @@ class Reaction(BaseModel):
                 )
             except Exception as e:
                 raise ValueError(
-                    f"Reaction '{reaction_id}' ({reaction}): Validation failed for substrate {reaction.substrate}: {e!s}"
+                    f"Reaction SMARTS #{reaction_id} - reaction example #{reaction}: Validation failed for substrate {reaction.substrate}: {e!s}"
                 ) from e
         return self
 
