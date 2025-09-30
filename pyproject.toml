@@ -1,6 +1,6 @@
 [project]
 name = "mite_extras"
-version = "1.6.2"
+version = "1.6.3"
 description = "Parsing, conversion, and validation functionality for Minimum Information about a Tailoring Enzyme (MITE) files."
 readme = "README.md"
 requires-python = ">=3.12.0,<3.13.0" # because of rdkit 2024
@@ -24,10 +24,10 @@ classifiers = [
 dependencies = [
     "argparse~=1.4",
     "coloredlogs~=15.0",
-    "json-repair~=0.46",
-    "jsonschema~=4.23",
+    "json-repair~=0.51",
+    "jsonschema~=4.25",
     "mite-schema",
-    "pydantic~=2.8",
+    "pydantic~=2.11",
     "rdkit==2024.3.6",
     "requests~=2.32",
 ]
@@ -46,9 +46,9 @@ build-backend = "hatchling.build"
 
 [project.optional-dependencies]
 dev = [
-    "pre-commit~=3.4",
-    "pytest~=7.4",
-    "ruff~=0.5"
+    "pre-commit~=4.3",
+    "pytest~=8.4",
+    "ruff~=0.13"
 ]
 
 [tool.pytest.ini_options]
