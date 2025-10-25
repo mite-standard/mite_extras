@@ -9,7 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-- Failed lookup to Wikidata raises warning, not error
+- Missing/wrong Wikidata QID does not raise error, only logs warning (matches genpept/uniprot behavior)
 
 ## [1.6.3] 30-09-2025
 

@@ -147,6 +147,9 @@ class IdValidator(BaseModel):
 
         Args:
             qid: a valid Wikidata QID
+
+        Raises:
+            ValueError: Wikidata QID invalid or could not be retrieved
         """
 
         def build_query(qid: str) -> str:
@@ -173,7 +176,9 @@ class IdValidator(BaseModel):
             return data.get("boolean")
 
         if not fetch_result(query=build_query(qid=qid)):
-            logger.warning(f"Wikidata QID '{qid}' does not exist or has no statements.")
+            raise ValueError(
+                f"Wikidata QID '{qid}' does not exist or has no statements."
+            )
 
 
 class MoleculeValidator(BaseModel):
