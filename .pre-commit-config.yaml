@@ -4,6 +4,10 @@ repos:
   rev: v4.4.0
   hooks:
     - id: check-yaml
+- repo: https://github.com/astral-sh/uv-pre-commit
+  rev: 0.9.5
+  hooks:
+    - id: uv-lock
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.5.0
   hooks:
@@ -12,6 +16,11 @@ repos:
     - id: ruff-format
 - repo: local
   hooks:
+    - id: uv-upgrade
+      name: uv-upgrade
+      pass_filenames: false
+      entry: uv lock --upgrade
+      language: system
     - id: pytest
       name: pytest
       entry: uv run pytest
