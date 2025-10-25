@@ -280,14 +280,13 @@ class EnyzmeDatabaseIds(BaseModel):
                 data = self._id_validator.cleanup_ids(genpept=self.genpept)
                 self.uniprot = data["uniprot"]
         except Exception as e:
-            logger.warning(f"EnyzmeDatabaseIds: error during ID validation: {e!s}")
+            logger.warning(f"EnzymeDatabaseIds: error during ID validation: {e!s}")
 
         try:
             if self.wikidata:
                 self._id_validator.validate_wikidata_qid(self.wikidata)
         except Exception as e:
-            logger.error(f"EnyzmeDatabaseIds: error during ID validation: {e!s}")
-            raise e from Exception
+            logger.warning(f"EnzymeDatabaseIds: error during ID validation: {e!s}")
 
         return self
 

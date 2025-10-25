@@ -49,8 +49,9 @@ logger = logging.getLogger("mite_extras")
 class IdValidator(BaseModel):
     """Handles validation and cross-referencing of database identifiers."""
 
+    @staticmethod
     def cleanup_ids(
-        self, genpept: str | None = None, uniprot: str | None = None
+        genpept: str | None = None, uniprot: str | None = None
     ) -> dict[str, str]:
         """Cleans up IDs using the UniProt SPARQL endpoint.
 

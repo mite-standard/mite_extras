@@ -9,7 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-- Failed lookup to UniProt/NCBI GenPept raises warning, not error
+- Failed lookup to Wikidata raises warning, not error
 
 ## [1.6.3] 30-09-2025
 
