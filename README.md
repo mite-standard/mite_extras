@@ -75,7 +75,7 @@ See [CITATION.cff](CITATION.cff) or [MITE online](https://mite.bioinformatics.nl
 
 ### Acknowledgements
 
-This work was supported by the Netherlands Organization for Scientific Research (NOW) KIC grant KICH1.LWV04.21.013.
+This work was supported by the Netherlands Organization for Scientific Research (NWO) KIC grant KICH1.LWV04.21.013.
 
 ## For Developers
 
