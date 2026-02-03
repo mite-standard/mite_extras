@@ -51,7 +51,8 @@ class IdValidator(BaseModel):
 
     @staticmethod
     def cleanup_ids(
-        genpept: str | None = None, uniprot: str | None = None
+        genpept: str | None = None,
+        uniprot: str | None = None,
     ) -> dict[str, str]:
         """Cleans up IDs using the UniProt SPARQL endpoint.
 
@@ -77,7 +78,7 @@ class IdValidator(BaseModel):
             )
             if not response.ok:
                 raise ValueError(
-                    f"HTTP Error while querying Uniprot: {response.status_code}"
+                    f"HTTP Error while querying Uniprot: {response.status_code}",
                 )
 
             response_json = response.json()
@@ -89,7 +90,7 @@ class IdValidator(BaseModel):
             protein_data = bindings[0].get("protein")
             if not protein_data or "value" not in protein_data:
                 raise ValueError(
-                    "'protein' key or its 'value' is missing in the Uniprot response"
+                    "'protein' key or its 'value' is missing in the Uniprot response",
                 )
 
             protein_uri = protein_data["value"]
@@ -101,7 +102,7 @@ class IdValidator(BaseModel):
             PREFIX up: <http://purl.uniprot.org/core/>
             SELECT ?protein
             WHERE {{
-                VALUES ?target {{<http://purl.uniprot.org/embl-cds/{genpept}>}} 
+                VALUES ?target {{<http://purl.uniprot.org/embl-cds/{genpept}>}}
                 ?protein a up:Protein .
                 ?protein rdfs:seeAlso ?target.
             }}
@@ -130,7 +131,7 @@ class IdValidator(BaseModel):
 
             if genpept and uniprot and genpept_result != uniprot:
                 raise ValueError(
-                    f"The provided Genpept ID '{genpept}' and Uniprot ID '{uniprot}' do not correspond to each other!"
+                    f"The provided Genpept ID '{genpept}' and Uniprot ID '{uniprot}' do not correspond to each other!",
                 )
 
             return {
@@ -168,7 +169,7 @@ class IdValidator(BaseModel):
             )
             if not response.ok:
                 logger.warning(
-                    f"HTTP Error while querying Wikidata: {response.status_code}"
+                    f"HTTP Error while querying Wikidata: {response.status_code}",
                 )
                 return False
 
@@ -177,7 +178,7 @@ class IdValidator(BaseModel):
 
         if not fetch_result(query=build_query(qid=qid)):
             raise ValueError(
-                f"Wikidata QID '{qid}' does not exist or has no statements."
+                f"Wikidata QID '{qid}' does not exist or has no statements.",
             )
 
 
@@ -196,7 +197,7 @@ class MoleculeValidator(BaseModel):
         mol = MolFromSmiles(self._clean_string(smiles))
         if mol is None:
             raise ValueError(
-                f"RDKit rejected SMILES string - is it a valid SMILES?\n" f"{smiles}"
+                f"RDKit rejected SMILES string - is it a valid SMILES?\n{smiles}",
             )
         for atom in mol.GetAtoms():
             atom.SetAtomMapNum(0)
@@ -207,7 +208,7 @@ class MoleculeValidator(BaseModel):
         mol = MolFromSmarts(self._clean_string(smarts))
         if mol is None:
             raise ValueError(
-                f"RDKit rejected SMARTS string - is it a valid pattern?\n" f"{smarts}"
+                f"RDKit rejected SMARTS string - is it a valid pattern?\n{smarts}",
             )
         for i, atom in enumerate(mol.GetAtoms()):
             atom.SetAtomMapNum(i)
@@ -290,7 +291,7 @@ class ReactionEnumerator(BaseModel):
         mol = MolFromSmarts(smarts)
         if mol is None:
             raise ValueError(
-                f"RDKit rejected SMARTS string - is it a valid pattern?\n" f"{smarts}"
+                f"RDKit rejected SMARTS string - is it a valid pattern?\n{smarts}",
             )
         enumerated_mols = self.enumerate_molecule(mol)
         return {MolToSmarts(m) for m in enumerated_mols if m is not None}
@@ -366,13 +367,15 @@ class ReactionValidator(BaseModel):
         if overlap := forbidden_smiles & expected_smiles:
             raise ValueError(
                 f"Overlap between expected and forbidden products:\n"
-                f"{'\n'.join(overlap)}\n"
+                f"{'\n'.join(overlap)}\n",
             )
 
         # Generate reaction variants and validate
         reactions = self._get_reaction_variants(reaction_smarts)
         predicted_products = self._run_reactions(
-            reactions, substrate_smiles, intramolecular
+            reactions,
+            substrate_smiles,
+            intramolecular,
         )
 
         # Validate predictions
@@ -388,13 +391,13 @@ class ReactionValidator(BaseModel):
                 f"Expected products:\n"
                 f"{'\n'.join(expected_smiles)}\n"
                 f"Generated products:\n"
-                f"{'\n'.join(predicted_smiles)}\n"
+                f"{'\n'.join(predicted_smiles)}\n",
             )
 
         if overlap := forbidden_smiles & predicted_smiles:
             raise ValueError(
                 f"Reaction product(s) belong(s) to the specified forbidden product(s):\n"
-                f"{'\n'.join(overlap)}\n"
+                f"{'\n'.join(overlap)}\n",
             )
 
         logger.debug("Successfully validated reaction SMARTS")
@@ -440,7 +443,7 @@ class ReactionValidator(BaseModel):
         if substrate is None:
             raise ValueError(
                 f"RDKit rejected SMILES string - is it a valid SMILES?\n"
-                f"{substrate_smiles}"
+                f"{substrate_smiles}",
             )
 
         substrate_variants = self.enumerator.enumerate_molecule(substrate)

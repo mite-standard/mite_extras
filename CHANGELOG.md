@@ -42,7 +42,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - In html_json generation, changed substrate from tuple to list of tuples to visualize substrates separately
-- Changed Wikidata QID checking from raise errror to log warning (frequent 403 errors)
+- Changed Wikidata QID checking from raise error to log warning (frequent 403 errors)
 
 ## [1.5.1] 26-07-2025
 
@@ -75,7 +75,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Bumped `mite_schema` version to `1.7.0`
 - Reworked `ValidationManager`
 - Implemented option for intramolecular reactions (recognized from reaction SMARTS)
-- Pinned RDkit version to `2024.3.6` 
+- Pinned RDkit version to `2024.3.6`
 
 ## [1.3.1] 02-12-2024
 

@@ -1,7 +1,7 @@
 mite_extras
 ==========
 
-[![DOI](https://zenodo.org/badge/804997522.svg)](https://doi.org/10.5281/zenodo.13941745) 
+[![DOI](https://zenodo.org/badge/804997522.svg)](https://doi.org/10.5281/zenodo.13941745)
 [![PyPI version](https://badge.fury.io/py/mite-extras.svg)](https://badge.fury.io/py/mite-extras)
 
 
@@ -59,7 +59,7 @@ Dependencies including exact versions are specified in the [pyproject.toml](./py
 
 ## Quick Start
 
-To validate MITE entries or update them to a new schema versiom, run:
+To validate MITE entries or update them to a new schema version, run:
 
 - `mite_extras -i <input/> -o <output/>`
 
@@ -75,7 +75,7 @@ See [CITATION.cff](CITATION.cff) or [MITE online](https://mite.bioinformatics.nl
 
 ### Acknowledgements
 
-This work was supported by the Netherlands Organization for Scientific Research (NWO) KIC grant KICH1.LWV04.21.013.
+This work was supported by the Netherlands Organization for Scientific Research (NOW) KIC grant KICH1.LWV04.21.013.
 
 ## For Developers
 
@@ -87,7 +87,7 @@ This work was supported by the Netherlands Organization for Scientific Research 
 
 ### With `uv` from GitHub
 
-*Note: assumes that `uv` is installed locally - see the methods described [here](https://docs.astral.sh/uv/getting-started/installation/).* 
+*Note: assumes that `uv` is installed locally - see the methods described [here](https://docs.astral.sh/uv/getting-started/installation/).*
 
 ```commandline
 git clone https://github.com/mite-standard/mite_extras
