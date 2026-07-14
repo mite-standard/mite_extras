@@ -24,14 +24,11 @@ classifiers = [
 dependencies = [
     "argparse~=1.4",
     "coloredlogs~=15.0",
-    "json-repair~=0.51",
-    "jsonschema~=4.25",
     "json-repair~=0.61",
+    "jsonschema~=4.26",
     "mite-schema",
-    "pydantic~=2.11",
-    "rdkit==2024.3.6",
-    "requests~=2.32",
     "pydantic~=2.13",
+    "rdkit==2024.3.6",
     "requests~=2.34",
 ]
 
