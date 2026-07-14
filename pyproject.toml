@@ -1,6 +1,6 @@
 [project]
 name = "mite_extras"
-version = "1.6.5"
+version = "1.6.6"
 description = "Parsing, conversion, and validation functionality for Minimum Information about a Tailoring Enzyme (MITE) files."
 readme = "README.md"
 requires-python = ">=3.12.0,<3.13.0" # because of rdkit 2024
@@ -26,10 +26,13 @@ dependencies = [
     "coloredlogs~=15.0",
     "json-repair~=0.51",
     "jsonschema~=4.25",
+    "json-repair~=0.61",
     "mite-schema",
     "pydantic~=2.11",
     "rdkit==2024.3.6",
     "requests~=2.32",
+    "pydantic~=2.13",
+    "requests~=2.34",
 ]
 
 [project.urls]
