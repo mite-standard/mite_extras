@@ -1,5 +1,4 @@
 import pytest
-from mite_extras.processing.validation_manager import MoleculeValidator
 from rdkit.Chem import (
     CanonSmiles,
     MolFromSmarts,
@@ -7,6 +6,8 @@ from rdkit.Chem import (
     MolToSmarts,
     MolToSmiles,
 )
+
+from mite_extras.processing.validation_manager import MoleculeValidator
 
 
 @pytest.fixture

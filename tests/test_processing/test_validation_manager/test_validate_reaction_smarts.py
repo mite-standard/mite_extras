@@ -1,4 +1,5 @@
 import pytest
+
 from mite_extras.processing.validation_manager import (
     ReactionValidator,
 )

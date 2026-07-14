@@ -1,9 +1,10 @@
 import json
 
 import pytest
+from mite_schema import SchemaManager
+
 from mite_extras.processing.data_classes import Cofactors, EnzymeAux, Reaction
 from mite_extras.processing.mite_parser import MiteParser
-from mite_schema import SchemaManager
 
 
 @pytest.fixture
