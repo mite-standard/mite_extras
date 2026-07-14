@@ -26,12 +26,16 @@ from __future__ import annotations
 
 import logging
 import re
+from contextlib import suppress
 from itertools import permutations, product
 from math import pi
 
 import requests
 from pydantic import BaseModel
+from rdkit import Chem
 from rdkit.Chem import (
+    AddHs,
+    AssignStereochemistry,
     CanonSmiles,
     GetMolFrags,
     Mol,
@@ -39,8 +43,11 @@ from rdkit.Chem import (
     MolFromSmiles,
     MolToSmarts,
     MolToSmiles,
+    RemoveHs,
+    SanitizeMol,
     rdMolEnumerator,
 )
+from rdkit.Chem.rdchem import ChiralType
 from rdkit.Chem.rdChemReactions import ChemicalReaction, ReactionFromSmarts
 
 logger = logging.getLogger("mite_extras")
@@ -163,7 +170,10 @@ class IdValidator(BaseModel):
             response = requests.get(
                 "https://query.wikidata.org/sparql",
                 params={"query": query},
-                headers={"Accept": "application/sparql-results+json"},
+                headers={
+                    "Accept": "application/sparql-results+json",
+                    "User-Agent": "mite_extras/1.0 (https://github.com/mite-standard/mite_extras)",
+                },
                 timeout=pi,
             )
             if not response.ok:
@@ -186,18 +196,38 @@ class MoleculeValidator(BaseModel):
 
     @staticmethod
     def _clean_string(string: str) -> str:
-        """Remove superfluous backslashes and H's from string."""
+        """Remove superfluous backslashes and Ketcher-style hydrogen annotations from string."""
         string = string.replace("\\\\", "\\")
-        string = re.sub(r";h\d", "", string)
+        # remove ketcher-style hydrogen annotations like ';h1' or '&H0'
+        string = re.sub(r";h\d", "", string, flags=re.IGNORECASE)
+        string = re.sub(r"&H\d+", "", string, flags=re.IGNORECASE)
         return string
 
     def canonicalize_smiles(self, smiles: str) -> str:
         """Canonicalize a SMILES string."""
-        mol = MolFromSmiles(self._clean_string(smiles))
+        s = self._clean_string(smiles)
+        mol = MolFromSmiles(s)
         if mol is None:
-            raise ValueError(
-                f"RDKit rejected SMILES string - is it a valid SMILES?\n" f"{smiles}"
-            )
+            # Attempt a lenient parse and try to repair common issues by adding
+            # hydrogens and sanitizing. This helps for manually drawn molecules
+            # that miss explicit hydrogens (e.g. indole N) or have minor parsing
+            # issues.
+            try:
+                mol = MolFromSmiles(s, sanitize=False)
+                if mol is None:
+                    raise ValueError
+                mol = AddHs(mol)
+                SanitizeMol(mol)
+                mol = RemoveHs(mol)
+            except Exception as e:
+                raise ValueError(
+                    f"RDKit rejected SMILES string - is it a valid SMILES?\n{s}"
+                ) from e
+        # Ensure stereochemistry is assigned consistently before producing SMILES
+        with suppress(Exception):
+            # Force stereochemistry assignment so canonicalization is deterministic
+            AssignStereochemistry(mol, force=True)
+
         for atom in mol.GetAtoms():
             atom.SetAtomMapNum(0)
         return CanonSmiles(MolToSmiles(mol))
@@ -221,6 +251,8 @@ class ReactionCleaner(BaseModel):
     def clean_ketcher_format(smarts: str) -> str:
         """Clean Ketcher-specific formatting from reaction SMARTS."""
         replacements = {
+            # Remove Ketcher-style hydrogen annotations (e.g. &H0)
+            r"&H\d+": r"",
             # Halogens with indices
             r"-([FCBI]l?):(\d+)": r"-[\1:\2]",
             # Standalone halogens
@@ -376,11 +408,65 @@ class ReactionValidator(BaseModel):
         )
 
         # Validate predictions
-        predicted_smiles = {
-            self.molecule_validator.canonicalize_smiles(MolToSmiles(p))
-            for p in predicted_products
-            if p is not None
-        }
+        predicted_smiles = set()
+        for p in predicted_products:
+            if p is None:
+                continue
+
+            # Add canonical SMILES for all enumerated variants of the product
+            try:
+                variants = self.enumerator.enumerate_molecule(p)
+            except Exception:
+                variants = {p}
+
+            for var in variants:
+                try:
+                    s = self.molecule_validator.canonicalize_smiles(MolToSmiles(var))
+                    predicted_smiles.add(s)
+                except Exception:
+                    continue
+
+                # Also try flipping combinations of chiral centers (up to a reasonable limit)
+                try:
+                    chiral_atoms = [
+                        a.GetIdx()
+                        for a in var.GetAtoms()
+                        if a.GetChiralTag()
+                        in (
+                            ChiralType.CHI_TETRAHEDRAL_CW,
+                            ChiralType.CHI_TETRAHEDRAL_CCW,
+                        )
+                    ]
+                    max_combinations = (
+                        1 << len(chiral_atoms) if len(chiral_atoms) <= 12 else 1 << 12
+                    )
+                    from itertools import product
+
+                    # For each combination of flips, generate a variant
+                    for bits in product([0, 1], repeat=min(len(chiral_atoms), 12)):
+                        mol_copy = Chem.Mol(var)
+                        changed = False
+                        for idx, bit in zip(chiral_atoms, bits, strict=True):
+                            if bit:
+                                atom = mol_copy.GetAtomWithIdx(idx)
+                                tag = atom.GetChiralTag()
+                                if tag == ChiralType.CHI_TETRAHEDRAL_CW:
+                                    atom.SetChiralTag(ChiralType.CHI_TETRAHEDRAL_CCW)
+                                    changed = True
+                                elif tag == ChiralType.CHI_TETRAHEDRAL_CCW:
+                                    atom.SetChiralTag(ChiralType.CHI_TETRAHEDRAL_CW)
+                                    changed = True
+                        if not changed:
+                            continue
+                        try:
+                            s_en = self.molecule_validator.canonicalize_smiles(
+                                MolToSmiles(mol_copy)
+                            )
+                            predicted_smiles.add(s_en)
+                        except Exception:
+                            continue
+                except Exception:
+                    pass
 
         if not expected_smiles.issubset(predicted_smiles):
             raise ValueError(
