@@ -207,7 +207,7 @@ class MoleculeValidator(BaseModel):
         mol = MolFromSmarts(self._clean_string(smarts))
         if mol is None:
             raise ValueError(
-                f"RDKit rejected SMARTS string - is it a valid pattern?\n" f"{smarts}"
+                f"RDKit rejected SMARTS string - is it a valid pattern?\n{smarts}"
             )
         for i, atom in enumerate(mol.GetAtoms()):
             atom.SetAtomMapNum(i)
@@ -290,7 +290,7 @@ class ReactionEnumerator(BaseModel):
         mol = MolFromSmarts(smarts)
         if mol is None:
             raise ValueError(
-                f"RDKit rejected SMARTS string - is it a valid pattern?\n" f"{smarts}"
+                f"RDKit rejected SMARTS string - is it a valid pattern?\n{smarts}"
             )
         enumerated_mols = self.enumerate_molecule(mol)
         return {MolToSmarts(m) for m in enumerated_mols if m is not None}
