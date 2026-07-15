@@ -27,6 +27,7 @@ from __future__ import annotations
 import logging
 import re
 from contextlib import suppress
+from functools import lru_cache
 from itertools import permutations, product
 from math import pi
 
@@ -174,7 +175,7 @@ class MoleculeValidator(BaseModel):
         mol = MolFromSmarts(self._clean_string(smarts))
         if mol is None:
             raise ValueError(
-                f"RDKit rejected SMARTS string - is it a valid pattern?\n{smarts}"
+                f"RDKit rejected SMARTS string - is it a valid pattern?\n{smarts}",
             )
         for i, atom in enumerate(mol.GetAtoms()):
             atom.SetAtomMapNum(i)
@@ -257,7 +258,7 @@ class ReactionEnumerator(BaseModel):
         mol = MolFromSmarts(smarts)
         if mol is None:
             raise ValueError(
-                f"RDKit rejected SMARTS string - is it a valid pattern?\n{smarts}"
+                f"RDKit rejected SMARTS string - is it a valid pattern?\n{smarts}",
             )
         enumerated_mols = self.enumerate_molecule(mol)
         return {MolToSmarts(m) for m in enumerated_mols if m is not None}
@@ -292,50 +293,83 @@ class ReactionValidator(BaseModel):
     reaction_cleaner: ReactionCleaner = ReactionCleaner()
     enumerator: ReactionEnumerator = ReactionEnumerator()
 
-    def _normalize_product_smiles(self, prod: Mol) -> str:
-        """Return a fast, best-effort canonical SMILES for a product Mol.
+    def _normalize_product_smiles(self, prod: Mol) -> set[str]:
+        """Thin wrapper: compute raw_smiles and delegate to cached string-based normalizer.
 
-        This performs cheap, optimistic normalization: sanitize (best-effort)
-        and RemoveHs, then MolToSmiles. Falls back to raw MolToSmiles if
-        normalization fails. Finally, canonicalize via MoleculeValidator.
+        Cached helper returns cleaned SMILES strings; canonicalize them here using
+        MoleculeValidator (which already caches canonicalization results).
         """
-        if prod is None:
-            raise ValueError("Product is None")
         try:
-            tmp = Chem.Mol(prod)
-        except Exception:
-            tmp = prod
-        # remove explicit Hs aggressively (cheap). Avoid sanitization here
-        # because it may change stereochemistry; only perform RemoveHs.
-        try:
-            RemoveHs(tmp)
-        except Exception:
-            pass
-        # prefer the raw SMILES string and do a fast textual H-stripping to
-        # avoid heavy sanitization that can change stereochemistry. This is a
-        # conservative, cheap fix for Ketcher-exported explicit H artifacts.
-        try:
-            s = MolToSmiles(prod)
+            raw = MolToSmiles(prod)
         except Exception:
             try:
-                s = MolToSmiles(tmp)
+                raw = MolToSmiles(Chem.Mol(prod))
             except Exception:
                 raise
+        variants = self._normalize_product_smiles_str_cached(raw)
+        result = set()
+        # try the raw SMILES first (fast path)
+        try:
+            result.add(self.molecule_validator.canonicalize_smiles(raw))
+        except Exception:
+            pass
+        for v in variants:
+            try:
+                result.add(self.molecule_validator.canonicalize_smiles(v))
+            except Exception:
+                continue
+        return result
+
+    @staticmethod
+    @lru_cache(maxsize=4096)
+    def _normalize_product_smiles_str_cached(raw_smiles: str) -> tuple[str, ...]:
+        """Return cleaned SMILES variants for a raw SMILES string; cached for speed.
+
+        This performs textual H-stripping and an optional sanitization/kekulize
+        attempt, but returns plain SMILES strings (not canonicalized). The
+        caller will canonicalize using MoleculeValidator (which has its own cache).
+        """
+        s = raw_smiles
+
         # Remove explicit hydrogen annotations like [CH3], [CH2], [CH], [nH]
         s = re.sub(r"\[([A-Za-z]{1,2})H\d*\]", r"[\1]", s)
         s = re.sub(r"\[H\]", r"", s)
         s = re.sub(r"\[nH(\d*)\]", r"[n\1]", s)
-        # remove simple bracketed atoms like [C], [Cl] -> C, Cl (avoid isotopes/charges)
-        s = re.sub(r"\[([A-Z][a-z]?)\]", r"\1", s)
-        return self.molecule_validator.canonicalize_smiles(s)
+        # remove simple bracketed atoms like [C], [Cl] or with atom-maps [C:1] -> C, Cl
+        # avoid touching brackets that contain stereo (@), charge (+/-), isotopes (digits before element)
+        s = re.sub(r"\[([A-Z][a-z]?)(?::\d+)?\]", r"\1", s)
+
+        variants: set[str] = set()
+        # primary cleaned string
+        variants.add(s)
+
+        # try a sanitization-based variant (may change aromaticity/tautomer) but only if primary failed to parse
+        try:
+            m2 = MolFromSmiles(s, sanitize=False)
+            if m2 is not None:
+                with suppress(Exception):
+                    SanitizeMol(m2)
+                with suppress(Exception):
+                    Chem.Kekulize(m2, clearAromaticFlags=True)
+                try:
+                    s2 = MolToSmiles(m2)
+                    if s2:
+                        variants.add(s2)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        # return a stable tuple for caching
+        return tuple(sorted(variants))
 
     def validate_reaction(
-            self,
-            reaction_smarts: str,
-            substrate_smiles: str,
-            expected_products: list[str],
-            forbidden_products: list[str] | None = None,
-            intramolecular: bool = False,
+        self,
+        reaction_smarts: str,
+        substrate_smiles: str,
+        expected_products: list[str],
+        forbidden_products: list[str] | None = None,
+        intramolecular: bool = False,
     ) -> None:
         """
         Validate a reaction SMARTS against expected and forbidden products.
@@ -370,13 +404,15 @@ class ReactionValidator(BaseModel):
         if overlap := forbidden_smiles & expected_smiles:
             raise ValueError(
                 f"Overlap between expected and forbidden products:\n"
-                f"{'\n'.join(overlap)}\n"
+                f"{'\n'.join(overlap)}\n",
             )
 
         # Generate reaction variants and validate
         reactions = self._get_reaction_variants(reaction_smarts)
         predicted_products = self._run_reactions(
-            reactions, substrate_smiles, intramolecular
+            reactions,
+            substrate_smiles,
+            intramolecular,
         )
 
         # Validate predictions
@@ -395,32 +431,33 @@ class ReactionValidator(BaseModel):
             if raw:
                 raw_predicted.add(raw)
             try:
-                predicted_smiles.add(self._normalize_product_smiles(p))
+                variants = self._normalize_product_smiles(p)
+                predicted_smiles.update(variants)
             except Exception as e:
                 logger.debug("Failed to normalize product mol: %s", e)
                 try:
                     predicted_smiles.add(
-                        self.molecule_validator.canonicalize_smiles(MolToSmiles(p))
+                        self.molecule_validator.canonicalize_smiles(MolToSmiles(p)),
                     )
                 except Exception:
                     # give up on this product
                     continue
-        logger.debug('Predicted raw SMILES: %s', raw_predicted)
+        logger.debug("Predicted raw SMILES: %s", raw_predicted)
 
-        logger.debug('Predicted products: %s', predicted_smiles)
+        logger.debug("Predicted products: %s", predicted_smiles)
         if not expected_smiles.issubset(predicted_smiles):
             raise ValueError(
                 f"Reaction did not lead to all expected products.\n"
                 f"Expected products:\n"
                 f"{'\n'.join(expected_smiles)}\n"
                 f"Generated products:\n"
-                f"{'\n'.join(predicted_smiles)}\n"
+                f"{'\n'.join(predicted_smiles)}\n",
             )
 
         if overlap := forbidden_smiles & predicted_smiles:
             raise ValueError(
                 f"Reaction product(s) belong(s) to the specified forbidden product(s):\n"
-                f"{'\n'.join(overlap)}\n"
+                f"{'\n'.join(overlap)}\n",
             )
 
         logger.debug("Successfully validated reaction SMARTS")
@@ -456,17 +493,17 @@ class ReactionValidator(BaseModel):
         return reactions
 
     def _run_reactions(
-            self,
-            reactions: set[ChemicalReaction],
-            substrate_smiles: str,
-            intramolecular: bool = False,
+        self,
+        reactions: set[ChemicalReaction],
+        substrate_smiles: str,
+        intramolecular: bool = False,
     ) -> set[Mol]:
         """Run all reaction variants on the substrate."""
         substrate = MolFromSmiles(substrate_smiles)
         if substrate is None:
             raise ValueError(
                 f"RDKit rejected SMILES string - is it a valid SMILES?\n"
-                f"{substrate_smiles}"
+                f"{substrate_smiles}",
             )
 
         substrate_variants = self.enumerator.enumerate_molecule(substrate)
