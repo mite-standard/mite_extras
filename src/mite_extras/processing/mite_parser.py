@@ -123,7 +123,7 @@ class MiteParser(BaseModel):
             return ReactionDatabaseIds(**data)
 
     def get_reactions(self: Self, reactions: list) -> list:
-        """Extract reactions infor and converts into internal data structure
+        """Extract reactions information and converts into internal data structure
 
         Args:
             reactions: list with reaction data

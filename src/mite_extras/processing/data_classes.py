@@ -466,7 +466,7 @@ class ReactionEx(BaseModel):
 
     def to_html(self: Self) -> dict:
         def _smiles_to_svg(smiles: str) -> str:
-            """Generates a base64 encoded SVG strin"""
+            """Generates a base64 encoded SVG string"""
             m = MolFromSmiles(smiles)
 
             for atom in m.GetAtoms():
