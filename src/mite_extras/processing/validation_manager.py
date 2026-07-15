@@ -35,7 +35,6 @@ from pydantic import BaseModel
 from rdkit import Chem
 from rdkit.Chem import (
     AddHs,
-    AssignStereochemistry,
     CanonSmiles,
     GetMolFrags,
     Mol,
@@ -47,7 +46,6 @@ from rdkit.Chem import (
     SanitizeMol,
     rdMolEnumerator,
 )
-from rdkit.Chem.rdchem import ChiralType
 from rdkit.Chem.rdChemReactions import ChemicalReaction, ReactionFromSmarts
 
 logger = logging.getLogger("mite_extras")
@@ -58,23 +56,26 @@ class MoleculeValidator(BaseModel):
 
     @staticmethod
     def _clean_string(string: str) -> str:
-        """Remove superfluous backslashes and Ketcher-style hydrogen annotations from string."""
+        """Remove superfluous backslashes and H's from string."""
         string = string.replace("\\\\", "\\")
-        # remove ketcher-style hydrogen annotations like ';h1' or '&H0'
-        string = re.sub(r";h\d", "", string, flags=re.IGNORECASE)
-        string = re.sub(r"&H\d+", "", string, flags=re.IGNORECASE)
+        string = re.sub(r";h\d", "", string)
         return string
 
     def canonicalize_smiles(self, smiles: str) -> str:
-        """Canonicalize a SMILES string."""
+        """Canonicalize a SMILES string with memoization to avoid repeated heavy work."""
+        # initialize caches lazily to avoid shared mutable defaults on class
+        if not hasattr(self, "_canon_cache"):
+            self._canon_cache = {}
+        if not hasattr(self, "_noniso_cache"):
+            self._noniso_cache = {}
+
         s = self._clean_string(smiles)
+        if s in self._canon_cache:
+            return self._canon_cache[s]
+
         mol = MolFromSmiles(s)
         if mol is None:
             # Attempt a lenient parse and try to repair common issues.
-            # Many failures stem from incorrect aromatic nitrogen hydrogen
-            # annotations exported by Ketcher (e.g. '[nH]' vs '[n]'). Try a
-            # non-sanitized parse first, then sanitize, and if sanitizing
-            # fails try simple textual repairs on the SMILES.
             try:
                 mol = MolFromSmiles(s, sanitize=False)
                 if mol is None:
@@ -164,16 +165,16 @@ class MoleculeValidator(BaseModel):
                 smi = MolToSmiles(mol)
             else:
                 raise
-        return CanonSmiles(smi)
+        canon = CanonSmiles(smi)
+        self._canon_cache[smiles] = canon
+        return canon
 
     def canonicalize_smarts(self, smarts: str) -> str:
         """Canonicalize a SMARTS pattern."""
         mol = MolFromSmarts(self._clean_string(smarts))
         if mol is None:
             raise ValueError(
-                f"RDKit rejected SMARTS string - is it a valid pattern?\n"
-                f"The erroneous SMARTS string was:\n"
-                f"{smarts}\n",
+                f"RDKit rejected SMARTS string - is it a valid pattern?\n{smarts}"
             )
         for i, atom in enumerate(mol.GetAtoms()):
             atom.SetAtomMapNum(i)
@@ -187,8 +188,6 @@ class ReactionCleaner(BaseModel):
     def clean_ketcher_format(smarts: str) -> str:
         """Clean Ketcher-specific formatting from reaction SMARTS."""
         replacements = {
-            # Remove Ketcher-style hydrogen annotations (e.g. &H0)
-            r"&H\d+": r"",
             # Halogens with indices
             r"-([FCBI]l?):(\d+)": r"-[\1:\2]",
             # Standalone halogens
@@ -258,9 +257,7 @@ class ReactionEnumerator(BaseModel):
         mol = MolFromSmarts(smarts)
         if mol is None:
             raise ValueError(
-                f"RDKit rejected SMARTS string - is it a valid pattern?\n"
-                f"The erroneous SMARTS string was:\n"
-                f"{smarts}\n",
+                f"RDKit rejected SMARTS string - is it a valid pattern?\n{smarts}"
             )
         enumerated_mols = self.enumerate_molecule(mol)
         return {MolToSmarts(m) for m in enumerated_mols if m is not None}
@@ -291,22 +288,54 @@ class ReactionEnumerator(BaseModel):
 class ReactionValidator(BaseModel):
     """Main class for validating chemical reactions."""
 
-    # Tunable limits to avoid combinatorial explosion / hanging on large entries
-    MAX_PRODUCT_VARIANTS: int = 200
-    MAX_REACTION_RUNS: int = 500
-    MAX_CHIRAL_FLIP_CENTERS: int = 12
-
     molecule_validator: MoleculeValidator = MoleculeValidator()
     reaction_cleaner: ReactionCleaner = ReactionCleaner()
     enumerator: ReactionEnumerator = ReactionEnumerator()
 
+    def _normalize_product_smiles(self, prod: Mol) -> str:
+        """Return a fast, best-effort canonical SMILES for a product Mol.
+
+        This performs cheap, optimistic normalization: sanitize (best-effort)
+        and RemoveHs, then MolToSmiles. Falls back to raw MolToSmiles if
+        normalization fails. Finally, canonicalize via MoleculeValidator.
+        """
+        if prod is None:
+            raise ValueError("Product is None")
+        try:
+            tmp = Chem.Mol(prod)
+        except Exception:
+            tmp = prod
+        # remove explicit Hs aggressively (cheap). Avoid sanitization here
+        # because it may change stereochemistry; only perform RemoveHs.
+        try:
+            RemoveHs(tmp)
+        except Exception:
+            pass
+        # prefer the raw SMILES string and do a fast textual H-stripping to
+        # avoid heavy sanitization that can change stereochemistry. This is a
+        # conservative, cheap fix for Ketcher-exported explicit H artifacts.
+        try:
+            s = MolToSmiles(prod)
+        except Exception:
+            try:
+                s = MolToSmiles(tmp)
+            except Exception:
+                raise
+        # Remove explicit hydrogen annotations like [CH3], [CH2], [CH], [nH]
+        s = re.sub(r"\[([A-Za-z]{1,2})H\d*\]", r"[\1]", s)
+        s = re.sub(r"\[H\]", r"", s)
+        s = re.sub(r"\[nH(\d*)\]", r"[n\1]", s)
+        # remove simple bracketed atoms like [C], [Cl] -> C, Cl (avoid isotopes/charges)
+        s = re.sub(r"\[([A-Z][a-z]?)\]", r"\1", s)
+        return self.molecule_validator.canonicalize_smiles(s)
+
     def validate_reaction(
-        self,
-        reaction_smarts: str,
-        substrate_smiles: str,
-        expected_products: list[str],
-        forbidden_products: list[str] | None = None,
-        intramolecular: bool = False,
+            self,
+            reaction_smarts: str,
+            substrate_smiles: str,
+            expected_products: list[str],
+            forbidden_products: list[str] | None = None,
+            intramolecular: bool = False,
     ) -> None:
         """
         Validate a reaction SMARTS against expected and forbidden products.
@@ -341,175 +370,57 @@ class ReactionValidator(BaseModel):
         if overlap := forbidden_smiles & expected_smiles:
             raise ValueError(
                 f"Overlap between expected and forbidden products:\n"
-                f"{'\n'.join(overlap)}\n",
+                f"{'\n'.join(overlap)}\n"
             )
 
         # Generate reaction variants and validate
         reactions = self._get_reaction_variants(reaction_smarts)
         predicted_products = self._run_reactions(
-            reactions,
-            substrate_smiles,
-            intramolecular,
+            reactions, substrate_smiles, intramolecular
         )
 
         # Validate predictions
         predicted_smiles = set()
+        raw_predicted = set()
         for p in predicted_products:
             if p is None:
                 continue
-
-            # Add canonical SMILES for all enumerated variants of the product
             try:
-                variants = self.enumerator.enumerate_molecule(p)
+                raw = MolToSmiles(p)
             except Exception:
-                variants = {p}
-
-            for var in variants:
-                # Primary attempt: full canonicalization
                 try:
-                    s = self.molecule_validator.canonicalize_smiles(MolToSmiles(var))
-                    predicted_smiles.add(s)
+                    raw = MolToSmiles(Chem.Mol(p))
                 except Exception:
-                    # Fallback 1: non-isomeric SMILES canonicalization
-                    try:
-                        s_non = CanonSmiles(MolToSmiles(var, isomericSmiles=False))
-                        predicted_smiles.add(s_non)
-                    except Exception:
-                        pass
-
-                    # Fallback 2: try kekulize + canonicalize
-                    try:
-                        Chem.Kekulize(var, clearAromaticFlags=True)
-                        s_k = CanonSmiles(MolToSmiles(var))
-                        predicted_smiles.add(s_k)
-                    except Exception:
-                        # Last resort: try raw MolToSmiles (non-canonical)
-                        try:
-                            s_raw = MolToSmiles(var)
-                            predicted_smiles.add(s_raw)
-                        except Exception:
-                            # give up on this variant
-                            pass
-
-                # Stop if predicted set grows too large
-                if len(predicted_smiles) > self.MAX_PRODUCT_VARIANTS:
-                    logger.debug(
-                        "Aborting further variant enumeration: too many predicted products",
+                    raw = None
+            if raw:
+                raw_predicted.add(raw)
+            try:
+                predicted_smiles.add(self._normalize_product_smiles(p))
+            except Exception as e:
+                logger.debug("Failed to normalize product mol: %s", e)
+                try:
+                    predicted_smiles.add(
+                        self.molecule_validator.canonicalize_smiles(MolToSmiles(p))
                     )
-                    break
-
-                # Also try flipping combinations of chiral centers (bounded)
-                try:
-                    chiral_atoms = [
-                        a.GetIdx()
-                        for a in var.GetAtoms()
-                        if a.GetChiralTag()
-                        in (
-                            ChiralType.CHI_TETRAHEDRAL_CW,
-                            ChiralType.CHI_TETRAHEDRAL_CCW,
-                        )
-                    ]
-                    flip_centers = min(len(chiral_atoms), self.MAX_CHIRAL_FLIP_CENTERS)
-                    from itertools import product
-
-                    # For each combination of flips (bounded), generate a variant
-                    for bits in product([0, 1], repeat=flip_centers):
-                        mol_copy = Chem.Mol(var)
-                        changed = False
-                        for idx, bit in zip(chiral_atoms, bits, strict=True):
-                            if bit:
-                                atom = mol_copy.GetAtomWithIdx(idx)
-                                tag = atom.GetChiralTag()
-                                if tag == ChiralType.CHI_TETRAHEDRAL_CW:
-                                    atom.SetChiralTag(ChiralType.CHI_TETRAHEDRAL_CCW)
-                                    changed = True
-                                elif tag == ChiralType.CHI_TETRAHEDRAL_CCW:
-                                    atom.SetChiralTag(ChiralType.CHI_TETRAHEDRAL_CW)
-                                    changed = True
-                        if not changed:
-                            continue
-                        try:
-                            s_en = self.molecule_validator.canonicalize_smiles(
-                                MolToSmiles(mol_copy),
-                            )
-                            predicted_smiles.add(s_en)
-                        except Exception:
-                            # Fallbacks mirroring the main variant loop
-                            try:
-                                s_non = CanonSmiles(
-                                    MolToSmiles(mol_copy, isomericSmiles=False),
-                                )
-                                predicted_smiles.add(s_non)
-                            except Exception:
-                                pass
-                            try:
-                                Chem.Kekulize(mol_copy, clearAromaticFlags=True)
-                                s_k = CanonSmiles(MolToSmiles(mol_copy))
-                                predicted_smiles.add(s_k)
-                            except Exception:
-                                try:
-                                    s_raw = MolToSmiles(mol_copy)
-                                    predicted_smiles.add(s_raw)
-                                except Exception:
-                                    pass
-
-                        if len(predicted_smiles) > self.MAX_PRODUCT_VARIANTS:
-                            logger.debug(
-                                "Aborting chiral flip enumeration: too many predicted products",
-                            )
-                            break
                 except Exception:
-                    pass
+                    # give up on this product
+                    continue
+        logger.debug('Predicted raw SMILES: %s', raw_predicted)
 
+        logger.debug('Predicted products: %s', predicted_smiles)
         if not expected_smiles.issubset(predicted_smiles):
-            # Try a relaxed comparison ignoring stereochemistry (non-isomeric SMILES)
-            try:
-                expected_noniso = set()
-                for p in expected_products:
-                    try:
-                        m = MolFromSmiles(self.molecule_validator._clean_string(p))
-                        if m is None:
-                            continue
-                        for atom in m.GetAtoms():
-                            atom.SetAtomMapNum(0)
-                        s_non = CanonSmiles(MolToSmiles(m, isomericSmiles=False))
-                        expected_noniso.add(s_non)
-                    except Exception:
-                        continue
-
-                predicted_noniso = set()
-                for s in predicted_smiles:
-                    try:
-                        m = MolFromSmiles(s)
-                        if m is None:
-                            continue
-                        for atom in m.GetAtoms():
-                            atom.SetAtomMapNum(0)
-                        s_non = CanonSmiles(MolToSmiles(m, isomericSmiles=False))
-                        predicted_noniso.add(s_non)
-                    except Exception:
-                        continue
-
-                if expected_noniso and expected_noniso.issubset(predicted_noniso):
-                    logger.warning(
-                        "Reaction product stereochemistry differs but non-isomeric structures match.",
-                    )
-                    return
-            except Exception:
-                pass
-
             raise ValueError(
                 f"Reaction did not lead to all expected products.\n"
                 f"Expected products:\n"
                 f"{'\n'.join(expected_smiles)}\n"
                 f"Generated products:\n"
-                f"{'\n'.join(predicted_smiles)}\n",
+                f"{'\n'.join(predicted_smiles)}\n"
             )
 
         if overlap := forbidden_smiles & predicted_smiles:
             raise ValueError(
                 f"Reaction product(s) belong(s) to the specified forbidden product(s):\n"
-                f"{'\n'.join(overlap)}\n",
+                f"{'\n'.join(overlap)}\n"
             )
 
         logger.debug("Successfully validated reaction SMARTS")
@@ -545,24 +456,21 @@ class ReactionValidator(BaseModel):
         return reactions
 
     def _run_reactions(
-        self,
-        reactions: set[ChemicalReaction],
-        substrate_smiles: str,
-        intramolecular: bool = False,
+            self,
+            reactions: set[ChemicalReaction],
+            substrate_smiles: str,
+            intramolecular: bool = False,
     ) -> set[Mol]:
         """Run all reaction variants on the substrate."""
         substrate = MolFromSmiles(substrate_smiles)
         if substrate is None:
             raise ValueError(
                 f"RDKit rejected SMILES string - is it a valid SMILES?\n"
-                f"The erroneous SMILES string was:\n"
-                f"{substrate_smiles}\n",
+                f"{substrate_smiles}"
             )
 
         substrate_variants = self.enumerator.enumerate_molecule(substrate)
-        # Use a mapping from canonical_smiles (or fallback keys) to Mol to remove duplicates
-        unique_products: dict[str, Mol] = {}
-        run_count = 0
+        products = set()
 
         for mol in substrate_variants:
             reactants = GetMolFrags(mol, asMols=True)
@@ -576,55 +484,12 @@ class ReactionValidator(BaseModel):
 
             for reaction in reactions:
                 for reactant_combo in reactant_perms:
-                    # Safety: avoid runaway combinatorics
-                    if run_count > self.MAX_REACTION_RUNS:
-                        logger.debug(
-                            "Reached max reaction run count, aborting further runs",
-                        )
-                        return {p for p in unique_products.values() if p is not None}
-
                     try:
                         reaction_products = reaction.RunReactants(reactant_combo)
-                        run_count += 1
                         for product_set in reaction_products:
-                            for prod in product_set:
-                                if prod is None:
-                                    continue
-                                # attempt to create a stable key for deduplication
-                                key = None
-                                try:
-                                    raw_smiles = MolToSmiles(prod)
-                                except Exception:
-                                    raw_smiles = None
-
-                                if raw_smiles is not None:
-                                    try:
-                                        key = (
-                                            self.molecule_validator.canonicalize_smiles(
-                                                raw_smiles,
-                                            )
-                                        )
-                                    except Exception:
-                                        # fall back to raw_smiles if canonicalization fails
-                                        key = raw_smiles
-                                else:
-                                    # last resort: use object id
-                                    key = f"molid:{id(prod)}"
-
-                                if key not in unique_products:
-                                    unique_products[key] = prod
-
-                                if len(unique_products) > self.MAX_PRODUCT_VARIANTS:
-                                    logger.debug(
-                                        "Too many products generated; aborting reaction runs",
-                                    )
-                                    return {
-                                        p
-                                        for p in unique_products.values()
-                                        if p is not None
-                                    }
+                            products.update(product_set)
                     except Exception as e:
                         logger.debug(f"Error during running of reaction: {e}")
                         continue
 
-        return {p for p in unique_products.values() if p is not None}
+        return {p for p in products if p is not None}
