@@ -208,14 +208,75 @@ class MoleculeValidator(BaseModel):
         s = self._clean_string(smiles)
         mol = MolFromSmiles(s)
         if mol is None:
-            # Attempt a lenient parse and try to repair common issues by adding
-            # hydrogens and sanitizing. This helps for manually drawn molecules
-            # that miss explicit hydrogens (e.g. indole N) or have minor parsing
-            # issues.
+            # Attempt a lenient parse and try to repair common issues.
+            # Many failures stem from incorrect aromatic nitrogen hydrogen
+            # annotations exported by Ketcher (e.g. '[nH]' vs '[n]'). Try a
+            # non-sanitized parse first, then sanitize, and if sanitizing
+            # fails try simple textual repairs on the SMILES.
             try:
                 mol = MolFromSmiles(s, sanitize=False)
                 if mol is None:
-                    raise ValueError
+                    raise ValueError("parse returned None")
+
+                # try sanitizing the molecule to compute implicit valences
+                try:
+                    SanitizeMol(mol)
+                except Exception:
+                    # Attempt simple repairs on common Ketcher issues and
+                    # re-parse/sanitize. Stop at the first successful repair.
+                    repair_candidates = [
+                        ("[nH]", "[n]"),
+                        ("[n]", "[nH]"),
+                    ]
+                    # also try regex-based targeted repairs
+                    regex_candidates = [
+                        (r"\[nH\](?=\()", "[n]"),
+                        (r"\[nH\](?=c)", "[n]"),
+                        (r"\[nH\](?=C)", "[n]"),
+                    ]
+                    repaired = None
+                    import re as _re
+
+                    def try_parse(sm):
+                        try:
+                            m = MolFromSmiles(sm)
+                        except Exception:
+                            m = None
+                        if m is None:
+                            try:
+                                m = MolFromSmiles(sm, sanitize=False)
+                                SanitizeMol(m)
+                            except Exception:
+                                m = None
+                        return m
+
+                    for old, new in repair_candidates:
+                        s2 = s.replace(old, new)
+                        m2 = try_parse(s2)
+                        if m2 is not None:
+                            repaired = m2
+                            s = s2
+                            mol = m2
+                            break
+
+                    if repaired is None:
+                        for pat, new in regex_candidates:
+                            s2 = _re.sub(pat, new, s)
+                            if s2 == s:
+                                continue
+                            m2 = try_parse(s2)
+                            if m2 is not None:
+                                repaired = m2
+                                s = s2
+                                mol = m2
+                                break
+
+                    if repaired is None:
+                        # Re-raise the sanitize exception to be handled below
+                        raise
+
+                # At this point sanitization succeeded; add/remove Hs to
+                # normalize explicit hydrogens if necessary.
                 mol = AddHs(mol)
                 SanitizeMol(mol)
                 mol = RemoveHs(mol)
