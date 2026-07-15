@@ -12,14 +12,12 @@ authors = [
 keywords = ["cheminformatics", "genomics"]
 classifiers = [
   "Development Status :: 4 - Beta",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: POSIX :: Linux",
   "Programming Language :: Python :: 3.12",
   "Topic :: Scientific/Engineering :: Bio-Informatics",
   "Topic :: Scientific/Engineering :: Chemistry"
 ]
 dependencies = [
-  "argparse~=1.4",
   "coloredlogs~=15.0",
   "json-repair~=0.61",
   "mite-schema>=1.8.4",
@@ -37,11 +35,13 @@ Issues = "https://github.com/mite-standard/mite_extras/issues"
 mite_extras = "mite_extras.main:main_cli"
 
 [project.optional-dependencies]
-dev = []
+dev = [
+  "prek>=0.4.9",
+]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
 
 [tool.pytest.ini_options]
 addopts = "-ra -q"
