@@ -148,7 +148,7 @@ class MoleculeValidator(BaseModel):
                     f"The erroneous SMILES string was:\n"
                     f"{s}\n"
                     f"Full error trace:\n"
-                    f"{e!s}\n"
+                    f"{e!s}\n",
                 ) from e
         # Ensure stereochemistry is assigned consistently before producing SMILES
         with suppress(Exception):
@@ -166,7 +166,7 @@ class MoleculeValidator(BaseModel):
             raise ValueError(
                 f"RDKit rejected SMARTS string - is it a valid pattern?\n"
                 f"The erroneous SMARTS string was:\n"
-                f"{smarts}\n"
+                f"{smarts}\n",
             )
         for i, atom in enumerate(mol.GetAtoms()):
             atom.SetAtomMapNum(i)
@@ -253,7 +253,7 @@ class ReactionEnumerator(BaseModel):
             raise ValueError(
                 f"RDKit rejected SMARTS string - is it a valid pattern?\n"
                 f"The erroneous SMARTS string was:\n"
-                f"{smarts}\n"
+                f"{smarts}\n",
             )
         enumerated_mols = self.enumerate_molecule(mol)
         return {MolToSmarts(m) for m in enumerated_mols if m is not None}
@@ -329,13 +329,15 @@ class ReactionValidator(BaseModel):
         if overlap := forbidden_smiles & expected_smiles:
             raise ValueError(
                 f"Overlap between expected and forbidden products:\n"
-                f"{'\n'.join(overlap)}\n"
+                f"{'\n'.join(overlap)}\n",
             )
 
         # Generate reaction variants and validate
         reactions = self._get_reaction_variants(reaction_smarts)
         predicted_products = self._run_reactions(
-            reactions, substrate_smiles, intramolecular
+            reactions,
+            substrate_smiles,
+            intramolecular,
         )
 
         # Validate predictions
@@ -391,7 +393,7 @@ class ReactionValidator(BaseModel):
                             continue
                         try:
                             s_en = self.molecule_validator.canonicalize_smiles(
-                                MolToSmiles(mol_copy)
+                                MolToSmiles(mol_copy),
                             )
                             predicted_smiles.add(s_en)
                         except Exception:
@@ -405,13 +407,13 @@ class ReactionValidator(BaseModel):
                 f"Expected products:\n"
                 f"{'\n'.join(expected_smiles)}\n"
                 f"Generated products:\n"
-                f"{'\n'.join(predicted_smiles)}\n"
+                f"{'\n'.join(predicted_smiles)}\n",
             )
 
         if overlap := forbidden_smiles & predicted_smiles:
             raise ValueError(
                 f"Reaction product(s) belong(s) to the specified forbidden product(s):\n"
-                f"{'\n'.join(overlap)}\n"
+                f"{'\n'.join(overlap)}\n",
             )
 
         logger.debug("Successfully validated reaction SMARTS")
@@ -458,7 +460,7 @@ class ReactionValidator(BaseModel):
             raise ValueError(
                 f"RDKit rejected SMILES string - is it a valid SMILES?\n"
                 f"The erroneous SMILES string was:\n"
-                f"{substrate_smiles}\n"
+                f"{substrate_smiles}\n",
             )
 
         substrate_variants = self.enumerator.enumerate_molecule(substrate)

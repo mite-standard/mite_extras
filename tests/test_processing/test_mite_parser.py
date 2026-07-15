@@ -23,7 +23,7 @@ def test_get_cofactors(mite_json):
 def test_get_auxenzymes_valid(mite_json):
     parser = MiteParser()
     log = parser.get_auxenzymes(
-        auxenzymes=mite_json.get("enzyme").get("auxiliaryEnzymes")
+        auxenzymes=mite_json.get("enzyme").get("auxiliaryEnzymes"),
     )
     assert len(log) == 1
     assert isinstance(log[0], EnzymeAux)
@@ -32,7 +32,7 @@ def test_get_auxenzymes_valid(mite_json):
 def test_get_databaseids_reaction_valid(mite_json):
     parser = MiteParser()
     log = parser.get_databaseids_reaction(
-        data=mite_json.get("reactions")[0].get("databaseIds")
+        data=mite_json.get("reactions")[0].get("databaseIds"),
     )
     assert log.ec == "1.2.3.4"
 

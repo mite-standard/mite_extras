@@ -166,11 +166,11 @@ class MiteParser(BaseModel):
                     description=data.get("enzyme", {}).get("description"),
                     databaseIds=EnyzmeDatabaseIds(**data["enzyme"]["databaseIds"]),
                     auxiliaryEnzymes=self.get_auxenzymes(
-                        auxenzymes=data.get("enzyme", {}).get("auxiliaryEnzymes")
+                        auxenzymes=data.get("enzyme", {}).get("auxiliaryEnzymes"),
                     ),
                     references=data.get("enzyme", {}).get("references"),
                     cofactors=self.get_cofactors(
-                        cofactors=data.get("enzyme", {}).get("cofactors")
+                        cofactors=data.get("enzyme", {}).get("cofactors"),
                     ),
                 ),
                 reactions=self.get_reactions(reactions=data.get("reactions")),
