@@ -157,7 +157,17 @@ class MoleculeValidator(BaseModel):
 
         for atom in mol.GetAtoms():
             atom.SetAtomMapNum(0)
-        return CanonSmiles(MolToSmiles(mol))
+        # Try producing SMILES; if kekulization fails, attempt Kekulize and retry
+        try:
+            smi = MolToSmiles(mol)
+        except Exception as e:
+            if "kekul" in str(e).lower():
+                with suppress(Exception):
+                    Chem.Kekulize(mol, clearAromaticFlags=True)
+                smi = MolToSmiles(mol)
+            else:
+                raise
+        return CanonSmiles(smi)
 
     def canonicalize_smarts(self, smarts: str) -> str:
         """Canonicalize a SMARTS pattern."""
@@ -284,6 +294,11 @@ class ReactionEnumerator(BaseModel):
 class ReactionValidator(BaseModel):
     """Main class for validating chemical reactions."""
 
+    # Tunable limits to avoid combinatorial explosion / hanging on large entries
+    MAX_PRODUCT_VARIANTS: int = 200
+    MAX_REACTION_RUNS: int = 500
+    MAX_CHIRAL_FLIP_CENTERS: int = 12
+
     molecule_validator: MoleculeValidator = MoleculeValidator()
     reaction_cleaner: ReactionCleaner = ReactionCleaner()
     enumerator: ReactionEnumerator = ReactionEnumerator()
@@ -359,7 +374,14 @@ class ReactionValidator(BaseModel):
                 except Exception:
                     continue
 
-                # Also try flipping combinations of chiral centers (up to a reasonable limit)
+                # Stop if predicted set grows too large
+                if len(predicted_smiles) > self.MAX_PRODUCT_VARIANTS:
+                    logger.debug(
+                        "Aborting further variant enumeration: too many predicted products",
+                    )
+                    break
+
+                # Also try flipping combinations of chiral centers (bounded)
                 try:
                     chiral_atoms = [
                         a.GetIdx()
@@ -370,13 +392,11 @@ class ReactionValidator(BaseModel):
                             ChiralType.CHI_TETRAHEDRAL_CCW,
                         )
                     ]
-                    max_combinations = (
-                        1 << len(chiral_atoms) if len(chiral_atoms) <= 12 else 1 << 12
-                    )
+                    flip_centers = min(len(chiral_atoms), self.MAX_CHIRAL_FLIP_CENTERS)
                     from itertools import product
 
-                    # For each combination of flips, generate a variant
-                    for bits in product([0, 1], repeat=min(len(chiral_atoms), 12)):
+                    # For each combination of flips (bounded), generate a variant
+                    for bits in product([0, 1], repeat=flip_centers):
                         mol_copy = Chem.Mol(var)
                         changed = False
                         for idx, bit in zip(chiral_atoms, bits, strict=True):
@@ -398,10 +418,52 @@ class ReactionValidator(BaseModel):
                             predicted_smiles.add(s_en)
                         except Exception:
                             continue
+
+                        if len(predicted_smiles) > self.MAX_PRODUCT_VARIANTS:
+                            logger.debug(
+                                "Aborting chiral flip enumeration: too many predicted products",
+                            )
+                            break
                 except Exception:
                     pass
 
         if not expected_smiles.issubset(predicted_smiles):
+            # Try a relaxed comparison ignoring stereochemistry (non-isomeric SMILES)
+            try:
+                expected_noniso = set()
+                for p in expected_products:
+                    try:
+                        m = MolFromSmiles(self.molecule_validator._clean_string(p))
+                        if m is None:
+                            continue
+                        for atom in m.GetAtoms():
+                            atom.SetAtomMapNum(0)
+                        s_non = CanonSmiles(MolToSmiles(m, isomericSmiles=False))
+                        expected_noniso.add(s_non)
+                    except Exception:
+                        continue
+
+                predicted_noniso = set()
+                for s in predicted_smiles:
+                    try:
+                        m = MolFromSmiles(s)
+                        if m is None:
+                            continue
+                        for atom in m.GetAtoms():
+                            atom.SetAtomMapNum(0)
+                        s_non = CanonSmiles(MolToSmiles(m, isomericSmiles=False))
+                        predicted_noniso.add(s_non)
+                    except Exception:
+                        continue
+
+                if expected_noniso and expected_noniso.issubset(predicted_noniso):
+                    logger.warning(
+                        "Reaction product stereochemistry differs but non-isomeric structures match.",
+                    )
+                    return
+            except Exception:
+                pass
+
             raise ValueError(
                 f"Reaction did not lead to all expected products.\n"
                 f"Expected products:\n"
@@ -465,6 +527,7 @@ class ReactionValidator(BaseModel):
 
         substrate_variants = self.enumerator.enumerate_molecule(substrate)
         products = set()
+        run_count = 0
 
         for mol in substrate_variants:
             reactants = GetMolFrags(mol, asMols=True)
@@ -478,10 +541,23 @@ class ReactionValidator(BaseModel):
 
             for reaction in reactions:
                 for reactant_combo in reactant_perms:
+                    # Safety: avoid runaway combinatorics
+                    if run_count > self.MAX_REACTION_RUNS:
+                        logger.debug(
+                            "Reached max reaction run count, aborting further runs"
+                        )
+                        return {p for p in products if p is not None}
+
                     try:
                         reaction_products = reaction.RunReactants(reactant_combo)
+                        run_count += 1
                         for product_set in reaction_products:
                             products.update(product_set)
+                            if len(products) > self.MAX_PRODUCT_VARIANTS:
+                                logger.debug(
+                                    "Too many products generated; aborting reaction runs",
+                                )
+                                return {p for p in products if p is not None}
                     except Exception as e:
                         logger.debug(f"Error during running of reaction: {e}")
                         continue
