@@ -149,11 +149,11 @@ wheels = [
 
 [[package]]
 name = "json-repair"
-version = "0.61.4"
+version = "0.61.5"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f0/f5/68b92610453eae5087a05a6f4123f0477dc2f3e84250c2d7de05552fa12a/json_repair-0.61.4.tar.gz", hash = "sha256:d78c212c1d72606bee30a7886820c9d6f7dbd659883dc2397304735a59f7bf86", size = 51069, upload-time = "2026-07-12T16:51:11.036Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b3/43/189737dfa70d1f455fb26770935437f36645725e8cd54f5fff3e9fa2014f/json_repair-0.61.5.tar.gz", hash = "sha256:965cc39a7cddc84aad0a1b00a4ce44906cf14893bd0e3890a386d28ca21dd0f0", size = 51190, upload-time = "2026-07-15T18:59:50.262Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/be/5b65e61de2c820e6e24837311249a98465d9b100db8da89f65068ad9e799/json_repair-0.61.4-py3-none-any.whl", hash = "sha256:1056d5468a6d4e8bb4498b3244f996c795e2d457fbb30465d71249d3ef7b481a", size = 49604, upload-time = "2026-07-12T16:51:09.735Z" },
+    { url = "https://files.pythonhosted.org/packages/79/c9/d87adfa561f3de18631214a0d29d1414bb1dba7caaf1d025ea5fe892097c/json_repair-0.61.5-py3-none-any.whl", hash = "sha256:766a712a05b5a2673212ca0df0e27e6dbb446c9b59ab837613a369304b222886", size = 49720, upload-time = "2026-07-15T18:59:48.899Z" },
 ]
 
 [[package]]
