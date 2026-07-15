@@ -29,7 +29,9 @@ import coloredlogs
 import json_repair
 from mite_schema import SchemaManager
 
-from mite_extras import CliManager, FileManager, MiteParser
+from .cli.cli_manager import CliManager
+from .processing.file_manager import FileManager
+from .processing.mite_parser import MiteParser
 
 
 def config_logger(verboseness: str) -> logging.Logger:

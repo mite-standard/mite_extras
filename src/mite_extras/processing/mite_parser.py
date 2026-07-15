@@ -26,7 +26,7 @@ from typing import Any, Self
 
 from pydantic import BaseModel
 
-from mite_extras.processing.data_classes import (
+from .data_classes import (
     Changelog,
     Cofactors,
     Entry,

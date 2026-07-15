@@ -31,7 +31,7 @@ from rdkit.Chem import MolFromSmiles
 from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem.rdChemReactions import ReactionFromSmarts
 
-from mite_extras.processing.validation_manager import (
+from .validation_manager import (
     MoleculeValidator,
     ReactionValidator,
 )
