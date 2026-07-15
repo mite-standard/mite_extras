@@ -563,7 +563,8 @@ class ReactionValidator(BaseModel):
             )
 
         substrate_variants = self.enumerator.enumerate_molecule(substrate)
-        products = set()
+        # Use a mapping from canonical_smiles (or fallback keys) to Mol to remove duplicates
+        unique_products: dict[str, Mol] = {}
         run_count = 0
 
         for mol in substrate_variants:
@@ -583,20 +584,50 @@ class ReactionValidator(BaseModel):
                         logger.debug(
                             "Reached max reaction run count, aborting further runs"
                         )
-                        return {p for p in products if p is not None}
+                        return {p for p in unique_products.values() if p is not None}
 
                     try:
                         reaction_products = reaction.RunReactants(reactant_combo)
                         run_count += 1
                         for product_set in reaction_products:
-                            products.update(product_set)
-                            if len(products) > self.MAX_PRODUCT_VARIANTS:
-                                logger.debug(
-                                    "Too many products generated; aborting reaction runs",
-                                )
-                                return {p for p in products if p is not None}
+                            for prod in product_set:
+                                if prod is None:
+                                    continue
+                                # attempt to create a stable key for deduplication
+                                key = None
+                                try:
+                                    raw_smiles = MolToSmiles(prod)
+                                except Exception:
+                                    raw_smiles = None
+
+                                if raw_smiles is not None:
+                                    try:
+                                        key = (
+                                            self.molecule_validator.canonicalize_smiles(
+                                                raw_smiles
+                                            )
+                                        )
+                                    except Exception:
+                                        # fall back to raw_smiles if canonicalization fails
+                                        key = raw_smiles
+                                else:
+                                    # last resort: use object id
+                                    key = f"molid:{id(prod)}"
+
+                                if key not in unique_products:
+                                    unique_products[key] = prod
+
+                                if len(unique_products) > self.MAX_PRODUCT_VARIANTS:
+                                    logger.debug(
+                                        "Too many products generated; aborting reaction runs",
+                                    )
+                                    return {
+                                        p
+                                        for p in unique_products.values()
+                                        if p is not None
+                                    }
                     except Exception as e:
                         logger.debug(f"Error during running of reaction: {e}")
                         continue
 
-        return {p for p in products if p is not None}
+        return {p for p in unique_products.values() if p is not None}
