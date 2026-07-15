@@ -144,7 +144,11 @@ class MoleculeValidator(BaseModel):
                 mol = RemoveHs(mol)
             except Exception as e:
                 raise ValueError(
-                    f"RDKit rejected SMILES string - is it a valid SMILES?\n{s}"
+                    f"RDKit rejected SMILES string - is it a valid SMILES?\n"
+                    f"The erroneous SMILES string was:\n"
+                    f"{s}\n"
+                    f"Full error trace:\n"
+                    f"{e!s}\n"
                 ) from e
         # Ensure stereochemistry is assigned consistently before producing SMILES
         with suppress(Exception):
@@ -160,7 +164,9 @@ class MoleculeValidator(BaseModel):
         mol = MolFromSmarts(self._clean_string(smarts))
         if mol is None:
             raise ValueError(
-                f"RDKit rejected SMARTS string - is it a valid pattern?\n{smarts}"
+                f"RDKit rejected SMARTS string - is it a valid pattern?\n"
+                f"The erroneous SMARTS string was:\n"
+                f"{smarts}\n"
             )
         for i, atom in enumerate(mol.GetAtoms()):
             atom.SetAtomMapNum(i)
@@ -245,7 +251,9 @@ class ReactionEnumerator(BaseModel):
         mol = MolFromSmarts(smarts)
         if mol is None:
             raise ValueError(
-                f"RDKit rejected SMARTS string - is it a valid pattern?\n{smarts}"
+                f"RDKit rejected SMARTS string - is it a valid pattern?\n"
+                f"The erroneous SMARTS string was:\n"
+                f"{smarts}\n"
             )
         enumerated_mols = self.enumerate_molecule(mol)
         return {MolToSmarts(m) for m in enumerated_mols if m is not None}
@@ -449,7 +457,8 @@ class ReactionValidator(BaseModel):
         if substrate is None:
             raise ValueError(
                 f"RDKit rejected SMILES string - is it a valid SMILES?\n"
-                f"{substrate_smiles}"
+                f"The erroneous SMILES string was:\n"
+                f"{substrate_smiles}\n"
             )
 
         substrate_variants = self.enumerator.enumerate_molecule(substrate)
