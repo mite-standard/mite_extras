@@ -209,16 +209,13 @@ dev = [
 requires-dist = [
     { name = "argparse", specifier = "~=1.4" },
     { name = "coloredlogs", specifier = "~=15.0" },
-    { name = "json-repair", specifier = "~=0.51" },
     { name = "json-repair", specifier = "~=0.61" },
-    { name = "jsonschema", specifier = "~=4.25" },
+    { name = "jsonschema", specifier = "~=4.26" },
     { name = "mite-schema" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = "~=4.3" },
-    { name = "pydantic", specifier = "~=2.11" },
     { name = "pydantic", specifier = "~=2.13" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "~=8.4" },
     { name = "rdkit", specifier = "==2024.3.6" },
-    { name = "requests", specifier = "~=2.32" },
     { name = "requests", specifier = "~=2.34" },
     { name = "ruff", marker = "extra == 'dev'", specifier = "~=0.13" },
 ]
