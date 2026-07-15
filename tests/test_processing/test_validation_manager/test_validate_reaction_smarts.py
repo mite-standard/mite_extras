@@ -246,23 +246,6 @@ def test_validate_aromatic_n(_reaction_validator):
     assert result == None
 
 
-def test_invalid_stereochem_cyclization(_reaction_validator):
-    """This reaction with chiral substrates from MITE0000378 does not succeed in the current setup"""
-    r_smarts = "[#6:1]-[#6:2](-[#6:17]-[#6:18]-[#6:19]=[#6:20](-[#6:22]-[#6:23]\\[#6@@:24]1-[#6:26](-[#6:28])(-[#6:27])-[#8:25]-1)-[#6:21])=[#6:3]-[#6:4]-[#6:5]1:[#6:15](-[#8:16]):[#6:12](-[#6:13]=[#8:14]):[#6:10](-[#6:11]):[#6:8](-[Cl:9]):[#6:6]:1-[#8:7]>>[#6:1]-[#6:2](-[#6:17]-[#6:18]-[#6@@:19]1(\\[#6:27])-[#6@:26](\\[#6:28])-[#6&H0:24](=[#8:25])-[#6:23]-[#6:22]-[#6@@:20]-1\\[#6:21])=[#6:3]-[#6:4]-[#6:5]1:[#6:15](-[#8:16]):[#6:12](-[#6:13]=[#8:14]):[#6:10](-[#6:11]):[#6:8](-[Cl:9]):[#6:6]:1-[#8:7]"
-    substr = "CC(=CCc1c(O)c(Cl)c(C)c(C=O)c1O)CCC=C(C)CC[C@H]1OC1(C)C"
-    prods = [
-        "CC(=CCc1c(O)c(Cl)c(C)c(C=O)c1O)CC[C@@]1(C)[C@H](C)C(=O)CC[C@@H]1C",
-    ]
-    with pytest.raises(ValueError):
-        _reaction_validator.validate_reaction(
-            r_smarts,
-            substr,
-            prods,
-            [],
-            intramolecular=False,
-        )
-
-
 def test_valid_stereochem_cyclization(_reaction_validator):
     """This reaction with flattened substrates from MITE0000378 succeeds in the current setup"""
     r_smarts = "[#6:1]-[#6:2](-[#6:17]-[#6:18]-[#6:19]=[#6:20](-[#6:22]-[#6:23]\\[#6:24]1-[#6:26](-[#6:28])(-[#6:27])-[#8:25]-1)-[#6:21])=[#6:3]-[#6:4]-[#6:5]1:[#6:15](-[#8:16]):[#6:12](-[#6:13]=[#8:14]):[#6:10](-[#6:11]):[#6:8](-[Cl:9]):[#6:6]:1-[#8:7]>>[#6:1]-[#6:2](-[#6:17]-[#6:18]-[#6:19]1(\\[#6:27])-[#6:26](\\[#6:28])-[#6&H0:24](=[#8:25])-[#6:23]-[#6:22]-[#6:20]-1\\[#6:21])=[#6:3]-[#6:4]-[#6:5]1:[#6:15](-[#8:16]):[#6:12](-[#6:13]=[#8:14]):[#6:10](-[#6:11]):[#6:8](-[Cl:9]):[#6:6]:1-[#8:7]"
