@@ -33,7 +33,6 @@ Issues = "https://github.com/mite-standard/mite_extras/issues"
 
 [project.scripts]
 mite_extras = "mite_extras.main:main_cli"
-validate-mite-data = "mite_extras.cli.validate_mite_data:main"
 
 [project.optional-dependencies]
 dev = ["pre-commit~=4.6", "prek>=0.4.9", "pytest~=9.1", "ruff~=0.15"]

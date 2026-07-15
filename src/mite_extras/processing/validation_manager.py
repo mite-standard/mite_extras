@@ -368,11 +368,31 @@ class ReactionValidator(BaseModel):
                 variants = {p}
 
             for var in variants:
+                # Primary attempt: full canonicalization
                 try:
                     s = self.molecule_validator.canonicalize_smiles(MolToSmiles(var))
                     predicted_smiles.add(s)
                 except Exception:
-                    continue
+                    # Fallback 1: non-isomeric SMILES canonicalization
+                    try:
+                        s_non = CanonSmiles(MolToSmiles(var, isomericSmiles=False))
+                        predicted_smiles.add(s_non)
+                    except Exception:
+                        pass
+
+                    # Fallback 2: try kekulize + canonicalize
+                    try:
+                        Chem.Kekulize(var, clearAromaticFlags=True)
+                        s_k = CanonSmiles(MolToSmiles(var))
+                        predicted_smiles.add(s_k)
+                    except Exception:
+                        # Last resort: try raw MolToSmiles (non-canonical)
+                        try:
+                            s_raw = MolToSmiles(var)
+                            predicted_smiles.add(s_raw)
+                        except Exception:
+                            # give up on this variant
+                            pass
 
                 # Stop if predicted set grows too large
                 if len(predicted_smiles) > self.MAX_PRODUCT_VARIANTS:
@@ -417,7 +437,24 @@ class ReactionValidator(BaseModel):
                             )
                             predicted_smiles.add(s_en)
                         except Exception:
-                            continue
+                            # Fallbacks mirroring the main variant loop
+                            try:
+                                s_non = CanonSmiles(
+                                    MolToSmiles(mol_copy, isomericSmiles=False)
+                                )
+                                predicted_smiles.add(s_non)
+                            except Exception:
+                                pass
+                            try:
+                                Chem.Kekulize(mol_copy, clearAromaticFlags=True)
+                                s_k = CanonSmiles(MolToSmiles(mol_copy))
+                                predicted_smiles.add(s_k)
+                            except Exception:
+                                try:
+                                    s_raw = MolToSmiles(mol_copy)
+                                    predicted_smiles.add(s_raw)
+                                except Exception:
+                                    pass
 
                         if len(predicted_smiles) > self.MAX_PRODUCT_VARIANTS:
                             logger.debug(
