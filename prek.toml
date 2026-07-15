@@ -80,7 +80,6 @@ repo = "https://github.com/astral-sh/uv-pre-commit"
 rev = "0.11.28"
 hooks = [{ id = "uv-lock" }]
 
-
 [[repos]]
 repo = "https://github.com/zizmorcore/zizmor-pre-commit"
 rev = "v1.27.0"
