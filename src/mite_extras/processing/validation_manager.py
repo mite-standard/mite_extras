@@ -33,7 +33,11 @@ from math import pi
 
 import requests
 from pydantic import BaseModel
-from rdkit import Chem
+from rdkit import Chem, RDLogger
+
+# Disable RDKit error-level app logs (this suppresses the repeated "Can't kekulize mol" messages
+# while leaving other RDKit log levels intact).
+RDLogger.DisableLog("rdApp.error")
 from rdkit.Chem import (
     AddHs,
     CanonSmiles,
@@ -321,7 +325,7 @@ class ReactionValidator(BaseModel):
         return result
 
     @staticmethod
-    @lru_cache(maxsize=4096)
+    @lru_cache(maxsize=16384)
     def _normalize_product_smiles_str_cached(raw_smiles: str) -> tuple[str, ...]:
         """Return cleaned SMILES variants for a raw SMILES string; cached for speed.
 
