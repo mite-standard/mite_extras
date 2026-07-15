@@ -150,10 +150,7 @@ class MoleculeValidator(BaseModel):
                     f"Full error trace:\n"
                     f"{e!s}\n",
                 ) from e
-        # Ensure stereochemistry is assigned consistently before producing SMILES
-        with suppress(Exception):
-            # Force stereochemistry assignment so canonicalization is deterministic
-            AssignStereochemistry(mol, force=True)
+        # Do not force stereochemistry assignment here; keep RDKit's original handling
 
         for atom in mol.GetAtoms():
             atom.SetAtomMapNum(0)
@@ -440,7 +437,7 @@ class ReactionValidator(BaseModel):
                             # Fallbacks mirroring the main variant loop
                             try:
                                 s_non = CanonSmiles(
-                                    MolToSmiles(mol_copy, isomericSmiles=False)
+                                    MolToSmiles(mol_copy, isomericSmiles=False),
                                 )
                                 predicted_smiles.add(s_non)
                             except Exception:
@@ -582,7 +579,7 @@ class ReactionValidator(BaseModel):
                     # Safety: avoid runaway combinatorics
                     if run_count > self.MAX_REACTION_RUNS:
                         logger.debug(
-                            "Reached max reaction run count, aborting further runs"
+                            "Reached max reaction run count, aborting further runs",
                         )
                         return {p for p in unique_products.values() if p is not None}
 
@@ -604,7 +601,7 @@ class ReactionValidator(BaseModel):
                                     try:
                                         key = (
                                             self.molecule_validator.canonicalize_smiles(
-                                                raw_smiles
+                                                raw_smiles,
                                             )
                                         )
                                     except Exception:
