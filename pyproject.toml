@@ -5,6 +5,7 @@ description = "Parsing, conversion, and validation functionality for Minimum Inf
 readme = "README.md"
 requires-python = ">=3.12.0,<3.13.0" # because of rdkit 2024
 license-files = { paths = ["LICENSE"] }
+
 license-files = ["LICENSE"]
 authors = [
   { name = "Mitja M. Zdouc", email = "zdoucmm@gmail.com" },
@@ -20,14 +21,6 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Chemistry"
 ]
 dependencies = [
-    "argparse~=1.4",
-    "coloredlogs~=15.0",
-    "json-repair~=0.61",
-    "jsonschema~=4.26",
-    "mite-schema",
-    "pydantic~=2.13",
-    "rdkit==2024.3.6",
-    "requests~=2.34",
   "argparse~=1.4",
   "coloredlogs~=15.0",
   "json-repair~=0.61",
@@ -52,6 +45,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
+addopts = "-ra -q"
 minversion = "6.0"
 pythonpath = ["src/mite_extras"]
 testpaths = [
