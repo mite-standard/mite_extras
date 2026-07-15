@@ -32,7 +32,6 @@ from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem.rdChemReactions import ReactionFromSmarts
 
 from mite_extras.processing.validation_manager import (
-    IdValidator,
     MoleculeValidator,
     ReactionValidator,
 )
@@ -251,44 +250,6 @@ class EnyzmeDatabaseIds(BaseModel):
     genpept: str | None = None
     mibig: str | None = None
     wikidata: str | None = None
-
-    _id_validator = IdValidator()
-
-    @model_validator(mode="after")
-    def validate_ids(self):
-        """Cross-reference and populate database IDs using IdValidator.
-
-        Checks if genpept and uniprot IDs correspond
-        If only one ID is provided, fetches the other
-        Checks if wikidata QID exists
-
-        Raises:
-            ValueError: did not provide one of uniprot or genpept IDs
-        """
-        if not self.genpept and not self.uniprot:
-            raise ValueError("Neither 'UniProt' not 'GenPept' IDs provided.")
-
-        try:
-            if self.uniprot and self.genpept:
-                self._id_validator.cleanup_ids(
-                    genpept=self.genpept, uniprot=self.uniprot
-                )
-            elif self.uniprot:
-                data = self._id_validator.cleanup_ids(uniprot=self.uniprot)
-                self.genpept = data["genpept"]
-            elif self.genpept:
-                data = self._id_validator.cleanup_ids(genpept=self.genpept)
-                self.uniprot = data["uniprot"]
-        except Exception as e:
-            logger.warning(f"EnzymeDatabaseIds: error during ID validation: {e!s}")
-
-        try:
-            if self.wikidata:
-                self._id_validator.validate_wikidata_qid(self.wikidata)
-        except Exception as e:
-            logger.warning(f"EnzymeDatabaseIds: error during ID validation: {e!s}")
-
-        return self
 
     def to_json(self: Self) -> dict:
         json_dict = {}
