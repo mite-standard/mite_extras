@@ -194,3 +194,26 @@ def test_validate_macrolacton(_reaction_validator):
         intramolecular=False,
     )
     assert result == None
+
+
+def test_validate_aromatic_n(_reaction_validator):
+    """Checks removal of hydrogen on aromatic N in tryptophan when it becomes substituted with another bond
+
+    Ketcher exports a malformed SMILES string C[C@@H](C(N[C@@H]1C(N[C@H](C(O)=O)Cc2c3c(cccc3)[nH](C1c1c3c(cccc3)[nH]c1)c2)=O)=O)N
+    The manually corrected SMILES string is C[C@@H](C(N[C@@H]1C(N[C@H](C(O)=O)Cc2c3c(cccc3)[n](C1c1c3c(cccc3)[nH]c1)c2)=O)=O)N
+    """
+    r_smarts = "[#6:1]\\[#6@@:2](-[#6:4](-[#7:6]\\[#6@:7](-[#6:18](-[#7:20]/[#6@:21](-[#6:32](-[#8:34])=[#8:33])-[#6:22]-[#6:23]1:[#6:31]2:[#6:26](:[#6:27]:[#6:28]:[#6:29]:[#6:30]:2):[#7:25;h1]:[#6:24]:1)=[#8:19])-[#6:8]-[#6:9]1:[#6:17]2:[#6:12](:[#6:13]:[#6:14]:[#6:15]:[#6:16]:2):[#7:11;h1]:[#6:10]:1)=[#8:5])-[#7:3]>>[#6:1]\\[#6@@:2](-[#6:4](-[#7:6]\\[#6@@:7]1-[#6:18](-[#7:20]/[#6@:21](-[#6:32](-[#8:34])=[#8:33])-[#6:22]-[#6:23]2:[#6:31]3:[#6:26](:[#6:27]:[#6:28]:[#6:29]:[#6:30]:3):[#7:25;h1](-[#6:8]-1-[#6:9]1:[#6:17]3:[#6:12](:[#6:13]:[#6:14]:[#6:15]:[#6:16]:3):[#7:11;h1]:[#6:10]:1):[#6:24]:2)=[#8:19])=[#8:5])-[#7:3]"
+    substr = (
+        "C[C@H](N)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)O"
+    )
+    prods = [
+        "C[C@@H](C(N[C@@H]1C(N[C@H](C(O)=O)Cc2c3c(cccc3)[nH](C1c1c3c(cccc3)[nH]c1)c2)=O)=O)N"
+    ]
+    result = _reaction_validator.validate_reaction(
+        r_smarts,
+        substr,
+        prods,
+        [],
+        intramolecular=False,
+    )
+    assert result == None
