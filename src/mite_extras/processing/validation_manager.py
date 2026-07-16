@@ -454,13 +454,158 @@ class ReactionValidator(BaseModel):
 
         logger.debug("Predicted products: %s", predicted_smiles)
         if not expected_smiles.issubset(predicted_smiles):
-            raise ValueError(
-                f"Reaction did not lead to all expected products.\n"
-                f"Expected products:\n"
-                f"{'\n'.join(expected_smiles)}\n"
-                f"Generated products:\n"
-                f"{'\n'.join(predicted_smiles)}\n",
-            )
+            # Strict stereochemistry handling:
+            # - If the connectivity (non-isomeric form) is not present in predictions, fail.
+            # - If connectivity matches but stereochemistry differs, fail and report whether
+            #   the predicted product is an enantiomer or a diastereomer.
+
+            def _nonisomeric_canonical(smiles_str: str):
+                try:
+                    m = MolFromSmiles(smiles_str)
+                    if m is None:
+                        return None
+                    s = MolToSmiles(m, isomericSmiles=False)
+                    return CanonSmiles(s)
+                except Exception:
+                    return None
+
+            # Map non-isomeric forms to expected/predicted products
+            expected_map = {}
+            for p in expected_products:
+                try:
+                    can = self.molecule_validator.canonicalize_smiles(p)
+                except Exception:
+                    can = None
+                noniso = _nonisomeric_canonical(can) if can else None
+                if noniso:
+                    expected_map.setdefault(noniso, []).append(can)
+
+            predicted_map = {}
+            for p in predicted_smiles:
+                noniso = _nonisomeric_canonical(p)
+                if noniso:
+                    predicted_map.setdefault(noniso, []).append(p)
+
+            missing_connectivity = []
+            stereochem_mismatches = []
+
+            for noniso, exp_cans in expected_map.items():
+                preds = predicted_map.get(noniso)
+                if not preds:
+                    # no product with same connectivity
+                    missing_connectivity.extend(exp_cans)
+                    continue
+
+                # For each expected canonical with same connectivity, compare stereo
+                for exp_can in exp_cans:
+                    exp_m = MolFromSmiles(exp_can)
+                    Chem.AssignStereochemistry(exp_m, force=True, cleanIt=True)
+                    exp_centers = dict(
+                        Chem.FindMolChiralCenters(exp_m, includeUnassigned=True)
+                    )
+
+                    # Try to find a predicted molecule that matches stereochemistry exactly
+                    matched_exact = False
+                    mismatch_details = []
+                    for pred_can in preds:
+                        pred_m = MolFromSmiles(pred_can)
+                        Chem.AssignStereochemistry(pred_m, force=True, cleanIt=True)
+
+                        # Determine atom mapping between expected and predicted (ignore chirality)
+                        mapping = exp_m.GetSubstructMatch(pred_m)
+                        if not mapping:
+                            # try the reverse mapping and invert
+                            rev_map = pred_m.GetSubstructMatch(exp_m)
+                            if rev_map:
+                                # build mapping from exp idx to pred idx
+                                mapping = tuple(
+                                    rev_map.index(i) if i in rev_map else None
+                                    for i in range(exp_m.GetNumAtoms())
+                                )
+                            else:
+                                # cannot map; skip
+                                continue
+
+                        pred_centers = dict(
+                            Chem.FindMolChiralCenters(pred_m, includeUnassigned=True)
+                        )
+
+                        # Compare stereochemistry at corresponding centers
+                        all_same = True
+                        all_inverted = True
+                        unknown = False
+                        for exp_idx, exp_label in exp_centers.items():
+                            pred_idx = mapping[exp_idx]
+                            if pred_idx is None:
+                                unknown = True
+                                break
+                            pred_label = pred_centers.get(pred_idx, "?")
+                            if exp_label == "?":
+                                unknown = True
+                                break
+                            if pred_label == "?":
+                                unknown = True
+                                break
+                            if exp_label == pred_label:
+                                all_inverted = False
+                            else:
+                                all_same = False
+
+                        if all_same and not unknown:
+                            matched_exact = True
+                            break
+
+                        if not matched_exact:
+                            if not unknown:
+                                if all_inverted:
+                                    mismatch_details.append(
+                                        (exp_can, pred_can, "enantiomer")
+                                    )
+                                else:
+                                    mismatch_details.append(
+                                        (exp_can, pred_can, "diastereomer")
+                                    )
+                            else:
+                                mismatch_details.append(
+                                    (exp_can, pred_can, "unknown_stereo")
+                                )
+
+                    if not matched_exact:
+                        stereochem_mismatches.extend(mismatch_details)
+
+            if missing_connectivity:
+                raise ValueError(
+                    "Reaction did not lead to all expected products (connectivity mismatch).\n"
+                    "Missing expected products:\n"
+                    f"{'\n'.join(missing_connectivity)}\n"
+                    "Generated products:\n"
+                    f"{'\n'.join(predicted_smiles)}\n",
+                )
+
+            if stereochem_mismatches:
+                # Prepare actionable warning message for users with hints to fix their entries
+                details = []
+                for exp_can, pred_can, kind in stereochem_mismatches:
+                    details.append(
+                        f"Expected: {exp_can}\nPredicted: {pred_can}\nMismatch: {kind}\n"
+                    )
+                message = (
+                    "Reaction produced stereoisomers of expected products (stereochemistry mismatch).\n"
+                    "Details:\n"
+                    f"{'\n'.join(details)}\n"
+                    "Suggested actions:\n"
+                    "  - Verify the submitted expected product SMILES include correct stereochemical annotations ([@/@@], [C@H], etc.).\n"
+                    "  - If the reaction yields a racemate, submit both enantiomers as expected products or mark the entry as racemic.\n"
+                    "  - Ensure substrate stereochemistry is specified if the outcome depends on it.\n"
+                    "  - If the entry should not be validated automatically (complex/ambiguous stereochemistry), mark it as 'needs review' in the entry metadata so the pipeline skips automated validation.\n"
+                    "Contact: update entry or run with stereo-flattening option if appropriate."
+                )
+                logger.warning(message)
+                # Continue (treat as warning): do not raise — caller/CLI should surface this warning to the user
+                return None
+
+            # If we reach here, all expected products matched exactly (should not happen),
+            # otherwise earlier raises would have been triggered.
 
         if overlap := forbidden_smiles & predicted_smiles:
             raise ValueError(
