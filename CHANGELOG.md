@@ -13,7 +13,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - Reworked validation functionality of reaction SMARTS/SMILES: better handling of stereochemistry, better error messages
 - Updated `rdkit` version
 - Unpinned `python` version to be compatible with future versions
-- Misc changes
+- In addition to `pre-commit`, added a `prek.toml` file for additional checks, including `typos.toml`
 
 ## [1.6.5] 25-10-2025
 
