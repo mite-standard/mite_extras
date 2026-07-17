@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 import pytest
+
 from mite_extras.processing.data_classes import (
     Changelog,
     Cofactors,

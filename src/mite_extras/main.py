@@ -29,7 +29,9 @@ import coloredlogs
 import json_repair
 from mite_schema import SchemaManager
 
-from mite_extras import CliManager, FileManager, MiteParser
+from .cli.cli_manager import CliManager
+from .processing.file_manager import FileManager
+from .processing.mite_parser import MiteParser
 
 
 def config_logger(verboseness: str) -> logging.Logger:
@@ -46,8 +48,8 @@ def config_logger(verboseness: str) -> logging.Logger:
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(
         coloredlogs.ColoredFormatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        ),
     )
     logger.addHandler(console_handler)
     return logger

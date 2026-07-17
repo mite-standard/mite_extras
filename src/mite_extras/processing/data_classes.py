@@ -31,8 +31,7 @@ from rdkit.Chem import MolFromSmiles
 from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem.rdChemReactions import ReactionFromSmarts
 
-from mite_extras.processing.validation_manager import (
-    IdValidator,
+from .validation_manager import (
     MoleculeValidator,
     ReactionValidator,
 )
@@ -168,7 +167,7 @@ class Enzyme(BaseModel):
 
         if self.databaseIds.to_json() == {}:
             raise RuntimeError(
-                "At least one of 'uniprot' and 'genpept' IDs must be provided."
+                "At least one of 'uniprot' and 'genpept' IDs must be provided.",
             )
         else:
             json_dict["databaseIds"] = self.databaseIds.to_json()
@@ -252,44 +251,6 @@ class EnyzmeDatabaseIds(BaseModel):
     mibig: str | None = None
     wikidata: str | None = None
 
-    _id_validator = IdValidator()
-
-    @model_validator(mode="after")
-    def validate_ids(self):
-        """Cross-reference and populate database IDs using IdValidator.
-
-        Checks if genpept and uniprot IDs correspond
-        If only one ID is provided, fetches the other
-        Checks if wikidata QID exists
-
-        Raises:
-            ValueError: did not provide one of uniprot or genpept IDs
-        """
-        if not self.genpept and not self.uniprot:
-            raise ValueError("Neither 'UniProt' not 'GenPept' IDs provided.")
-
-        try:
-            if self.uniprot and self.genpept:
-                self._id_validator.cleanup_ids(
-                    genpept=self.genpept, uniprot=self.uniprot
-                )
-            elif self.uniprot:
-                data = self._id_validator.cleanup_ids(uniprot=self.uniprot)
-                self.genpept = data["genpept"]
-            elif self.genpept:
-                data = self._id_validator.cleanup_ids(genpept=self.genpept)
-                self.uniprot = data["uniprot"]
-        except Exception as e:
-            logger.warning(f"EnzymeDatabaseIds: error during ID validation: {e!s}")
-
-        try:
-            if self.wikidata:
-                self._id_validator.validate_wikidata_qid(self.wikidata)
-        except Exception as e:
-            logger.warning(f"EnzymeDatabaseIds: error during ID validation: {e!s}")
-
-        return self
-
     def to_json(self: Self) -> dict:
         json_dict = {}
         for attr in ["uniprot", "genpept", "mibig", "wikidata"]:
@@ -336,8 +297,8 @@ class Reaction(BaseModel):
             cleaned_smarts = (
                 self._reaction_validator.reaction_cleaner.clean_ketcher_format(
                     self._reaction_validator.molecule_validator._clean_string(
-                        self.reactionSMARTS
-                    )
+                        self.reactionSMARTS,
+                    ),
                 )
             )
 
@@ -372,7 +333,7 @@ class Reaction(BaseModel):
                 )
             except Exception as e:
                 raise ValueError(
-                    f"Reaction SMARTS #{reaction_id} - reaction example #{reaction}: Validation failed for substrate {reaction.substrate}: {e!s}"
+                    f"Reaction SMARTS #{reaction_id} - reaction example #{reaction}: Validation failed for substrate {reaction.substrate}: {e!s}",
                 ) from e
         return self
 
@@ -460,13 +421,13 @@ class ReactionEx(BaseModel):
         try:
             # Clean substrate SMILES
             self.substrate = self._molecule_validator.canonicalize_smiles(
-                self._molecule_validator._clean_string(self.substrate)
+                self._molecule_validator._clean_string(self.substrate),
             )
 
             # Clean product SMILES
             self.products = [
                 self._molecule_validator.canonicalize_smiles(
-                    self._molecule_validator._clean_string(prod)
+                    self._molecule_validator._clean_string(prod),
                 )
                 for prod in self.products
             ]
@@ -476,7 +437,7 @@ class ReactionEx(BaseModel):
                 cleaned_forbidden = []
                 for prod in self.forbidden_products:
                     cleaned = self._molecule_validator.canonicalize_smiles(
-                        self._molecule_validator._clean_string(prod)
+                        self._molecule_validator._clean_string(prod),
                     )
                     # Split composite SMILES into individual molecules
                     cleaned_forbidden.extend(cleaned.split("."))
@@ -505,7 +466,7 @@ class ReactionEx(BaseModel):
 
     def to_html(self: Self) -> dict:
         def _smiles_to_svg(smiles: str) -> str:
-            """Generates a base64 encoded SVG strin"""
+            """Generates a base64 encoded SVG string"""
             m = MolFromSmiles(smiles)
 
             for atom in m.GetAtoms():
@@ -538,7 +499,7 @@ class ReactionEx(BaseModel):
             ]
         except Exception as e:
             logger.warning(
-                f"Error during splitting substrate SMILES for rendering: {e!s}"
+                f"Error during splitting substrate SMILES for rendering: {e!s}",
             )
             html_dict["substrate"] = [(self.substrate, _smiles_to_svg(self.substrate))]
 

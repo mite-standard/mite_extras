@@ -3,7 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
-This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+This project adheres to [Semantic
+Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.6.6] 17-07-2026
+
+### Changed
+
+- Reworked validation functionality of reaction SMARTS/SMILES: better handling of stereochemistry, better error messages
+- Updated `rdkit` version
+- Unpinned `python` version to be compatible with future versions
+- In addition to `pre-commit`, added a `prek.toml` file for additional checks, including `typos.toml`
 
 ## [1.6.5] 25-10-2025
 
@@ -15,7 +25,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-- Missing/wrong Wikidata QID does not raise error, only logs warning (matches genpept/uniprot behavior)
+- Missing/wrong Wikidata QID does not raise error, only logs warning (matches
+  genpept/uniprot behavior)
 
 ## [1.6.3] 30-09-2025
 
@@ -29,20 +40,24 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-- `to_json()` and `to_html()` return changelog even if it is an empty list (compatibility with mite_web data submission)
+- `to_json()` and `to_html()` return changelog even if it is an empty list
+  (compatibility with mite_web data submission)
 
 ## [1.6.1] 29-08-2025
 
 ### Changed
 
-- Unpinned version of dependency of `mite_schema` to facilitate maintenance (should always pull the newest release)
+- Unpinned version of dependency of `mite_schema` to facilitate maintenance
+  (should always pull the newest release)
 
 ## [1.6.0] 28-08-2025
 
 ### Changed
 
-- In html_json generation, changed substrate from tuple to list of tuples to visualize substrates separately
-- Changed Wikidata QID checking from raise errror to log warning (frequent 403 errors)
+- In html_json generation, changed substrate from tuple to list of tuples to
+  visualize substrates separately
+- Changed Wikidata QID checking from raise error to log warning (frequent 403
+  errors)
 
 ## [1.5.1] 26-07-2025
 
@@ -74,8 +89,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Bumped `mite_schema` version to `1.7.0`
 - Reworked `ValidationManager`
-- Implemented option for intramolecular reactions (recognized from reaction SMARTS)
-- Pinned RDkit version to `2024.3.6` 
+- Implemented option for intramolecular reactions (recognized from reaction
+  SMARTS)
+- Pinned RDkit version to `2024.3.6`
 
 ## [1.3.1] 02-12-2024
 

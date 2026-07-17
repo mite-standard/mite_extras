@@ -26,7 +26,7 @@ from typing import Any, Self
 
 from pydantic import BaseModel
 
-from mite_extras.processing.data_classes import (
+from .data_classes import (
     Changelog,
     Cofactors,
     Entry,
@@ -123,7 +123,7 @@ class MiteParser(BaseModel):
             return ReactionDatabaseIds(**data)
 
     def get_reactions(self: Self, reactions: list) -> list:
-        """Extract reactions infor and converts into internal data structure
+        """Extract reactions information and converts into internal data structure
 
         Args:
             reactions: list with reaction data
@@ -166,11 +166,11 @@ class MiteParser(BaseModel):
                     description=data.get("enzyme", {}).get("description"),
                     databaseIds=EnyzmeDatabaseIds(**data["enzyme"]["databaseIds"]),
                     auxiliaryEnzymes=self.get_auxenzymes(
-                        auxenzymes=data.get("enzyme", {}).get("auxiliaryEnzymes")
+                        auxenzymes=data.get("enzyme", {}).get("auxiliaryEnzymes"),
                     ),
                     references=data.get("enzyme", {}).get("references"),
                     cofactors=self.get_cofactors(
-                        cofactors=data.get("enzyme", {}).get("cofactors")
+                        cofactors=data.get("enzyme", {}).get("cofactors"),
                     ),
                 ),
                 reactions=self.get_reactions(reactions=data.get("reactions")),
@@ -178,7 +178,7 @@ class MiteParser(BaseModel):
             )
         except Exception as e:
             msg = str(e).split("For further information visit")[0].rstrip()
-            msg = f"Error in parsing entry {data.get("accession")}: {msg}"
+            msg = f"Error in parsing entry {data.get('accession')}: {msg}"
             raise ValueError(msg) from e
 
         logger.debug("MiteParser: completed creating Entry object.")

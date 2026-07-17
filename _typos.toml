@@ -1,0 +1,5 @@
+# typos exceptions for this repository
+# Prevent typos from flagging project-specific tokens and acronyms
+[default.extend-words]
+sur = "sur"
+NWO = "NWO"

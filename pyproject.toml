@@ -1,64 +1,52 @@
 [project]
 name = "mite_extras"
-version = "1.6.5"
+version = "1.6.6"
 description = "Parsing, conversion, and validation functionality for Minimum Information about a Tailoring Enzyme (MITE) files."
 readme = "README.md"
-requires-python = ">=3.12.0,<3.13.0" # because of rdkit 2024
-license-files = { paths = ["LICENSE"] }
+requires-python = ">=3.12.0"
+license-files = ["LICENSE"]
 authors = [
-    { name = "Mitja M. Zdouc", email = "zdoucmm@gmail.com" },
-    { name = "Adriano Rutz", email = "adafede@gmail.com" }
+  { name = "Mitja M. Zdouc", email = "zdoucmm@gmail.com" },
+  { name = "Adriano Rutz", email = "adafede@gmail.com" }
 ]
-keywords = [
-    "cheminformatics",
-    "genomics"
-]
+keywords = ["cheminformatics", "genomics"]
 classifiers = [
-    "Programming Language :: Python :: 3.12",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: POSIX :: Linux",
-    "Development Status :: 4 - Beta",
-    "Topic :: Scientific/Engineering :: Bio-Informatics",
-    "Topic :: Scientific/Engineering :: Chemistry"
+  "Development Status :: 4 - Beta",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+  "Topic :: Scientific/Engineering :: Chemistry"
 ]
 dependencies = [
-    "argparse~=1.4",
-    "coloredlogs~=15.0",
-    "json-repair~=0.51",
-    "jsonschema~=4.25",
-    "mite-schema",
-    "pydantic~=2.11",
-    "rdkit==2024.3.6",
-    "requests~=2.32",
+  "coloredlogs~=15.0",
+  "json-repair~=0.61",
+  "mite-schema>=1.8.4",
+  "pydantic~=2.13",
+  "rdkit>=2026.3.3",
+  "requests~=2.34",
 ]
 
 [project.urls]
-Homepage = "https://mite.bioinformatics.nl/"
 Github = "https://github.com/mite-standard/mite_extras"
+Homepage = "https://mite.bioinformatics.nl/"
 Issues = "https://github.com/mite-standard/mite_extras/issues"
 
 [project.scripts]
 mite_extras = "mite_extras.main:main_cli"
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project.optional-dependencies]
-dev = [
-    "pre-commit~=4.3",
-    "pytest~=8.4",
-    "ruff~=0.13"
-]
+dev = ["prek>=0.4.9", "pytest~=9.1", "ruff~=0.15"]
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
 
 [tool.pytest.ini_options]
-minversion = "6.0"
 addopts = "-ra -q"
+minversion = "6.0"
+pythonpath = ["src/mite_extras"]
 testpaths = [
-    "tests",
-]
-pythonpath = [
-    "src/mite_extras"
+  "tests",
 ]
 
 [tool.ruff]
@@ -66,38 +54,36 @@ line-length = 88
 
 [tool.ruff.lint]
 select = [
-    # flake8-bugbear
-    "B",
-    # flake8-comprehensions
-    "C4",
-    # flake8-eradicate/eradicate
-    "ERA",
-    # isort
-    "I",
-    # pep8-naming
-    "N",
-    # flake8-pie
-    "PIE",
-    # pygrep
-    "PGH",
-    # ruff checks
-    "RUF",
-    # flake8-simplify
-    "SIM",
-    # flake8-type-checking
-    "TCH",
-    # flake8-tidy-imports
-    "TID",
-    # pyupgrade
-    "UP",
+  # flake8-bugbear
+  "B",
+  # flake8-comprehensions
+  "C4",
+  # flake8-eradicate/eradicate
+  "ERA",
+  # isort
+  "I",
+  # pep8-naming
+  "N",
+  # flake8-pie
+  "PIE",
+  # pygrep
+  "PGH",
+  # ruff checks
+  "RUF",
+  # flake8-simplify
+  "SIM",
+  # flake8-tidy-imports
+  "TID",
+  # pyupgrade
+  "UP",
 ]
 ignore = [
-    # whitespace-before-punctuation
-    "E203",
-    # percent-format-invalid-format
-    "E501",
-    # mixed-case-variable-in-class-scope
-    "N815",
-    # needless-boool
-    "SIM103"
+  # whitespace-before-punctuation
+  "E203",
+  # percent-format-invalid-format
+  "E501",
+  # mixed-case-variable-in-class-scope
+  "N815",
+  # needless-boool
+  "SIM103"
 ]
