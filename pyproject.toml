@@ -35,7 +35,7 @@ Issues = "https://github.com/mite-standard/mite_extras/issues"
 mite_extras = "mite_extras.main:main_cli"
 
 [project.optional-dependencies]
-dev = ["pre-commit~=4.6", "prek>=0.4.9", "pytest~=9.1", "ruff~=0.15"]
+dev = ["prek>=0.4.9", "pytest~=9.1", "ruff~=0.15"]
 
 [build-system]
 requires = ["uv_build>=0.11,<0.12"]
@@ -72,8 +72,6 @@ select = [
   "RUF",
   # flake8-simplify
   "SIM",
-  # flake8-type-checking
-  "TCH",
   # flake8-tidy-imports
   "TID",
   # pyupgrade
