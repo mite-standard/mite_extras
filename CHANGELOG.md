@@ -6,14 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic
 Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.7] 17-07-2026
+
+### Changed
+
+- Implemented stereochemistry warnings as an attribute to retrieve by mite_data
+
 ## [1.6.6] 17-07-2026
 
 ### Changed
 
-- Reworked validation functionality of reaction SMARTS/SMILES: better handling of stereochemistry, better error messages
+- Reworked validation functionality of reaction SMARTS/SMILES: better handling
+  of stereochemistry, better error messages
 - Updated `rdkit` version
 - Unpinned `python` version to be compatible with future versions
-- In addition to `pre-commit`, added a `prek.toml` file for additional checks, including `typos.toml`
+- In addition to `pre-commit`, added a `prek.toml` file for additional checks,
+  including `typos.toml`
 
 ## [1.6.5] 25-10-2025
 

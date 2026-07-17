@@ -378,7 +378,7 @@ class ReactionValidator(BaseModel):
         expected_products: list[str],
         forbidden_products: list[str] | None = None,
         intramolecular: bool = False,
-    ) -> None:
+    ) -> None | str:
         """
         Validate a reaction SMARTS against expected and forbidden products.
 
@@ -388,6 +388,9 @@ class ReactionValidator(BaseModel):
             expected_products: List of expected product SMILES
             forbidden_products: Optional list of forbidden product SMILES
             intramolecular: Whether the reaction is intramolecular
+
+        Returns:
+            An optional message if stereochemistry validation was unsuccessful
 
         Raises:
             ValueError: missing products or overlap expected & forbidden products or not all expected products generated
@@ -412,7 +415,7 @@ class ReactionValidator(BaseModel):
         if overlap := forbidden_smiles & expected_smiles:
             raise ValueError(
                 f"Overlap between expected and forbidden products:\n"
-                f"{'\n'.join(overlap)}\n",
+                f"{'\n'.join(overlap)}"
             )
 
         # Generate reaction variants and validate
@@ -602,7 +605,7 @@ class ReactionValidator(BaseModel):
                 )
                 logger.warning(message)
                 # Continue (treat as warning): do not raise — caller/CLI should surface this warning to the user
-                return None
+                return message
 
             # If we reach here, all expected products matched exactly (should not happen),
             # otherwise earlier raises would have been triggered.
