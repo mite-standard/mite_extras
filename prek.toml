@@ -34,18 +34,6 @@ hooks = [
 ]
 
 [[repos]]
-repo = "https://github.com/fpgmaas/deptry"
-rev = "0.25.1"
-hooks = [
-  {
-    id = "deptry",
-    language = "python",
-    additional_dependencies = ["deptry"],
-    exclude = '^(?!.*\.py$).*$'
-  }
-]
-
-[[repos]]
 repo = "https://github.com/python-jsonschema/check-jsonschema"
 rev = "0.37.4"
 hooks = [{ id = "check-github-workflows" }, { id = "check-taskfile" }]
@@ -89,3 +77,27 @@ hooks = [{ id = "zizmor", entry = "zizmor --fix=all ." }]
 repo = "https://github.com/jolars/panache-pre-commit"
 rev = "v2.61.0"
 hooks = [{ id = "panache-format" }, { id = "panache-lint" }]
+
+[[repos]]
+repo = "local"
+hooks = [
+  {
+    name = "uv-upgrade",
+    id = "uv-upgrade",
+    pass_filenames = false,
+    entry = "uv lock --upgrade",
+    language = "system"
+  }
+]
+
+[[repos]]
+repo = "local"
+hooks = [
+  {
+    name = "pytest",
+    id = "pytest",
+    pass_filenames = false,
+    entry = "uv run pytest",
+    language = "system"
+  }
+]

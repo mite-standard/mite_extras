@@ -109,7 +109,7 @@ to [CONTRIBUTING](CONTRIBUTING.md).*
 ```commandline
 git clone https://github.com/mite-standard/mite_extras
 uv sync --extra dev
-uv run pre-commit install
+uv run prek install -f
 ```
 
 All tests should be passing
