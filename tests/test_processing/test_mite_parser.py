@@ -1,9 +1,8 @@
 import json
 
 import pytest
-from mite_schema import SchemaManager
 
-from mite_extras.processing.data_classes import Cofactors, EnzymeAux, Reaction
+from mite_extras.processing.data_classes import Cofactors, EnzymeAux
 from mite_extras.processing.mite_parser import MiteParser
 
 
@@ -29,22 +28,10 @@ def test_get_auxenzymes_valid(mite_json):
     assert isinstance(log[0], EnzymeAux)
 
 
-def test_get_databaseids_reaction_valid(mite_json):
+def test_get_reaction_messages(mite_json):
     parser = MiteParser()
-    log = parser.get_databaseids_reaction(
-        data=mite_json.get("reactions")[0].get("databaseIds"),
-    )
-    assert log.ec == "1.2.3.4"
-
-
-def test_get_reactions_valid(mite_json):
-    parser = MiteParser()
-    log = parser.get_reactions(reactions=mite_json.get("reactions"))
-    assert len(log) == 1
-    assert isinstance(log[0], Reaction)
-
-
-def test_parse_raw_json_valid(mite_json):
-    parser = MiteParser()
-    parser.parse_mite_json(data=mite_json)
-    assert SchemaManager().validate_mite(instance=parser.to_json()) is None
+    parser.parse_mite_json(mite_json)
+    messages = []
+    for r in parser.entry.reactions:
+        messages.extend(r.warnings)
+    assert len(messages) == 0

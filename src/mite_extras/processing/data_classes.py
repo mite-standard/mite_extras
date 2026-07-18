@@ -275,6 +275,7 @@ class Reaction(BaseModel):
         reactions: a list of ReactionEx objects
         evidence: an evidence object
         databaseIds: a ReactionDatabaseIds object
+        warnings: a list of warnings resulting from validation
     """
 
     tailoring: list
@@ -283,6 +284,7 @@ class Reaction(BaseModel):
     reactions: list
     evidence: Any
     databaseIds: Any | None = None
+    warnings: list = []
 
     _reaction_validator = ReactionValidator()
 
@@ -324,13 +326,15 @@ class Reaction(BaseModel):
                 intramolecular = True
 
             try:
-                self._reaction_validator.validate_reaction(
+                msg = self._reaction_validator.validate_reaction(
                     reaction_smarts=self.reactionSMARTS,
                     substrate_smiles=reaction.substrate,
                     expected_products=reaction.products,
                     forbidden_products=reaction.forbidden_products,
                     intramolecular=intramolecular,
                 )
+                if msg:
+                    self.warnings.append(msg)
             except Exception as e:
                 raise ValueError(
                     f"Reaction SMARTS #{reaction_id} - reaction example #{reaction}: Validation failed for substrate {reaction.substrate}: {e!s}",
