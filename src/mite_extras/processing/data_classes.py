@@ -144,6 +144,7 @@ class Enzyme(BaseModel):
         auxiliaryEnzymes: a list of EnzymeAux objects
         references: a list of references
         cofactors: optional object containing cofactor lists
+        taxid: optional NCBI Taxonomy ID of the source organism
     """
 
     name: str
@@ -152,10 +153,11 @@ class Enzyme(BaseModel):
     auxiliaryEnzymes: list | None = None
     references: list
     cofactors: Any | None = None
+    taxid: str | None = None
 
     def to_json(self: Self) -> dict:
         json_dict = {}
-        for attr in ["name", "description", "references"]:
+        for attr in ["name", "description", "taxid", "references"]:
             val = getattr(self, attr)
             if val not in (None, ""):
                 json_dict[attr] = val

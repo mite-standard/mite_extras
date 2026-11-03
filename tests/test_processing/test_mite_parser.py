@@ -35,3 +35,5 @@ def test_get_reaction_messages(mite_json):
     for r in parser.entry.reactions:
         messages.extend(r.warnings)
     assert len(messages) == 0
+
+

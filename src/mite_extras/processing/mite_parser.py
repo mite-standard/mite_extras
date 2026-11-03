@@ -172,6 +172,7 @@ class MiteParser(BaseModel):
                     cofactors=self.get_cofactors(
                         cofactors=data.get("enzyme", {}).get("cofactors"),
                     ),
+                    taxid=data.get("enzyme", {}).get("taxid"),
                 ),
                 reactions=self.get_reactions(reactions=data.get("reactions")),
                 comment=data.get("comment"),
