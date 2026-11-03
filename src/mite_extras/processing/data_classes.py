@@ -181,7 +181,7 @@ class Enzyme(BaseModel):
 
     def to_html(self: Self) -> dict:
         html_dict = {}
-        for attr in ["name", "description", "references"]:
+        for attr in ["name", "description", "taxid", "references"]:
             val = getattr(self, attr)
             if val not in (None, ""):
                 html_dict[attr] = val
