@@ -75,6 +75,7 @@ def enyzmeaux(enzyme_databaseids):
 def enzyme(enyzmeaux, enzyme_databaseids, cofactors):
     return Enzyme(
         name="BcdE",
+        taxid="1883",
         description="A nonexisting enzyme.",
         databaseIds=enzyme_databaseids,
         auxiliaryEnzymes=[enyzmeaux],
@@ -195,12 +196,14 @@ def test_enzymeaux_to_html_valid(enyzmeaux):
 def test_enzyme_to_json_valid(enzyme):
     json_dict = enzyme.to_json()
     assert json_dict["name"] == "BcdE"
+    assert json_dict["taxid"] == "1883"
     assert json_dict["cofactors"]["organic"][0] == "Heme"
 
 
 def test_enzyme_to_html_valid(enzyme):
     html_dict = enzyme.to_html()
     assert html_dict["name"] == "BcdE"
+    assert html_dict["taxid"] == "1883"
 
 
 def test_changelog_to_json_valid(changelog):
