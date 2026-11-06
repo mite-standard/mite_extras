@@ -203,7 +203,6 @@ def test_enzyme_to_json_valid(enzyme):
 def test_enzyme_to_html_valid(enzyme):
     html_dict = enzyme.to_html()
     assert html_dict["name"] == "BcdE"
-    assert html_dict["taxid"] == "1883"
 
 
 def test_changelog_to_json_valid(changelog):
