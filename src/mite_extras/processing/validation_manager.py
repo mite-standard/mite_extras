@@ -415,7 +415,7 @@ class ReactionValidator(BaseModel):
         if overlap := forbidden_smiles & expected_smiles:
             raise ValueError(
                 f"Overlap between expected and forbidden products:\n"
-                f"{'\n'.join(overlap)}"
+                f"{'\n'.join(overlap)}",
             )
 
         # Generate reaction variants and validate
@@ -504,7 +504,7 @@ class ReactionValidator(BaseModel):
                     exp_m = MolFromSmiles(exp_can)
                     Chem.AssignStereochemistry(exp_m, force=True, cleanIt=True)
                     exp_centers = dict(
-                        Chem.FindMolChiralCenters(exp_m, includeUnassigned=True)
+                        Chem.FindMolChiralCenters(exp_m, includeUnassigned=True),
                     )
 
                     # Try to find a predicted molecule that matches stereochemistry exactly
@@ -530,7 +530,7 @@ class ReactionValidator(BaseModel):
                                 continue
 
                         pred_centers = dict(
-                            Chem.FindMolChiralCenters(pred_m, includeUnassigned=True)
+                            Chem.FindMolChiralCenters(pred_m, includeUnassigned=True),
                         )
 
                         # Compare stereochemistry at corresponding centers
@@ -562,15 +562,15 @@ class ReactionValidator(BaseModel):
                             if not unknown:
                                 if all_inverted:
                                     mismatch_details.append(
-                                        (exp_can, pred_can, "enantiomer")
+                                        (exp_can, pred_can, "enantiomer"),
                                     )
                                 else:
                                     mismatch_details.append(
-                                        (exp_can, pred_can, "diastereomer")
+                                        (exp_can, pred_can, "diastereomer"),
                                     )
                             else:
                                 mismatch_details.append(
-                                    (exp_can, pred_can, "unknown_stereo")
+                                    (exp_can, pred_can, "unknown_stereo"),
                                 )
 
                     if not matched_exact:
@@ -590,7 +590,7 @@ class ReactionValidator(BaseModel):
                 details = []
                 for exp_can, pred_can, kind in stereochem_mismatches:
                     details.append(
-                        f"Expected: {exp_can}\nPredicted: {pred_can}\nMismatch: {kind}\n"
+                        f"Expected: {exp_can}\nPredicted: {pred_can}\nMismatch: {kind}\n",
                     )
                 message = (
                     "Reaction produced stereoisomers of expected products (stereochemistry mismatch).\n"

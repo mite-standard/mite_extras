@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic
 Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] 04-11-2026
+
+### Added
+
+- Optional `enzyme.taxid` (NCBI Taxonomy ID) is parsed and exported
+
 ## [1.6.7] 17-07-2026
 
 ### Changed

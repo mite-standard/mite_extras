@@ -35,3 +35,28 @@ def test_get_reaction_messages(mite_json):
     for r in parser.entry.reactions:
         messages.extend(r.warnings)
     assert len(messages) == 0
+
+
+def test_parse_mite_json_with_taxid(mite_json):
+    mite_json["enzyme"]["taxid"] = "1883"
+    parser = MiteParser()
+    parser.parse_mite_json(mite_json)
+
+    assert parser.entry.enzyme.taxid == "1883"
+    assert parser.entry.to_json()["enzyme"]["taxid"] == "1883"
+
+
+def test_parse_mite_json_with_taxid_invalid(mite_json):
+    with pytest.raises(ValueError):
+        mite_json["enzyme"]["taxid"] = 1883
+        parser = MiteParser()
+        parser.parse_mite_json(mite_json)
+
+
+def test_parse_mite_json_without_taxid(mite_json):
+    mite_json["enzyme"].pop("taxid", None)
+    parser = MiteParser()
+    parser.parse_mite_json(mite_json)
+
+    assert parser.entry.enzyme.taxid is None
+    assert "taxid" not in parser.entry.to_json().get("enzyme", {})
